@@ -1,0 +1,128 @@
+//----------------------------------------------------------------------------\\
+                        HTTP
+
+.   The primary function of a web server is to store, process, and deliver web pages to
+        clients. The communication between client and server takes place using the Hypertext
+        Transfer Protocol (HTTP).
+
+
+HTTP :
+    is built on top of TCP (transmission control Protocl)
+
+HTTP : communication protocol used by WEB APIS (Application Programming Interface)
+    the protocol follows a client server model, where clients communicate with servers by
+    sending requests and waiting for responses.
+    one of the most important properties of http requests is the request method
+    called the http verbs
+
+            //+++++++++++++++++++++++++++++++\\
+                        GET (GET)
+        request Method = Get
+    . simple requests for infromation
+    . should only retrieve(get back) data 
+    . shouldn't result in modification of data
+
+                Get employee information ----->(Get)-----> Employees API
+
+            //+++++++++++++++++++++++++++++++\\
+                        POST (CREATE)
+    . Modify the underlying data (modify the state of the underlying data)
+    . create new resources (meaning whenever a new employee is hired by out company
+        we woulf send a post request to the employee's endpoint to add a new employee
+        resource)
+
+            //+++++++++++++++++++++++++++++++\\
+                        DELETE
+    . Remove existing resources (whenever an employee leaves our company we might send
+        a delete request to the employee api to remove the employee from our systems )
+
+//----------------------------------------------------------------------------\\
+
+                            RFC
+
+    RFC documents contain technical specifications and organizational notes for the Internet.
+
+
+IETF : (The Internet Engineering Task Force)
+    . "the overall goal of the IETF is to make the Internet work better."
+    . its mission is to produce high quality, and engineering documents that influence 
+    the way people design, use, and manage the Internet in such a way as to make the Internet work better.
+
+
+poll() : (Polling the network)
+    Poll the network to retrieve information from network devices that you can use to monitor the behavior of the devices.
+
+select() :
+
+kqueue() : 
+
+epoll() :
+
+//----------------------------------------------------------------------------\\
+
+Server => describes a role purpose or behavior
+
+-> the thing that makes a porogram => "server":
+    it's supplies you with the data you requested 
+
+-> client asks/requests data from server
+
+
+
+//--------------------------------------------------------------------------\\
+                        Socket
+
+Socket : is a feature to connect programs (over a network)
+
+    . Used for communication in client_server systems.
+    . a Socket is defined as an endpoint for communication.
+    . a pair of processes communication over a network employ a pair of sockets 
+        one for each process.(when two processes want to communicate there needs to be a connection
+        btw them and at each end of the connection each of this processes will employ a socket)
+    . a Socket is identified by an IP addr concatenated with a port number(means followed by a port
+        number). 
+    . the server waits for incoming client requests by listening to a specified port,
+        once a request is received, the server accepts a connection from the client socket to complete 
+        the connection
+
+//--------------------------------------------------------------------------\\
+
+                    Requests consist of the following elements:
+
+An HTTP method, usually a verb like GET, POST, or a noun like OPTIONS or HEAD that defines the operation the client wants to perform. Typically, a client wants to fetch a resource (using GET) or post the value of an HTML form (using POST), though more operations may be needed in other cases.
+The path of the resource to fetch; the URL of the resource stripped from elements that are obvious from the context, for example without the protocol (http://), the domain (here, developer.mozilla.org), or the TCP port (here, 80).
+The version of the HTTP protocol.
+Optional headers that convey additional information for the servers.
+A body, for some methods like POST, similar to those in responses, which contain the resource sent.
+
+
+                    HTTP Request Methods
+        ----------------------------------------------------
+        |Get Post Put Delete Head Connect Option Trace Patch|
+        ----------------------------------------------------
+                    HTTP Response Message
+       --------------------------------------------------------
+      |Status Code,    Header Fields,    Message Body(optional)|
+       --------------------------------------------------------
+
+PROXY : is a computer server or program that separates local network from outside
+        networks
+
+PROXY SERVER : will cache all pages accessed, that is allowing users next time
+        requesting the same page will load faster
+
+API : (Application Programming Interface)
+    is a software intermediary that allows two applications
+    to talk to each other over the internet
+
+//============================================================================\\
+
+                        HEADERS TYPE
+
+    generale headers, request headers, response headers, entity headers
+
+//============================================================================\\
+
+    URL : an address of a given unique resource on the web. 
+        http://DomainName:port(80 of http)/resourcePath
+

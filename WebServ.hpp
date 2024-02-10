@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/10 13:02:54 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/10 14:58:06 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <limits.h>
 
 #define _XOPEN_SOURCE 700
 

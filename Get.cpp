@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/10 14:39:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/10 20:28:17 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,9 @@ Get::~Get()
 
 }
 
-Get::Get(Response &res) : response(res), statusCode(-1), statusMessage("ko"), path("ko")
+Get::Get(Response &res) : 
+	response(res), statusCode(-1),
+	statusMessage("ko"), path("ko")
 {
 
 }
@@ -63,20 +65,19 @@ const char*	Get::DirectoryFailed::what() const throw()
 	return ("forbidden");
 }
 
-void	Get::stringOfDyrectories()
-{
-	std::string	s;
-	
-	s = "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of/</h1>\n<hr />\n"
-	for (size_t i = 0; i < vDir.size(); i++)
-		s += "<p><a href=\"" + 
+void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
+{	
+	fillAutoIndexFile = "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
+	for (size_t i = 0; i < vdir.size(); i++)
+		fillAutoIndexFile += "<p><a href=\"" + vdir[i] + "\">" + vdir[i] + "</a></p>";
+	fillAutoIndexFile += "\n</body>\n</html>\n";
 }
 
 void	Get::readListOfCurDirectory()
 {
-	char	*cwd;
-	DIR		*pDir;
-	struct dirent *pDirent;
+	char			cwd[PATH_MAX];
+	DIR				*pDir;
+	struct dirent	*pDirent;
 
 	try
 	{
@@ -87,6 +88,7 @@ void	Get::readListOfCurDirectory()
 			throw	DirectoryFailed();
 		while ((pDirent = readdir(pDir)))
 			vDir.push_back(pDirent->d_name);
+		stringOfDyrectories(vDir);
 		closedir(pDir);
 	}
 	catch (const std::exception& e)
@@ -139,7 +141,6 @@ void    Get::openFile()
 	}
 	
 	//check if location has a cgi 
-	
 	statusCode = 200;
 	statusMessage = "ok";
 }
