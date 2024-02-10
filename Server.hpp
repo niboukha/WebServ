@@ -34,6 +34,8 @@ class Server
         const mapStrVect&                       getServerData() const;
         const std::map<std::string,  Location>& getLocations() const;
         
+        
+
         static  bool    serverValidDirective(std::string directive);
         static  bool    isValidHostValue(std::string hostValues);
         static  bool    isValidPortValue(std::string portValue);

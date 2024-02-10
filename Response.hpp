@@ -14,31 +14,42 @@
 #define RESPONSE_HPP
 
 #include "WebServ.hpp"
+#include "Request.hpp"
 #include "Get.hpp"
 #include "Post.hpp"
 #include "Delete.hpp"
 
+class Request;
+
 class Response
 {
 	private:
-		
-		char		*localCheck;
+
+		std::map<std::string, std::string>	type;
+		// char								*localCheck;
 
 		Request		&req;
-
 		Get			*get;
-		Post		*post;
-		Delete		*delt;
-		
+		// Post		*post;
+		// Delete		*delt;
+
+
 	public:
 
 		Response(Request &request);
 		~Response();
-		
-		const Request	getRequest() const;
 
-		
-		void	fillResponse();
+
+		const Request								getRequest() const;
+		const std::map<std::string, std::string>	getType();
+
+		void			fillResponse();
+		void			contentType(std::map<std::string, std::string>	&tP);
+		long int		contentLength(std::string path);
+		void			trimString( std::string &s );
+
+		std::vector<std::string>	moreThanKey(std::string s);
+
 };
 
 #endif

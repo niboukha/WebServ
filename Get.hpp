@@ -21,11 +21,11 @@ class	Get
 {
 	private :
 		Response					&response;
-		int							statusCode;
-		std::string					statusMessage;
+		std::string					statusCodeMsg;
 		std::string					path;
 		std::vector<std::string>	vDir;
 		std::string					fillAutoIndexFile;
+
 	public :
 		
 		Get(Response &res);
@@ -33,6 +33,7 @@ class	Get
 		
 		void		openFile();
 		
+		std::string	getContentType();
 		std::string	concatenatePath();
 		std::string	directoryInRequest(std::string &file);
 		std::string	concatenateIndexDirectory(std::string &file);
@@ -41,6 +42,8 @@ class	Get
 		void	stringOfDyrectories(std::vector<std::string> &vdir);
 
 		int		isDir(const char* file); // you should read about it
+
+		char*	responseFill();
 
 		class	DirectoryFailed : public std::exception
 		{

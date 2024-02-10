@@ -18,7 +18,7 @@ Get::~Get()
 }
 
 Get::Get(Response &res) : 
-	response(res), statusCode(-1),
+	response(res), statusCodeMsg("-1"),
 	statusMessage("ko"), path("ko")
 {
 
@@ -93,8 +93,7 @@ void	Get::readListOfCurDirectory()
 	}
 	catch (const std::exception& e)
     {
-		statusCode = 403;
-        statusMessage = e.what();
+		statusCodeMsg = "403" + e.what();
     }		
 }
 
@@ -104,17 +103,11 @@ std::string	Get::directoryInRequest(std::string &file)
 
 	loc = response.getRequest().getLocationMethod();
 	if (file.back() == '/')
-	{
-		statusCode = 301;
-		statusMessage = "Moved Permanently";
-	}
+		statusCodeMsg = "301 Moved Permanently";
 	if (loc["index"].empty())
 	{
 		if (loc["auto_index"].empty() or loc["auto_index"].front() == "off")
-		{
-			statusCode = 403;
-			statusMessage = "forbidden";
-		}
+			statusCodeMsg = "403 forbidden";
 		readListOfCurDirectory();
 	}
 	return (concatenateIndexDirectory(file));
@@ -129,19 +122,39 @@ void    Get::openFile()
 	{
 		path = directoryInRequest(path);
 		if (path.empty())
-		{
-			statusCode = 404;
-			statusMessage = "not found";
-		}
+			statusCodeMsg = "404 not found";
 	}
 	else if (!file.is_open())
-	{
-		statusCode = 404;
-		statusMessage = "not found";
-	}
+		statusCodeMsg = "404 not found";
 	
 	//check if location has a cgi 
-	statusCode = 200;
-	statusMessage = "ok";
+	statusCodeMsg = "200 ok";
+	file.close();
+}
+
+std::string	Get::getContentType()
+{
+	size_t		found;
+	std::string	s;
+	std::string	ret;
+
+	found = path.find_last_of( "." );
+
+	if (found != std::string::npos)
+	{
+		s = path.substr(found + 1);
+		ret = type[s];
+	}
+	return (ret);
+}
+
+char*	Get::response()
+{
+	std::string	s;
+
+	s = response.getRequest().getProtocolVersion() + " " + 
+		statusCodeMsg + "\n\r" + "Content-Type: " + response.getContentType() +
+		"\n\r" + "Content-Length: " + response.contentLength(path) + "\n\r\n\r";
+	return (s.c_str());
 }
 

@@ -1,5 +1,10 @@
-
 #include <iostream>
+#include <string>
+#include <map>
+#include <exception>
+#include <fstream>
+#include <vector>
+#include <fstream>
 #include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -7,26 +12,112 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <limits.h>
-#include <fstream>
+#include <stdio.h> 
+// int main()
+// {
+// 	std::ofstream	file;
+
+// 	file.open("file.html");
+// 	char	cwd[PATH_MAX];
+// 	DIR		*pDir;
+// 	struct dirent *pDirent;
+
+// 		if (!getcwd(cwd, sizeof(cwd)))
+// 			std::cout << "fff\n"; 
+//         std::cout << cwd << "\n";
+// 		pDir = opendir(cwd);
+// 		if (!pDir)
+//            	std::cout << "rrr\n"; 
+// 		file << "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of/</h1>\n<hr />\n";
+// 		while ((pDirent = readdir(pDir)))
+// 			file <<  "<p><a href=\"" << pDirent->d_name << "\">" << pDirent->d_name << "</a></p>" "\n"; 
+// 		file << "\n</body>\n</html>\n";
+// 		closedir(pDir);
+// }
+
+
+void	trimString( std::string &s )
+{
+	size_t	foundFisrt;
+	size_t	foundLast;
+
+	foundFisrt = s.find_last_not_of( " \t" );
+	foundLast  = s.find_first_not_of( " \t" );
+	if ( foundFisrt != std::string::npos )
+	{
+		s = s.substr( 0, foundFisrt + 1 );
+    	s = s.substr( foundLast );
+	}
+	else
+		s.clear();
+}
+
+std::vector<std::string>	moreThanKey(std::string s)
+{
+	std::vector<std::string>	vect;
+	std::string					str;
+
+	trimString(s);
+	for (size_t i = 0 ; i < s.length(); i++)
+	{
+		if (s[i] != ' ' and s[i] != ';')
+			str += s[i];
+		if ((s[i] == ' ' or s[i] == ';') and str.length() > 0)
+		{
+			vect.push_back(str);
+			str.clear();
+		}
+	}
+	return (vect);
+}
+
 
 int main()
 {
-	std::ofstream	file;
+	std::string path = "/nfs/homes/niboukha/Desktop/webServ/mimetype.txt";
+	std::ifstream	file("/nfs/homes/niboukha/Desktop/webServ/mimetype.txt");
 
-	file.open("file.html");
-	char	cwd[PATH_MAX];
-	DIR		*pDir;
-	struct dirent *pDirent;
+	std::map<std::string, std::string>	type;
+	std::vector<std::string>	vec;
+	std::string	s;
+	std::string	value;
+	size_t		found;
 
-		if (!getcwd(cwd, sizeof(cwd)))
-			std::cout << "fff\n"; 
-        std::cout << cwd << "\n";
-		pDir = opendir(cwd);
-		if (!pDir)
-           	std::cout << "rrr\n"; 
-		file << "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of/</h1>\n<hr />\n";
-		while ((pDirent = readdir(pDir)))
-			file <<  "<p><a href=\"" << pDirent->d_name << "\">" << pDirent->d_name << "</a></p>" "\n"; 
-		file << "\n</body>\n</html>\n";
-		closedir(pDir);
+	std::getline(file, s);
+
+	while ( std::getline( file, s ) )
+	{
+		trimString( s );
+		found = s.find_first_of( " \t" );
+		value = s.substr(0, found + 1);
+		vec = moreThanKey(s.substr(found + 1));
+		for (size_t i = 0; i < vec.size(); i++)
+			type[vec[i]] = value;
+	}
+
+	std::string	ret;
+	std::string	r;
+
+	found = path.find_last_of( "." );
+
+	if (found != std::string::npos)
+	{
+		r = path.substr(found + 1);
+		std::cout << r << "\n";
+		ret = type[r];
+	}
+
+	long int	sz;
+
+	FILE* fp = fopen(path.c_str(), "r");
+    fseek(fp, 0L, SEEK_END); 
+    sz = ftell(fp); 
+    fclose(fp); 
+	std::cout << sz << "\n";
+	// std::map<std::string, std::string>::iterator	it = type.begin();
+	// for (; it != type.end(); it++)
+	// {
+	// 	std::cout << it->first << " " << it->second << "\n";
+	// }
+
 }

@@ -27,14 +27,14 @@ void    Request::setMethod(std::string& m)
     method = m;
 }
 
-const std::string&  Request::getMethod() const
+const std::string  Request::getMethod() const
 {
     return (method);
 }
 
-const mapStrVect    Request::getLocationPath() const
+const mapStrVect    Request::getLocationMethod() const
 {
-    
+    return (locationMethod);
 }
 
 
