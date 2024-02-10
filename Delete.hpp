@@ -1,14 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ConfigFileErrors.cpp                               :+:      :+:    :+:   */
+/*   Delete.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/08 09:35:16 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/08 09:38:24 by shicham          ###   ########.fr       */
+/*   Created: 2024/02/09 11:11:44 by niboukha          #+#    #+#             */
+/*   Updated: 2024/02/09 11:12:05 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Webser.hpp"
+#ifndef DELETE_HPP
+#define DELETE_HPP
 
+#include <iostream>
+
+class   Delete
+{
+    private :
+
+    public :
+       
+};
+
+
+#endif

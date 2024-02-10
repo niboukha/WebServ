@@ -1,30 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Location.cpp                                       :+:      :+:    :+:   */
+/*   Post.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/07 10:30:57 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/07 11:16:27 by shicham          ###   ########.fr       */
+/*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
+/*   Updated: 2024/02/09 11:11:40 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Location.hpp"
+#ifndef POST_HPP
+#define POST_HPP
 
-Location::Location()
-{
-}
+#include <iostream>
 
-Location::~Location()
+class   Post
 {
-}
-void    Location::setLocationData(mapStrVect& locData)
-{
-    locationData = locData;
-}
+    private :
 
-const mapStrVect& Location::getLocationData() const
-{
-    return locationData;
-}
+    public :
+       
+};
+
+
+#endif

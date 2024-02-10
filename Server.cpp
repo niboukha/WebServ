@@ -3,17 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/08 11:19:48 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/08 13:24:23 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
 Server::Server()
-{  
+{
+    
 }
 
 Server::~Server()
@@ -47,5 +48,3 @@ bool Server::serverValidDirective(std::string directive)
         return true;
     throw UnknownDirective();
 }
-
-bool   Server::isValidHostValue()

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/08 09:43:42 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/10 13:02:54 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,19 +17,33 @@
 #include <string>
 #include <map>
 #include <exception>
-#include "Exceptions.hpp"
 #include <fstream>
 #include <vector>
-#include "StringOperations.hpp"
+#include <fstream>
+#include <string>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <unistd.h>
+
+#define _XOPEN_SOURCE 700
 
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 
-#include "Server.hpp"
-#include "Location.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
 
-class Server;
-class  Location;
-class StringOperations;
+#include "Get.hpp"
+#include "Post.hpp"
+#include "Delete.hpp"
+
+#include "Exceptions.hpp"
+
+
+class   Server;
+class   Location;
+class   StringOperations;
 
 std::vector<Server>  parseConfigFile(std::fstream& configFile);
 

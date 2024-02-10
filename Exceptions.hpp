@@ -1,19 +1,19 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   exceptions.hpp                                     :+:      :+:    :+:   */
+/*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:59:44 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/08 10:16:04 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/08 13:20:21 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
 
-#include <exception>
+#include "WebServ.hpp"
 
 class InvalidArguments : public std::exception
 {

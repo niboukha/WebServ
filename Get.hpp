@@ -1,0 +1,55 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Get.hpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
+/*   Updated: 2024/02/10 14:37:20 by niboukha         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef GET_HPP
+#define GET_HPP
+
+#include "WebServ.hpp"
+
+class Response;
+
+class	Get
+{
+	private :
+		Response	&response;
+		int			statusCode;
+		std::string	statusMessage;
+		std::string	path;
+		std::vector<std::string>	vDir;
+
+	public :
+		
+		Get(Response &res);
+		~Get();
+		
+		void		openFile();
+		
+		std::string	concatenatePath();
+		std::string	directoryInRequest(std::string &file);
+		std::string	concatenateIndexDirectory(std::string &file);
+		
+		
+		void	readListOfCurDirectory();
+		void	stringOfDyrectories();
+
+		int			isDir(const char* file); // you should read about it
+		
+		class	DirectoryFailed : public std::exception
+		{
+			public :
+				const char	*what() const throw();
+		};
+
+};
+
+
+#endif
