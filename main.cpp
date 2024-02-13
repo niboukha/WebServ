@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 11:06:51 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/08 16:44:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/12 12:15:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,26 +26,26 @@ mapStrVect  fillServerData()
     return (ser);
 }
 
-std::map<std::string, Location>  fillLocationClass()
-{
-    std::map<std::string, Location> loc;
-    mapStrVect  setLoc;
-    Location    loca;
-    Server  s;
+// std::map<std::string, >  fillLocationClass()
+// {
+//     std::map<std::string, mapStrVect > loc;
+//     mapStrVect  setLoc;
+//     mapStrVect    loca;
+//     Server        s;
     
-    setLoc["root"].push_back("/requests_files");
-    setLoc["allow"].push_back("GET");
-    setLoc["allow"].push_back("POST");
-    setLoc["allow"].push_back("DELETE");
-    setLoc["autoindex"].push_back("on");
-    setLoc["index"].push_back("index.html");
+//     setLoc["root"].push_back("/requests_files");
+//     setLoc["allow"].push_back("GET");
+//     setLoc["allow"].push_back("POST");
+//     setLoc["allow"].push_back("DELETE");
+//     setLoc["autoindex"].push_back("on");
+//     setLoc["index"].push_back("index.html");
     
-    loca.setLocationData(setLoc);
-    loca.getLocationData();
-    loc["/"] = loca;
-    s.setLocations(loc);
-    return (s.getLocations());
-}
+//     loca.setLocationData(setLoc);
+//     loca.getLocationData();
+//     loc["/"] = loca;
+//     s.setLocations(loc);
+//     return (s.getLocations());
+// }
 
 int main(int ac, char **av)
 {
@@ -57,12 +57,9 @@ int main(int ac, char **av)
         
         Server  obj;
         mapStrVect  ser;
-        std::map<std::string,  Location>  loc;
 
         ser = fillServerData();
-        loc = fillLocationClass();
         obj.setServerData(ser);
-        obj.setLocations(loc);
         
         mapStrVect::iterator it = ser.begin();
         for (; it != ser.end(); it++)
@@ -75,24 +72,24 @@ int main(int ac, char **av)
             std::cout << "\n";
         }
         
-        std::map<std::string,  Location>::iterator itr = loc.begin();
+        // std::map<std::string,  Location>::iterator itr = loc.begin();
         
-        for (; itr != loc.end(); itr++)
-        {
-            std::cout << itr->first << '\n';
-            mapStrVect l = itr->second.getLocationData();
-            std::cout << l.size();
-            mapStrVect::iterator it = l.begin();
-            for (; it != l.end(); it++)
-            {
-                std::cout << it->first << "\t";
-                for (size_t i = 0; i < it->second.size(); i++)
-                {
-                    std::cout << it->second[i] << " ";
-                }
-                std::cout << "\n";
-            }
-        }
+        // for (; itr != loc.end(); itr++)
+        // {
+        //     std::cout << itr->first << '\n';
+        //     mapStrVect l = itr->second.getLocationData();
+        //     std::cout << l.size();
+        //     mapStrVect::iterator it = l.begin();
+        //     for (; it != l.end(); it++)
+        //     {
+        //         std::cout << it->first << "\t";
+        //         for (size_t i = 0; i < it->second.size(); i++)
+        //         {
+        //             std::cout << it->second[i] << " ";
+        //         }
+        //         std::cout << "\n";
+        //     }
+        // }
     }
     catch(const std::exception& e)
     {

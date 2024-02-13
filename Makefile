@@ -4,7 +4,7 @@ CXXFLAGS = -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g3
 
 NAME = webserv
 
-SRC = Delete.cpp Post.cpp Request.cpp Response.cpp Server.cpp main.cpp Location.cpp
+SRC = Delete.cpp Post.cpp Request.cpp Response.cpp Server.cpp main.cpp Get.cpp Utils.cpp Client.cpp
 
 OBJ = $(SRC:%.cpp=%.o)
 

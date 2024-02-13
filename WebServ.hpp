@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/10 14:58:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/13 12:38:38 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,23 +27,30 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sstream>
 
 #define _XOPEN_SOURCE 700
 
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 
+enum    Stage
+{
+    REQSTAGE,
+    RESHEADER,
+    RESBODY
+};
+
 #include "Request.hpp"
 #include "Response.hpp"
-
+#include "Client.hpp"
 #include "Get.hpp"
 #include "Post.hpp"
 #include "Delete.hpp"
 
 #include "Exceptions.hpp"
-
+#include "Utils.hpp"
 
 class   Server;
-class   Location;
 class   StringOperations;
 
 std::vector<Server>  parseConfigFile(std::fstream& configFile);

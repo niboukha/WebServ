@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/10 20:28:17 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/12 22:08:52 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,47 +17,9 @@ Get::~Get()
 
 }
 
-Get::Get(Response &res) : 
-	response(res), statusCodeMsg("-1"),
-	statusMessage("ko"), path("ko")
+Get::Get(Response &res) : response(res)
 {
-
-}
-
-std::string	Get::concatenatePath()
-{
-	mapStrVect  loc;
-
-	loc = response.getRequest().getLocationMethod();
-	return (loc["root"].front() + response.getRequest().getPathHeader());
-}
-
-int Get::isDir(const char* file)
-{
-    struct stat path;
-
-    stat(file, &path);
-    return S_ISREG(path.st_mode);
-}
-
-std::string	Get::concatenateIndexDirectory(std::string &file)
-{
-	mapStrVect  loc;
-	std::string	path;
 	
-	loc = response.getRequest().getLocationMethod();
-	for (size_t i = 0; i < loc["index"].size(); i++)
-	{
-		path = loc["index"][i];
-		std::ifstream	myFile(loc["index"][i]);
-		if (myFile.is_open())
-		{
-			myFile.close();
-			return (loc["index"][i] + file);
-		}
-		myFile.close();
-	}
-	return (NULL);
 }
 
 const char*	Get::DirectoryFailed::what() const throw()
@@ -75,12 +37,12 @@ void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 
 void	Get::readListOfCurDirectory()
 {
-	char			cwd[PATH_MAX];
-	DIR				*pDir;
-	struct dirent	*pDirent;
-
 	try
 	{
+		char			cwd[PATH_MAX];
+		DIR				*pDir;
+		struct dirent	*pDirent;
+		
 		if (!getcwd(cwd, sizeof(cwd)))
 			throw	DirectoryFailed();
 		pDir = opendir(cwd);
@@ -88,12 +50,15 @@ void	Get::readListOfCurDirectory()
 			throw	DirectoryFailed();
 		while ((pDirent = readdir(pDir)))
 			vDir.push_back(pDirent->d_name);
-		stringOfDyrectories(vDir);
+		statusCodeMsg = "200 OK";
+		stringOfDyrectories(vDir);       //Path
 		closedir(pDir);
 	}
 	catch (const std::exception& e)
     {
-		statusCodeMsg = "403" + e.what();
+		statusCodeMsg = "403";
+		statusCodeMsg += e.what();
+		//
     }		
 }
 
@@ -103,58 +68,47 @@ std::string	Get::directoryInRequest(std::string &file)
 
 	loc = response.getRequest().getLocationMethod();
 	if (file.back() == '/')
-		statusCodeMsg = "301 Moved Permanently";
+		statusCodeMsg = "301 Moved Permanently"; return ; //
 	if (loc["index"].empty())
 	{
 		if (loc["auto_index"].empty() or loc["auto_index"].front() == "off")
-			statusCodeMsg = "403 forbidden";
+			statusCodeMsg = "403 forbidden"; return ; //
 		readListOfCurDirectory();
 	}
-	return (concatenateIndexDirectory(file));
+	return (response.concatenateIndexDirectory(file));
 }
 
-void    Get::openFile()
+void    Get::statusOfFile()
 {
-	path = concatenatePath();
+	path = response.concatenatePath();
 	std::ifstream	file(path);
 	
-	if (!isDir(path.c_str()))
+	if (!Utils::isDir(path.c_str()))
 	{
 		path = directoryInRequest(path);
 		if (path.empty())
-			statusCodeMsg = "404 not found";
+			statusCodeMsg = "404 not found"; return ;//
 	}
 	else if (!file.is_open())
-		statusCodeMsg = "404 not found";
+		statusCodeMsg = "404 not found"; return ;//
 	
-	//check if location has a cgi 
+	//check if location has a cgi
+	
 	statusCodeMsg = "200 ok";
 	file.close();
 }
 
-std::string	Get::getContentType()
-{
-	size_t		found;
-	std::string	s;
-	std::string	ret;
-
-	found = path.find_last_of( "." );
-
-	if (found != std::string::npos)
-	{
-		s = path.substr(found + 1);
-		ret = type[s];
-	}
-	return (ret);
-}
-
-char*	Get::response()
+std::string	Get::responsHeader()
 {
 	std::string	s;
 
 	s = response.getRequest().getProtocolVersion() + " " + 
-		statusCodeMsg + "\n\r" + "Content-Type: " + response.getContentType() +
-		"\n\r" + "Content-Length: " + response.contentLength(path) + "\n\r\n\r";
-	return (s.c_str());
+		statusCodeMsg + "\n\r" + "Content-Type: " + response.getContentType(path) +
+		"\n\r" + "Content-Length: " + response.getContentLength(path) + "\n\r\n\r";
+	return (s);
 }
 
+std::string	Get::responsBody()
+{
+	
+}

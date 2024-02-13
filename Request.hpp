@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 12:37:55 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/10 09:41:52 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/13 15:37:46 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,14 @@ class Request
         mapStrVect locationMethod;
         mapStrVect headersMethod;
         
+        std::map<std::string, std::string>	errorPages; //exmpl : <404, path>
+        
         std::string method;
         std::string pathHeader;
-        
-        Response	*response;
-    
-        
+        std::string protocolVersion;
+
+        int         stage;
+
     public :
 
         Request ();
@@ -43,11 +45,14 @@ class Request
         void    setLocationMethod(mapStrVect loc);
         void    setPathHeader(std::string pHeader);
         void    setMethod(std::string& m);
-        
+
         const mapStrVect    getLocationMethod() const;
         const std::string   getPathHeader() const;
         const std::string   getMethod() const;
-        const std::string   getProtocolVersion();
+        const std::string   getProtocolVersion() const;
+		const int&	        getStage() const;
+		
+		const std::map<std::string, std::string>&	getErrorPage() const;
         
 };
 

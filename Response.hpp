@@ -6,49 +6,45 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/10 10:44:02 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/13 13:56:56 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "WebServ.hpp"
-#include "Request.hpp"
-#include "Get.hpp"
-#include "Post.hpp"
-#include "Delete.hpp"
+#include "WebServ.hpp"                                                                                                                                         
 
 class Request;
+class Get;
 
 class Response
 {
 	private:
 
-		std::map<std::string, std::string>	type;
-		// char								*localCheck;
+		std::map<std::string, std::string>	contType;
 
 		Request		&req;
 		Get			*get;
+		// char		*localCheck;
 		// Post		*post;
-		// Delete		*delt;
-
+		// Delete	*delt;
 
 	public:
 
-		Response(Request &request);
+		Response( Request &request );
 		~Response();
 
+		const Request	getRequest() const;
+		std::string		getContentType( std::string &path );
+		std::string		getContentLength( std::string &path );
 
-		const Request								getRequest() const;
-		const std::map<std::string, std::string>	getType();
+		
+		void			mapOfTypes( );
+		std::string		concatenateIndexDirectory( std::string &file );
+		std::string		concatenatePath( );
 
-		void			fillResponse();
-		void			contentType(std::map<std::string, std::string>	&tP);
-		long int		contentLength(std::string path);
-		void			trimString( std::string &s );
-
-		std::vector<std::string>	moreThanKey(std::string s);
+		void			prefaceMethod( );
 
 };
 

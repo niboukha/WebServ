@@ -6,15 +6,15 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/10 11:33:22 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/13 13:55:00 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response(Request &request) : req(request)
+Response::Response( Request &request ) : req( request )
 {
-	contentType(type);
+	
 }
 
 Response::~Response()
@@ -24,65 +24,43 @@ Response::~Response()
 
 const Request	Response::getRequest() const
 {
-	return (req);
+	return ( req );
 }
 
-const std::map<std::string, std::string>	Response::getType()
+std::string	Response::getContentLength( std::string &path )
 {
-	return (type);
+	long int			sz;
+	std::stringstream	s;
+	std::string			ret;
+	
+	FILE* fp;
+	
+	fp = fopen(path.c_str(), "r");
+    fseek(fp, 0L, SEEK_END); 
+    sz = ftell(fp); 
+    fclose(fp); 
+	s << sz;
+	s >> ret;
+	return ( ret );
 }
 
-
-void   Response::fillResponse()
+std::string		Response::getContentType( std::string &path )
 {
-	if (req.getMethod() == "Get")
+	size_t		found;
+	std::string	s;
+	std::string	ret;
+
+	found = path.find_last_of( "." );
+
+	if (found != std::string::npos)
 	{
-		get = new Get(*this);
-	}    
-	// else if (req.getMethod() == "Post")
-	//     post = new Post(*this);
-	// else if (req.getMethod() == "Delete")
-	//     delt = new Delete(*this);
-
-
-}
-
-void	Response::trimString( std::string &s )
-{
-	size_t	foundFisrt;
-	size_t	foundLast;
-
-	foundFisrt = s.find_last_not_of( " \t" );
-	foundLast  = s.find_first_not_of( " \t" );
-	if ( foundFisrt != std::string::npos )
-	{
-		s = s.substr( 0, foundFisrt + 1 );
-    	s = s.substr( foundLast );
+		s = path.substr(found + 1);
+		ret = contType[s];
 	}
-	else
-		s.clear();
+	return ( ret );
 }
 
-std::vector<std::string>	Response::moreThanKey( std::string s )
-{
-	std::vector<std::string>	vect;
-	std::string					str;
-
-	trimString(s);
-	for (size_t i = 0 ; i < s.length(); i++)
-	{
-		if (s[i] != ' ' and s[i] != ';')
-			str += s[i];
-		if ((s[i] == ' ' or s[i] == ';') and str.length() > 0)
-		{
-			vect.push_back(str);
-			str.clear();
-		}
-	}
-	return (vect);
-}
-
-void	Response::contentType(std::map<std::string, std::string>	&tP)
+void	Response::mapOfTypes( )
 {
 	std::ifstream	file( "/nfs/homes/niboukha/Desktop/webServ/mimetype.txt" );
 
@@ -94,23 +72,52 @@ void	Response::contentType(std::map<std::string, std::string>	&tP)
 	std::getline(file, s);
 	while ( std::getline( file, s ) )
 	{
-		trimString( s );
+		Utils::trimString( s );
 		found = s.find_first_of( " \t" );
 		value = s.substr( 0, found + 1 );
-		vec = moreThanKey( s.substr(found + 1) );
+		vec = Utils::moreThanKey( s.substr(found + 1) );
 		for ( size_t i = 0; i < vec.size(); i++ )
-			tP[vec[i]] = value;
+			contType[vec[i]] = value;
 	}
 }
 
-long int Response::contentLength(std::string path)
+std::string	Response::concatenateIndexDirectory( std::string &file )
 {
-	long int	sz;
+	mapStrVect  loc;
+	std::string	path;
+	
+	loc = getRequest().getLocationMethod();
+	for (size_t i = 0; i < loc["index"].size(); i++)
+	{
+		path = loc["index"][i];
+		std::ifstream	myFile(loc["index"][i]);
+		if (myFile.is_open())
+		{
+			myFile.close();
+			return (loc["index"][i] + file);
+		}
+		myFile.close();
+	}
+	return (NULL);
+}
 
-	FILE* fp = fopen(path.c_str(), "r");
-    fseek(fp, 0L, SEEK_END); 
-    sz = ftell(fp); 
-    fclose(fp); 
-	return (sz);
+std::string	Response::concatenatePath( )
+{
+	mapStrVect  loc;
+
+	loc = getRequest().getLocationMethod();
+	return (loc["root"].front() + getRequest().getPathHeader());
+}
+
+void   Response::prefaceMethod( )
+{
+	if (req.getMethod() == "Get" && req.getStage() != REQSTAGE)
+	{
+		get = new Get( *this );
+	}    
+	// else if (req.getMethod() == "Post")
+	//     post = new Post(*this);
+	// else if (req.getMethod() == "Delete")
+	//     delt = new Delete(*this);
 }
 
