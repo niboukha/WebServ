@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/13 15:18:18 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 13:45:25 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,24 @@
 #define CLIENT_HPP
 
 #include "WebServ.hpp"
+#include "Response.hpp"
+#include "Request.hpp"
 
-class   Request;
+class   Response;
+class	Request;
 
 class   Client
 {
 	private:
-	
-		Request		&req;
+
+		Response	res;
+		Request		req;
+		
 		std::string	recievedReq;
+        Stage         stage;
+
+		void	recieveRequest();
+		void	sendResponse();
 
 	public:
 
@@ -30,10 +39,10 @@ class   Client
 		~Client();
 
 		const std::string&	getRecievedReq() const;
-        
-		void	recieveRequest();
-		void	recieveSendResponse();
-        
-}
+		const Stage&		getStage() const;
+
+		void	serve();
+
+};
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/13 12:38:38 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 15:30:51 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@
 #include <sstream>
 
 #define _XOPEN_SOURCE 700
-
+#define	CARIAGE_RETURN 13
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 
 enum    Stage
@@ -40,12 +40,12 @@ enum    Stage
     RESBODY
 };
 
-#include "Request.hpp"
-#include "Response.hpp"
-#include "Client.hpp"
-#include "Get.hpp"
-#include "Post.hpp"
-#include "Delete.hpp"
+// #include "Request.hpp"
+// #include "Response.hpp"
+// #include "Client.hpp"
+// #include "Get.hpp"
+// #include "Post.hpp"
+// #include "Delete.hpp"
 
 #include "Exceptions.hpp"
 #include "Utils.hpp"

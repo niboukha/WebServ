@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/13 13:25:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 14:13:12 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 #include "WebServ.hpp"
 #include "Utils.hpp"
+#include "Response.hpp"
+
 class Response;
 
 class	Get
@@ -22,8 +24,8 @@ class	Get
 	private :
 		Response					&response;
 		
-		std::string					statusCodeMsg;
-		std::string					path;
+		// std::string					statusCodeMsg;
+		// std::string					path;
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
 

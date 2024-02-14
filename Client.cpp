@@ -6,20 +6,18 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/13 15:07:17 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 15:32:08 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client()
+Client::Client() : res(req), stage(REQSTAGE)
 {
-	req = new Request(*this);
 }
 
 Client::~Client()
 {
-
 }
 
 const std::string&	Client::getRecievedReq() const
@@ -27,4 +25,37 @@ const std::string&	Client::getRecievedReq() const
 	return (recievedReq);
 }
 
+const Stage&	Client::getStage( ) const
+{
+	return ( stage );
+}
+
+void	Client::recieveRequest()
+{
+	//buffer = recv()
+	std::string	buffer;
+	
+	stage = req.parseRequest(buffer);
+}
+
+void	Client::sendResponse()
+{
+	try 
+	{
+		stage = res.sendResponse();
+
+	}
+	catch (std::string path)
+	{
+		
+	}
+}
+
+void	Client::serve()
+{
+	if (stage == REQSTAGE)
+		recieveRequest();
+	else
+		sendResponse();
+}
 

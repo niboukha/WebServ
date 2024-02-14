@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/13 13:55:00 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 15:04:45 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,29 @@ Response::~Response()
     
 }
 
-const Request	Response::getRequest() const
+void	Response::setStatusCodeMsg(std::string& statusCodeMsg)
+{
+	statusCodeMsg = "-1";
+}
+
+void	Response::setPath(std::string& path)
+{
+	path = "-1";
+}
+
+const Request&	Response::getRequest() const
 {
 	return ( req );
+}
+
+const std::string&	Response::getStatusCodeMsg() const
+{
+	return (statusCodeMsg);
+}
+
+const std::string&	Response::getPath() const
+{
+	return (path);
 }
 
 std::string	Response::getContentLength( std::string &path )
@@ -101,17 +121,19 @@ std::string	Response::concatenateIndexDirectory( std::string &file )
 	return (NULL);
 }
 
-std::string	Response::concatenatePath( )
+std::string&	Response::concatenatePath( )
 {
 	mapStrVect  loc;
-
+	std::string	s;
 	loc = getRequest().getLocationMethod();
-	return (loc["root"].front() + getRequest().getPathHeader());
+
+	s = loc["root"].front() + getRequest().getPathHeader();
+	return (s);
 }
 
 void   Response::prefaceMethod( )
 {
-	if (req.getMethod() == "Get" && req.getStage() != REQSTAGE)
+	if (req.getMethod() == "Get")
 	{
 		get = new Get( *this );
 	}    
