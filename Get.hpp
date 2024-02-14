@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 14:13:12 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 15:54:17 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,10 @@ class	Get
 
 		std::string	responsHeader();
 		std::string	responsBody();
+
+        void    UpdateStatusCode(std::string &s);
+		std::string	pathErrorPage();
+		
 
 		class	DirectoryFailed : public std::exception
 		{

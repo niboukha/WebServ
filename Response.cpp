@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 15:04:45 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 16:49:32 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ std::string	Response::concatenateIndexDirectory( std::string &file )
 	return (NULL);
 }
 
-std::string&	Response::concatenatePath( )
+std::string	Response::concatenatePath( )
 {
 	mapStrVect  loc;
 	std::string	s;
@@ -131,11 +131,21 @@ std::string&	Response::concatenatePath( )
 	return (s);
 }
 
+std::string	Response::pathErrorPage(std::string code)
+{
+	std::map<std::string, std::string>	err;
+	std::string							path;
+	
+	err = req.getErrorPage();
+	path = err[code];
+	return (path);
+}
+
 void   Response::prefaceMethod( )
 {
 	if (req.getMethod() == "Get")
 	{
-		get = new Get( *this );
+		get = new Get( *this );//up
 	}    
 	// else if (req.getMethod() == "Post")
 	//     post = new Post(*this);

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 15:32:08 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 16:48:35 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	Client::recieveRequest()
 	//buffer = recv()
 	std::string	buffer;
 	
-	stage = req.parseRequest(buffer);
+	stage = req.parseRequest(buffer); //should catch
 }
 
 void	Client::sendResponse()
@@ -47,7 +47,7 @@ void	Client::sendResponse()
 	}
 	catch (std::string path)
 	{
-		
+		//update
 	}
 }
 

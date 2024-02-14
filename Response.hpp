@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 15:03:12 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 16:45:46 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,8 @@ class Response
 	
 		void			mapOfTypes( );
 		std::string		concatenateIndexDirectory( std::string &file );
-		std::string&		concatenatePath( );
+		std::string		concatenatePath( );
+		std::string		pathErrorPage(std::string code);
 
 		void			prefaceMethod( );
 

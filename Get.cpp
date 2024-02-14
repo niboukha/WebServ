@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 15:34:15 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/14 16:50:52 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,14 +35,17 @@ void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 	fillAutoIndexFile += "\n</body>\n</html>\n";
 }
 
-void	UpdateStatusCode(std::string &s)
+void	Get::UpdateStatusCode(std::string &s)
 {
-	
+	if (response.getStatusCodeMsg() == "-1")
+		response.setStatusCodeMsg(s);
 }
+
 
 void	Get::readListOfCurDirectory()
 {
 	std::string		s;
+	
 	try
 	{
 		char			cwd[PATH_MAX];
@@ -57,7 +60,7 @@ void	Get::readListOfCurDirectory()
 		while ((pDirent = readdir(pDir)))
 			vDir.push_back(pDirent->d_name);
 		s = "200 OK";
-		response.setStatusCodeMsg(s);
+		UpdateStatusCode(s);
 		stringOfDyrectories(vDir);       //Path
 		closedir(pDir);
 	}
@@ -65,7 +68,8 @@ void	Get::readListOfCurDirectory()
     {
 		s = "403 ";
 		s += e.what();
-		response.setStatusCodeMsg(s);
+		UpdateStatusCode(s);
+		throw (response.pathErrorPage("403"));
     }		
 }
 
@@ -77,14 +81,16 @@ std::string	Get::directoryInRequest(std::string &file)
 	if (file.back() == '/')
 	{
 		s = "301 Moved Permanently";
-		response.setStatusCodeMsg(s);
+		UpdateStatusCode(s);
+		throw (response.pathErrorPage("301"));//blantha
 	}
 	if (loc["index"].empty())
 	{
 		if (loc["auto_index"].empty() or loc["auto_index"].front() == "off")
 		{
 			s = "403 forbidden";
-			response.setStatusCodeMsg(s);
+			UpdateStatusCode(s);
+			throw (response.pathErrorPage("403"));
 		}
 		readListOfCurDirectory();
 	}
@@ -93,9 +99,11 @@ std::string	Get::directoryInRequest(std::string &file)
 
 void    Get::statusOfFile()
 {
-	response.setPath(response.concatenatePath());
-	std::ifstream	file(response.getPath());
 	std::string		s;
+	
+	s = response.concatenatePath();
+	response.setPath(s);
+	std::ifstream	file(response.getPath());
 	std::string		pt;
 	
 	if (!Utils::isDir(response.getPath().c_str()))
@@ -106,19 +114,21 @@ void    Get::statusOfFile()
 		if (response.getPath().empty())
 		{
 			s = "404 not found";
-			response.setStatusCodeMsg(s);
+			UpdateStatusCode(s);
+			throw (response.pathErrorPage("404"));
 		}
 	}
 	else if (!file.is_open())
 	{
 		s = "404 not found";
-		response.setStatusCodeMsg(s);
+		UpdateStatusCode(s);
+		throw (response.pathErrorPage("404"));
 	}
 	
 	//check if location has a cgi
 	
 	s = "200 ok";
-	response.setStatusCodeMsg(s);
+	UpdateStatusCode(s);
 	file.close();
 }
 
