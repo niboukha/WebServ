@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Get.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 15:54:17 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 12:03:29 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,30 +23,29 @@ class	Get
 {
 	private :
 		Response					&response;
-		
+
 		// std::string					statusCodeMsg;
 		// std::string					path;
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
+		int							fd;
 
 	public :
-		
+
 		Get(Response &res);
 		~Get();
-		
+
 		void		statusOfFile();
-		
+
 		std::string	directoryInRequest(std::string &file);
-		
-		void	readListOfCurDirectory();
-		void	stringOfDyrectories(std::vector<std::string> &vdir);
+
+		std::string	readListOfCurDirectory();
+		std::string	stringOfDyrectories(std::vector<std::string> &vdir);
 
 		std::string	responsHeader();
 		std::string	responsBody();
 
-        void    UpdateStatusCode(std::string &s);
-		std::string	pathErrorPage();
-		
+		void		UpdateStatusCode(std::string &s);
 
 		class	DirectoryFailed : public std::exception
 		{

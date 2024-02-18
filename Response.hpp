@@ -3,36 +3,38 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 16:45:46 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 12:46:45 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "WebServ.hpp"                                                                                                                                         
+#include "WebServ.hpp"
 #include "Request.hpp"
 #include "Get.hpp"
+#include "Delete.hpp"
 
 class Request;
 class Get;
+class Delete;
 
 class Response
 {
 	private:
-	
+
 		Request		&req;
 
 		Get			*get;
+		Delete		*delt;
 		// Post		*post;
-		// Delete	*delt;
-		
+
 		std::string					statusCodeMsg;
 		std::string					path;
-		
+
 
 		std::map<std::string, std::string>	contType;
 
@@ -41,7 +43,7 @@ class Response
 		Response( Request &request );
 		~Response( );
 
-		Stage	sendResponse();
+		Stage	sendResponse(int stage);
 
 		void	setStatusCodeMsg(std::string& statusCodeMsg);
 		void	setPath(std::string& path);
@@ -49,10 +51,10 @@ class Response
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
 		const std::string&	getPath() const;
-		
+
 		std::string		getContentType( std::string &path );
 		std::string		getContentLength( std::string &path );
-	
+
 		void			mapOfTypes( );
 		std::string		concatenateIndexDirectory( std::string &file );
 		std::string		concatenatePath( );

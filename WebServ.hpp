@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/14 15:30:51 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 12:43:57 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,16 +28,20 @@
 #include <unistd.h>
 #include <limits.h>
 #include <sstream>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
 
 #define _XOPEN_SOURCE 700
-#define	CARIAGE_RETURN 13
+#define	CARIAGE_RETURN "\n\r"
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 
 enum    Stage
 {
     REQSTAGE,
     RESHEADER,
-    RESBODY
+    RESBODY,
+    RESEND
 };
 
 // #include "Request.hpp"

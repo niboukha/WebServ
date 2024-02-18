@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Get.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 16:50:52 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 12:02:35 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,98 +14,108 @@
 
 Get::~Get()
 {
-
 }
 
 Get::Get(Response &res) : response(res)
 {
-	
 }
 
-const char*	Get::DirectoryFailed::what() const throw()
+const char *Get::DirectoryFailed::what() const throw()
 {
 	return ("forbidden");
 }
 
-void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
-{	
-	fillAutoIndexFile = "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
+std::string Get::stringOfDyrectories(std::vector<std::string> &vdir)
+{
+	std::string pt;
+	std::string s;
+
+	// pt = Utils::generateRundFile();
+	std::ofstream file(pt.c_str());
+	mapStrVect loc;
+
+	file << "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
 	for (size_t i = 0; i < vdir.size(); i++)
-		fillAutoIndexFile += "<p><a href=\"" + vdir[i] + "\">" + vdir[i] + "</a></p>";
-	fillAutoIndexFile += "\n</body>\n</html>\n";
+		file << "<p><a href=\"" + vdir[i] + "\">" + vdir[i] + "</a></p>";
+	file << "\n</body>\n</html>\n";
+
+	loc = response.getRequest().getLocationMethod();
+	s = loc["root"].front() + pt;
+	return (s);
 }
 
-void	Get::UpdateStatusCode(std::string &s)
+std::string Get::readListOfCurDirectory()
+{
+	std::string s;
+
+	try
+	{
+		char cwd[PATH_MAX];
+		DIR *pDir;
+		struct dirent *pDirent;
+
+		if (!getcwd(cwd, sizeof(cwd)))
+			throw DirectoryFailed();
+		pDir = opendir(cwd);
+		if (!pDir)
+			throw DirectoryFailed();
+		while ((pDirent = readdir(pDir)))
+			vDir.push_back(pDirent->d_name);
+		s = "200 OK";
+		response.setStatusCodeMsg(s);
+		stringOfDyrectories(vDir);
+		closedir(pDir);
+	}
+	catch (const std::exception &e)
+	{
+		s = "403 ";
+		s += e.what();
+		response.setStatusCodeMsg(s);
+		throw(response.pathErrorPage("403"));
+	}
+	return (stringOfDyrectories(vDir));
+}
+
+std::string Get::directoryInRequest(std::string &file)
+{
+	mapStrVect loc;
+	std::string s;
+
+	loc = response.getRequest().getLocationMethod();
+	if (file[file.length() - 1] == '/')
+	{
+		s = "301 Moved Permanently";
+		response.setStatusCodeMsg(s);
+		throw(response.pathErrorPage("301"));
+	}
+	if (loc["index"].empty())
+	{
+		if (loc["auto_index"].front() == "off")
+		{
+			s = "403 forbidden";
+			response.setStatusCodeMsg(s);
+			throw(response.pathErrorPage("403"));
+		}
+		return (readListOfCurDirectory());
+	}
+	return (response.concatenateIndexDirectory(file));
+}
+
+void Get::UpdateStatusCode(std::string &s)
 {
 	if (response.getStatusCodeMsg() == "-1")
 		response.setStatusCodeMsg(s);
 }
 
-
-void	Get::readListOfCurDirectory()
+void Get::statusOfFile()
 {
-	std::string		s;
-	
-	try
-	{
-		char			cwd[PATH_MAX];
-		DIR				*pDir;
-		struct dirent	*pDirent;
+	std::string s;
+	std::string pt;
 
-		if (!getcwd(cwd, sizeof(cwd)))
-			throw	DirectoryFailed();
-		pDir = opendir(cwd);
-		if (!pDir)
-			throw	DirectoryFailed();
-		while ((pDirent = readdir(pDir)))
-			vDir.push_back(pDirent->d_name);
-		s = "200 OK";
-		UpdateStatusCode(s);
-		stringOfDyrectories(vDir);       //Path
-		closedir(pDir);
-	}
-	catch (const std::exception& e)
-    {
-		s = "403 ";
-		s += e.what();
-		UpdateStatusCode(s);
-		throw (response.pathErrorPage("403"));
-    }		
-}
-
-std::string	Get::directoryInRequest(std::string &file)
-{
-	mapStrVect  loc;
-	std::string	s;
-	loc = response.getRequest().getLocationMethod();
-	if (file.back() == '/')
-	{
-		s = "301 Moved Permanently";
-		UpdateStatusCode(s);
-		throw (response.pathErrorPage("301"));//blantha
-	}
-	if (loc["index"].empty())
-	{
-		if (loc["auto_index"].empty() or loc["auto_index"].front() == "off")
-		{
-			s = "403 forbidden";
-			UpdateStatusCode(s);
-			throw (response.pathErrorPage("403"));
-		}
-		readListOfCurDirectory();
-	}
-	return (response.concatenateIndexDirectory(file));
-}
-
-void    Get::statusOfFile()
-{
-	std::string		s;
-	
 	s = response.concatenatePath();
 	response.setPath(s);
-	std::ifstream	file(response.getPath());
-	std::string		pt;
-	
+	std::ifstream file(response.getPath().c_str());
+
 	if (!Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
@@ -114,37 +124,44 @@ void    Get::statusOfFile()
 		if (response.getPath().empty())
 		{
 			s = "404 not found";
-			UpdateStatusCode(s);
-			throw (response.pathErrorPage("404"));
+			response.setStatusCodeMsg(s);
+			throw(response.pathErrorPage("404"));
 		}
 	}
 	else if (!file.is_open())
 	{
 		s = "404 not found";
-		UpdateStatusCode(s);
-		throw (response.pathErrorPage("404"));
+		response.setStatusCodeMsg(s);
+		throw(response.pathErrorPage("404"));
 	}
-	
-	//check if location has a cgi
-	
+
+	// check if location has a cgi
+
 	s = "200 ok";
 	UpdateStatusCode(s);
 	file.close();
 }
 
-std::string	Get::responsHeader()
+std::string Get::responsHeader()
 {
-	std::string	s;
-	std::string	pt;
+	std::string s;
+	std::string pt;
 
+	statusOfFile();
 	pt = response.getPath();
-	s = response.getRequest().getProtocolVersion() + " " + 
-		response.getStatusCodeMsg() + "\n\r" + "Content-Type: " + response.getContentType(pt) +
-		"\n\r" + "Content-Length: " + response.getContentLength(pt) + "\n\r\n\r";
+	s = response.getRequest().getProtocolVersion() + " " +
+		response.getStatusCodeMsg() + CARIAGE_RETURN +
+		"Content-Type: " + response.getContentType(pt) + CARIAGE_RETURN +
+		"Content-Length: " + response.getContentLength(pt) + CARIAGE_RETURN +
+		CARIAGE_RETURN;
 	return (s);
 }
 
-// std::string	Get::responsBody()
-// {
-	
-// }
+std::string Get::responsBody()
+{
+	char buffer[1024];
+
+	fd = open(response.getPath().c_str(), O_RDWR);
+	read(fd, buffer, sizeof(buffer));
+	return (buffer);
+}

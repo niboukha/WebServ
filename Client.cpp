@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 16:48:35 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 12:51:57 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,20 +34,24 @@ void	Client::recieveRequest()
 {
 	//buffer = recv()
 	std::string	buffer;
-	
+
 	stage = req.parseRequest(buffer); //should catch
 }
 
 void	Client::sendResponse()
 {
-	try 
+	while (1)
 	{
-		stage = res.sendResponse();
-
-	}
-	catch (std::string path)
-	{
-		//update
+		try
+		{
+			stage = res.sendResponse(stage);
+			if (stage == RESEND)
+				break;
+		}
+		catch (std::string path)
+		{
+			stage = RESHEADER;
+		}
 	}
 }
 
@@ -58,4 +62,5 @@ void	Client::serve()
 	else
 		sendResponse();
 }
+
 

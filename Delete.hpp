@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:44 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/12 16:01:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 13:03:35 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,29 @@
 #define DELETE_HPP
 
 #include "WebServ.hpp"
+#include "Response.hpp"
+
 class Response;
 
-
-class   Delete
+class	Delete
 {
-    private :
-		// Response					&response;
-		// std::string					statusCodeMsg;
-		// std::string					path;
-    public :
-       
+	private :
+
+		Response	&res;
+
+	public :
+
+		Delete(Response &response);
+		~Delete();
+
+		void	WriteAccess();
+		void	directoryPath(struct stat st, std::string &pt);
+		void	filePath(std::string &s);
+		void	statusOfRequested();
+
+		std::string	nestedDirectories(std::string s);
+
+
 };
 
 
