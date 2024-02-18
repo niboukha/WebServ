@@ -183,12 +183,11 @@ void filePath(std::string s)
 #include <sys/types.h>
 #include <dirent.h>
 
-std::string fun(std::string s)
+std::string fun(std::string s, struct stat statPath)
 {
 	DIR *pDir;
 	struct dirent *pDirent;
 	std::string str;
-	struct stat statPath;
 
 	pDir = opendir(s.c_str());
 
@@ -205,7 +204,7 @@ std::string fun(std::string s)
 			if (S_ISDIR(statPath.st_mode))
 			{
 				s += "/";
-				fun(s) = s;
+				fun(s, statPath) = s;
 				directoryPath(statPath, s);
 			}
 			else if (S_ISREG(statPath.st_mode))
@@ -225,10 +224,25 @@ int main()
 	try
 	{
 		std::string s;
-		s = "/nfs/homes/niboukha/Desktop/web/a";
+		std::string sd;
+	struct stat statPath;
 
-		s = fun(s);
-		std::cout << "fngjfhg " << s << "|\n";
+		s = "/nfs/homes/niboukha/Desktop/web/a/";
+
+		sd = fun(s, statPath);
+		if (!stat(s.c_str(), &statPath))
+		{
+			if (S_ISDIR(statPath.st_mode))
+				directoryPath(statPath, s);
+			else if (S_ISREG(statPath.st_mode))
+				filePath(s);
+		}
+		else
+		{
+			s = "404 Not found";
+			throw("404");
+		}
+		std::cout << "fngjfhg |" << s << "|\n";
 	}
 	catch (char const *st)
 	{

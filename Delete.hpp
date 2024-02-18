@@ -6,7 +6,7 @@
 /*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:44 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 13:03:35 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 13:41:22 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,9 @@ class	Delete
 		void	filePath(std::string &s);
 		void	statusOfRequested();
 
-		std::string	nestedDirectories(std::string s);
+		std::string	nestedDirectories(std::string s, struct stat statPath);
+
+		void	deleteBasePath(std::string s, struct stat statPath);
 
 
 };

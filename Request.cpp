@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 12:42:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 13:42:09 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 13:46:38 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,13 @@ const std::map<std::string, std::string>&	Request::getErrorPage( ) const
 {
     return ( errorPages );
 }
+
+Stage	Request::parseRequest(std::string buffer)
+{
+    (void)buffer;
+    return (RESHEADER);
+}
+
 
 // void	Request::parseRequest(char *req )
 // {

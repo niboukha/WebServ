@@ -6,7 +6,7 @@
 /*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 13:05:20 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 13:45:13 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,11 +79,10 @@ void	Delete::filePath(std::string &s)
 	}
 }
 
-std::string	Delete::nestedDirectories(std::string s)
+std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 {
 	DIR				*pDir;
 	struct dirent	*pDirent;
-	struct stat		statPath;
 	std::string		str;
 
 	pDir = opendir(s.c_str());
@@ -99,7 +98,7 @@ std::string	Delete::nestedDirectories(std::string s)
 			if (S_ISDIR(statPath.st_mode))
 			{
 				s += "/";
-				nestedDirectories(s) = s;
+				nestedDirectories(s, statPath) = s;
 				directoryPath(statPath, s);
 			}
 			else if (S_ISREG(statPath.st_mode))
@@ -115,10 +114,30 @@ std::string	Delete::nestedDirectories(std::string s)
 	return (s);
 }
 
+void	Delete::deleteBasePath(std::string s, struct stat statPath)
+{
+	if (!stat(s.c_str(), &statPath))
+	{
+		if (S_ISDIR(statPath.st_mode))
+			directoryPath(statPath, s);
+		else if (S_ISREG(statPath.st_mode))
+			filePath(s);
+	}
+	else
+	{
+		s = "404 Not found";
+		res.setStatusCodeMsg(s);
+		throw("404");
+	}
+}
+
 void	Delete::statusOfRequested()
 {
 	std::string	pt;
+	struct stat		statPath;
 
-	pt = nestedDirectories(res.getPath());
+	pt = res.getPath();
+	nestedDirectories(pt, statPath);
 	res.setPath(pt);
+	deleteBasePath(pt, statPath);
 }
