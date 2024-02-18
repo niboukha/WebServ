@@ -1,0 +1,167 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Get.cpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
+/*   Updated: 2024/02/18 15:10:37 by niboukha         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "Get.hpp"
+
+Get::~Get()
+{
+}
+
+Get::Get(Response &res) : response(res)
+{
+}
+
+const char*	Get::DirectoryFailed::what() const throw()
+{
+	return ("forbidden");
+}
+
+std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
+{
+	std::string	pt;
+	std::string	s;
+	mapStrVect	loc;
+
+	pt = Utils::generateRundFile();
+	std::ofstream file(pt.c_str());
+
+	file << "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
+	for (size_t i = 0; i < vdir.size(); i++)
+		file << "<p><a href=\"" + vdir[i] + "\">" + vdir[i] + "</a></p>";
+	file << "\n</body>\n</html>\n";
+
+	loc = response.getRequest().getLocationMethod();
+	s = loc["root"].front() + pt;
+	return (s);
+}
+
+std::string	Get::readListOfCurDirectory()
+{
+	std::string	s;
+
+	try
+	{
+		char cwd[PATH_MAX];
+		DIR *pDir;
+		struct dirent *pDirent;
+
+		if (!getcwd(cwd, sizeof(cwd)))
+			throw DirectoryFailed();
+		pDir = opendir(cwd);
+		if (!pDir)
+			throw DirectoryFailed();
+		while ((pDirent = readdir(pDir)))
+			vDir.push_back(pDirent->d_name);
+		s = "200 OK";
+		response.setStatusCodeMsg(s);
+		stringOfDyrectories(vDir);
+		closedir(pDir);
+	}
+	catch (const std::exception &e)
+	{
+		s = "403 ";
+		s += e.what();
+		response.setStatusCodeMsg(s);
+		throw(response.pathErrorPage("403"));
+	}
+	return (stringOfDyrectories(vDir));
+}
+
+std::string	Get::directoryInRequest(std::string &file)
+{
+	mapStrVect loc;
+	std::string s;
+
+	loc = response.getRequest().getLocationMethod();
+	if (file[file.length() - 1] == '/')
+	{
+		s = "301 Moved Permanently";
+		response.setStatusCodeMsg(s);
+		throw(response.pathErrorPage("301"));
+	}
+	if (loc["index"].empty())
+	{
+		if (loc["auto_index"].front() == "off")
+		{
+			s = "403 forbidden";
+			response.setStatusCodeMsg(s);
+			throw(response.pathErrorPage("403"));
+		}
+		return (readListOfCurDirectory());
+	}
+	return (response.concatenateIndexDirectory(file));
+}
+
+void Get::UpdateStatusCode(std::string &s)
+{
+	if (response.getStatusCodeMsg() == "-1")
+		response.setStatusCodeMsg(s);
+}
+
+void Get::statusOfFile()
+{
+	std::string	s;
+	std::string	pt;
+
+	s = response.concatenatePath();
+	response.setPath(s);
+	std::ifstream file(response.getPath().c_str());
+
+	if (!Utils::isDir(response.getPath().c_str()))
+	{
+		pt = response.getPath();
+		s = directoryInRequest(pt);
+		response.setPath(s);
+		if (response.getPath().empty())
+		{
+			s = "404 not found";
+			response.setStatusCodeMsg(s);
+			throw(response.pathErrorPage("404"));
+		}
+	}
+	else if (!file.is_open())
+	{
+		s = "404 not found";
+		response.setStatusCodeMsg(s);
+		throw(response.pathErrorPage("404"));
+	}
+
+	// check if location has a cgi
+
+	s = "200 ok";
+	UpdateStatusCode(s);
+	file.close();
+}
+
+std::string Get::responsHeader()
+{
+	std::string	s;
+	std::string	pt;
+
+	statusOfFile();
+	pt = response.getPath();
+	s = response.getRequest().getProtocolVersion() + " " +
+		response.getStatusCodeMsg() + CARIAGE_RETURN +
+		"Content-Type: " + response.getContentType(pt) + CARIAGE_RETURN +
+		"Content-Length: " + response.getContentLength(pt) + CARIAGE_RETURN +
+		CARIAGE_RETURN;
+	return (s);
+}
+
+std::string Get::responsBody()
+{
+	char buffer[1024];
+
+	fd = open(response.getPath().c_str(), O_RDWR);
+	read(fd, buffer, sizeof(buffer));
+	return (buffer);
+}
