@@ -20,14 +20,14 @@ class Request
 {
 	private :
 
-		mapStrVect	serverMethod;
-		mapStrVect	locationMethod;
-		mapStrVect	headersMethod;
+		std::map<std::string, std::string>	server;
+		
+		mapStrVect	location;
+		mapStrVect	headers;
 
 		std::string	method;
-		std::string	pathHeader;
+		std::string	requestedPath;
 		std::string	protocolVersion;
-		std::map<std::string, std::string>	errorPages; //exmpl : <404, path>
 
 	public :
 
@@ -36,13 +36,13 @@ class Request
 
 		Stage	parseRequest(std::string buffer);
 
-		const mapStrVect	getLocationMethod() const;
-		const std::string	getPathHeader() const;
+		const mapStrVect	getLocation() const;
+		const mapStrVect	getHeaders() const;
+		const std::string	getRequestedPath() const;
 		const std::string	getMethod() const;
 		const std::string	getProtocolVersion() const;
 
-		const std::map<std::string, std::string>&	getErrorPage() const;
-
+		const std::map<std::string, std::string>&	getServer() const;
 };
 
 #endif

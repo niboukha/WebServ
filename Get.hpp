@@ -6,7 +6,7 @@
 /*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 12:03:29 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 16:17:46 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,6 @@ class	Get
 {
 	private :
 		Response					&response;
-
-		// std::string					statusCodeMsg;
-		// std::string					path;
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
 		int							fd;

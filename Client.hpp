@@ -30,7 +30,7 @@ class	Client
 		std::string	recievedReq;
 		Stage		stage;
 
-		void	recieveRequest();
+		void	recieveRequest(std::string buffer);
 		void	sendResponse();
 
 	public:

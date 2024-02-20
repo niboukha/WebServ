@@ -219,45 +219,64 @@ std::string fun(std::string s, struct stat statPath)
 	return (s);
 }
 
+int	getLength(std::string s)
+{
+	std::stringstream	st;
+	int					n;
+
+	st << s;
+	st >> std::hex >> n;
+	return (n);
+}
+
 int main()
 {
-	// try
-	// {
-	// 	std::string s;
-	// 	std::string sd;
-	// struct stat statPath;
+	std::ofstream	outfile;
+	int				len;
+	std::string		lrn;
+	std::string		buffApp;
+	size_t			foundlen;
+	size_t			foundbuff;
+	std::string		body = "4--wiki--5--pedia--E-- in--chunks.--5--nis----";
+	int flag = 0;
+	outfile.open("file.txt", std::ios_base::app);
+	while (body.length())
+	{
+		if (flag == 0)
+		{
+			foundlen = body.find("--");
+			if (foundlen != std::string::npos)
+				lrn = body.substr(0, foundlen);
+			len = getLength(lrn);
+		}
 
-	// 	s = "/nfs/homes/niboukha/Desktop/web/a/";
 
-	// 	sd = fun(s, statPath);
-	// 	if (!stat(s.c_str(), &statPath))
-	// 	{
-	// 		if (S_ISDIR(statPath.st_mode))
-	// 			directoryPath(statPath, s);
-	// 		else if (S_ISREG(statPath.st_mode))
-	// 			filePath(s);
-	// 	}
-	// 	else
-	// 	{
-	// 		s = "404 Not found";
-	// 		throw("404");
-	// 	}
-	// 	std::cout << "fngjfhg |" << s << "|\n";
-	// }
-	// catch (char const *st)
-	// {
-	// 	std::cerr << st << "\n";
-	// }
+		std::cout << "len     >>> " << len << " |" << lrn  << "|\n";
 
-	// return (0);
+		foundbuff = body.find("--", len);
+		if (foundbuff != std::string::npos)
+			buffApp = body.substr(foundlen + 2, len);
 
-		std::string			path;
-	std::ostringstream	s;
 
-	path = "file";
-	srand(time(0));
-	s << rand();
+		std::cout << "buffApp >>> " << buffApp << " " << buffApp.length() << ")\n";
 
-	std::cout << path + s.str();
+
+		if (buffApp.length() == len)
+		{
+			outfile << buffApp;
+			body = body.substr(foundbuff + 2);
+			std::cout << "bodyin  >>>" << body << "\n";
+
+			flag = 0;
+		}
+		else
+		{
+			body = body.substr(foundlen + 2);
+			std::cout << "body    >>>" << body << "\n";
+			flag = 1;
+		}
+		std::cout << "\n------------\n\n";
+	}
+	outfile.close();
 	return (0);
 }

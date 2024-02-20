@@ -3,24 +3,47 @@
 /*                                                        :::      ::::::::   */
 /*   Post.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/09 11:11:40 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 18:35:15 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef POST_HPP
 #define POST_HPP
 
-#include <iostream>
+#include "WebServ.hpp"
+#include "Utils.hpp"
+#include "Response.hpp"
 
-class   Post
+class Response;
+
+class	Post
 {
-    private :
+	private :
 
-    public :
-       
+		Response	&res;
+		size_t		size;
+
+	public :
+
+		Post( Response &response );
+		~Post( );
+
+		std::string	responsHeader();
+		std::string	responsBody();
+		
+		void	requestedStatus();
+
+		void	uploadedFile();
+
+		void	chunkedTransfer();
+		void	nonChunkedTransfer();
+
+		void	isUploadPass();
+		
+		std::string	conctRootUpload( std::string s );
 };
 
 

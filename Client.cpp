@@ -30,38 +30,31 @@ const Stage&	Client::getStage( ) const
 	return ( stage );
 }
 
-void	Client::recieveRequest()
+void	Client::recieveRequest(std::string buffer)
 {
-	//buffer = recv()
-	std::string	buffer;
-
 	stage = req.parseRequest(buffer); //should catch
 }
 
 void	Client::sendResponse()
 {
-	while (1)
+	try
 	{
-		try
-		{
-			stage = res.sendResponse(stage);
-			if (stage == RESEND) //
-				break;
-		}
-		catch (std::string path)
-		{
-			res.setPath(path);
-			stage = RESHEADER;
-		}
+		stage = res.sendResponse(stage);
+	}
+	catch (std::string path)
+	{
+		res.setPath(path);
+		stage = RESHEADER;
 	}
 }
 
 void	Client::serve()
 {
+	std::string	buffer;
+	//buffer = recv()
+
 	if (stage == REQSTAGE)
-		recieveRequest();
+		recieveRequest(buffer);
 	else
 		sendResponse();
 }
-
-

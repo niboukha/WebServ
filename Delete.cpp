@@ -6,7 +6,7 @@
 /*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 15:59:02 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/18 16:15:48 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,14 @@ void Delete::WriteAccess()
 	{
 		s = "500 Internal Server Error";
 		res.setStatusCodeMsg(s);
+
 		throw(res.pathErrorPage("500"));
 	}
 	else
 	{
 		s = "403 Forbidden";
 		res.setStatusCodeMsg(s);
+		
 		throw(res.pathErrorPage("403"));
 	}
 }
@@ -47,24 +49,28 @@ void Delete::directoryPath(struct stat st, std::string &pt)
 	{
 		err = "409 conflict";
 		res.setStatusCodeMsg(err);
+
 		throw(res.pathErrorPage("409"));
 	}
 	if (!(st.st_mode & S_IWUSR))
 	{
 		err = "403 Forbidden";
 		res.setStatusCodeMsg(err);
+
 		throw(res.pathErrorPage("403"));
 	}
 	if ((st.st_mode & S_IWUSR) && std::remove(res.getPath().c_str()))
 	{
 		err = "500 Internal Server Error";
 		res.setStatusCodeMsg(err);
+
 		throw(res.pathErrorPage("500"));
 	}
 	else
 	{
 		err = "204 No Content";
 		res.setStatusCodeMsg(err);
+
 		throw(res.pathErrorPage("204"));
 
 	}
@@ -78,6 +84,7 @@ void	Delete::filePath(std::string &s)
 	{
 		err = "204 No Content";
 		res.setStatusCodeMsg(err);
+
 		throw(res.pathErrorPage("204"));
 	}
 }
@@ -89,12 +96,15 @@ std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 	std::string		str;
 
 	pDir = opendir(s.c_str());
-	str = s;
+	str  = s;
+
 	while ((pDirent = readdir(pDir)))
 	{
 		s = pDirent->d_name;
+
 		if (s[0] == '.')
 			continue;
+
 		s = str + pDirent->d_name;
 		if (!stat(s.c_str(), &statPath))
 		{
@@ -152,15 +162,20 @@ std::string	Delete::responsHeader()
 
 	statusOfRequested();
 	pt = res.getPath();
-	s = res.getRequest().getProtocolVersion() + " " +
-		res.getStatusCodeMsg() + CARIAGE_RETURN +
-		"Content-Type: " + res.getContentType(pt) + CARIAGE_RETURN +
-		"Content-Length: " + res.getContentLength(pt) + CARIAGE_RETURN +
-		CARIAGE_RETURN;
+	s  = res.getRequest().getProtocolVersion() + " " +
+		res.getStatusCodeMsg() + CRLF +
+		"Content-Type: "   + res.getContentType(pt)   + CRLF +
+		"Content-Length: " + res.getContentLength(pt) + CRLF + // wish content length (dleted file or something else)
+		CRLF;
 	return (s);
 }
 
 std::string	Delete::responsBody()
 {
+	char buffer[1024];
 
+	fd = open(res.getPath().c_str(), O_RDWR);
+
+	read(fd, buffer, sizeof(buffer));
+	return (buffer);
 }

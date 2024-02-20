@@ -31,9 +31,13 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <cstdlib> 
+#include <iostream> 
+#include <time.h> 
 
 #define _XOPEN_SOURCE 700
-#define	CARIAGE_RETURN "\n\r"
+#define	CRLF "\n\r" //carriage return and line feed
+#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webServ/mimetype.txt"
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 
 enum	Stage

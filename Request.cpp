@@ -25,14 +25,19 @@ const std::string  Request::getMethod( ) const
     return ( method );
 }
 
-const mapStrVect    Request::getLocationMethod() const
+const mapStrVect    Request::getLocation() const
 {
-    return ( locationMethod );
+    return ( location );
 }
 
-const std::string   Request::getPathHeader( ) const
+const mapStrVect	Request::getHeaders() const
 {
-    return ( pathHeader );
+    return ( headers );
+}
+
+const std::string   Request::getRequestedPath( ) const
+{
+    return ( requestedPath );
 }
 
 const std::string   Request::getProtocolVersion( ) const
@@ -40,9 +45,9 @@ const std::string   Request::getProtocolVersion( ) const
     return ( protocolVersion );
 }
 
-const std::map<std::string, std::string>&	Request::getErrorPage( ) const
+const std::map<std::string, std::string>&	Request::getServer() const
 {
-    return ( errorPages );
+	return (server);
 }
 
 Stage	Request::parseRequest(std::string buffer)
@@ -50,7 +55,6 @@ Stage	Request::parseRequest(std::string buffer)
     (void)buffer;
     return (RESHEADER);
 }
-
 
 // void	Request::parseRequest(char *req )
 // {
