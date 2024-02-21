@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   exceptions.hpp                                     :+:      :+:    :+:   */
+/*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:59:44 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/08 10:16:04 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/10 12:24:57 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,21 +43,57 @@ class SyntaxError : public std::exception
         }    
 };
 
-class UnknownDirective : public std::exception
+class UnknownServerDirective : public std::exception
 {
      public:
         const char* what() const throw()
         {
-            return ("config file: unknown directive");
+            return ("config file: unknown server  directive");
         }   
 };
 
-class InvalidDirectiveParameter : public std::exception
+class InvalidDirectiveArgument : public std::exception
 {
     public:
         const char* what() const throw()
         {
-            return ("config file: invalid directive parameter");
+            return ("config file: invalid directive argument");
+        }   
+};
+
+class DirectiveAlreadyExist : public std::exception
+{
+    public:
+        const char* what() const throw()
+        {
+            return ("config file: directive already exist");
+        }  
+};
+
+class UnknownLocationDirective : public std::exception
+{
+     public:
+        const char* what() const throw()
+        {
+            return ("config file: unknown location  directive");
+        }   
+};
+
+class InvalidNumberOfArguments : public std::exception
+{
+     public:
+        const char* what() const throw()
+        {
+            return ("config file: invalid number of arguments in directive");
+        }   
+};
+
+class MissingServerDirectives : public std::exception
+{
+     public:
+        const char* what() const throw()
+        {
+            return ("config file: some necessary directives missing in server block");
         }   
 };
 

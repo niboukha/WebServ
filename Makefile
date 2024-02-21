@@ -2,11 +2,12 @@ NAME = WebServ
 
 RM = rm -f
 
-CXXFLAGS = -std=c++98 -Wall -Wextra -Werror 
+CXXFLAGS = -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g3
 
 CXX = c++
 
-SRCS =   main.cpp  parseConfigFile.cpp Server.cpp Location.cpp StringOperations.cpp
+SRCS =   main.cpp  ConfigFile.cpp Server.cpp  \
+		StringOperations.cpp Request.cpp Client.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
