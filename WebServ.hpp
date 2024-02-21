@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/18 15:10:29 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 13:42:23 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,13 +36,15 @@
 #include <time.h> 
 
 #define _XOPEN_SOURCE 700
-#define	CRLF "\n\r" //carriage return and line feed
+#define	CRLF "\r\n" //carriage return and line feed
 #define	PATH_MIME "/nfs/homes/niboukha/Desktop/webServ/mimetype.txt"
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 
 enum	Stage
 {
-	REQSTAGE,
+	REQLINE,
+	REQHEADER,
+	REQBODY,
 	RESHEADER,
 	RESBODY,
 	RESEND

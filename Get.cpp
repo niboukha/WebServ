@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Get.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 19:19:55 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 14:39:16 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ Get::~Get()
 {
 }
 
-Get::Get(Response &res) : response(res)
+Get::Get(Response &res) : response(res), dirflag(0)
 {
 }
 
@@ -87,23 +87,17 @@ std::string	Get::directoryInRequest(std::string &file)
 
 	loc = response.getRequest().getLocation();
 
-	if (file[file.length() - 1] == '/')
+	if (file[file.length() - 1] != '/')
 	{
-		s = "301 Moved Permanently";
-		response.setStatusCodeMsg(s);
-
-		throw(response.pathErrorPage("301"));
+		dirflag = 1;
+		response.setPath(response.getPath() + "/");
+		response.throwNewPath("301 Moved Permanently", "301");
 	}
 
 	if (loc["index"].empty())
 	{
 		if (loc["auto_index"].front() == "off")
-		{
-			s = "403 forbidden";
-			response.setStatusCodeMsg(s);
-
-			throw(response.pathErrorPage("403"));
-		}
+			response.throwNewPath("403 forbidden", "403");
 		return (readListOfCurDirectory());
 	}
 
@@ -131,21 +125,10 @@ void Get::statusOfFile()
 		s  = directoryInRequest(pt);
 		response.setPath(s);
 		if (response.getPath().empty())
-		{
-			s = "404 not found";
-			response.setStatusCodeMsg(s);
-
-			throw(response.pathErrorPage("404"));
-		}
+			response.throwNewPath("404 not found", "404");
 	}
 	else if (!file.is_open())
-	{
-		s = "404 not found";
-		response.setStatusCodeMsg(s);
-
-		throw(response.pathErrorPage("404"));
-	}
-
+		response.throwNewPath("404 not found", "404");
 	// check if location has a cgi
 
 	s = "200 ok";
@@ -163,8 +146,10 @@ std::string Get::responsHeader()
 	s  = response.getRequest().getProtocolVersion() + " " +
 		response.getStatusCodeMsg() + CRLF +
 		"Content-Type: "   + response.getContentType(pt)   + CRLF +
-		"Content-Length: " + response.getContentLength(pt) + CRLF +
-		CRLF;
+		"Content-Length: " + response.getContentLength(pt);
+	if (dirflag == 1)
+		s = s + CRLF + "Location: " + response.getPath();
+	s = s + CRLF + CRLF;
 	return (s);
 }
 
@@ -172,7 +157,7 @@ std::string Get::responsBody()
 {
 	char buffer[1024];
 
-	fd = open(response.getPath().c_str(), O_RDWR);
+	fd = open(response.getPath().c_str(), O_RDWR); //can hang ??
 
 	read(fd, buffer, sizeof(buffer));
 	return (buffer);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 16:18:15 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 14:38:27 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,12 @@ void	Response::setStatusCodeMsg(std::string& codeMsg)
 	statusCodeMsg = codeMsg;
 }
 
-void	Response::setPath(std::string& pt)
+void	Response::setPath(std::string pt)
 {
 	path = pt;
 }
 
-void	Response::setBody(std::string& bdy)
+void	Response::setBody(const std::string& bdy)
 {
 	body += bdy;
 }
@@ -149,6 +149,16 @@ std::string	Response::pathErrorPage(std::string code)
 	return ((req.getServer().find(code))->second);
 }
 
+void	Response::throwNewPath(std::string msg, std::string code)
+{
+	std::string	s;
+	
+	s = msg;
+	setStatusCodeMsg(s);
+	throw pathErrorPage(code);
+}
+
+
 Stage	Response::sendResponse(int stage)
 {
 	std::vector<std::string>	vect;
@@ -186,6 +196,13 @@ Stage	Response::sendResponse(int stage)
 		case 2:
 			if (post == NULL)
 		    	post = new Post( *this );
+			if (stage == REQBODY || stage == RESHEADER)
+			{
+				post->responsHeader(stage);
+				if (stage == RESHEADER)
+					stage = RESBODY;
+			}
+			if (post->responsBody().length() == 0) return ( RESEND );
 
 		// default :
 			//will define the errors that not in methods

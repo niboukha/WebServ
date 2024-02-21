@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 16:15:48 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 13:27:55 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,19 +26,9 @@ void Delete::WriteAccess()
 	std::string s;
 
 	if (st.st_mode & S_IWUSR)
-	{
-		s = "500 Internal Server Error";
-		res.setStatusCodeMsg(s);
-
-		throw(res.pathErrorPage("500"));
-	}
+		res.throwNewPath("500 Internal Server Error", "500");
 	else
-	{
-		s = "403 Forbidden";
-		res.setStatusCodeMsg(s);
-		
-		throw(res.pathErrorPage("403"));
-	}
+		res.throwNewPath("403 Forbidden", "403");
 }
 
 void Delete::directoryPath(struct stat st, std::string &pt)
@@ -46,34 +36,15 @@ void Delete::directoryPath(struct stat st, std::string &pt)
 	std::string err;
 
 	if (pt[pt.length() - 1] != '/')
-	{
-		err = "409 conflict";
-		res.setStatusCodeMsg(err);
-
-		throw(res.pathErrorPage("409"));
-	}
+		res.throwNewPath("409 conflict", "409");
+		
 	if (!(st.st_mode & S_IWUSR))
-	{
-		err = "403 Forbidden";
-		res.setStatusCodeMsg(err);
-
-		throw(res.pathErrorPage("403"));
-	}
+		res.throwNewPath("403 Forbidden", "403");
+		
 	if ((st.st_mode & S_IWUSR) && std::remove(res.getPath().c_str()))
-	{
-		err = "500 Internal Server Error";
-		res.setStatusCodeMsg(err);
-
-		throw(res.pathErrorPage("500"));
-	}
+		res.throwNewPath("500 Internal Server Error", "500");
 	else
-	{
-		err = "204 No Content";
-		res.setStatusCodeMsg(err);
-
-		throw(res.pathErrorPage("204"));
-
-	}
+		res.throwNewPath("204 No Content", "204");
 }
 
 void	Delete::filePath(std::string &s)
@@ -81,12 +52,7 @@ void	Delete::filePath(std::string &s)
 	std::string err;
 
 	if (!std::remove(s.c_str()))
-	{
-		err = "204 No Content";
-		res.setStatusCodeMsg(err);
-
-		throw(res.pathErrorPage("204"));
-	}
+		res.throwNewPath("204 No Content", "204");
 }
 
 std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
@@ -118,11 +84,7 @@ std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 				filePath(s);
 		}
 		else
-		{
-			s = "404 Not found";
-			res.setStatusCodeMsg(s);
-			throw(res.pathErrorPage("404"));
-		}
+			res.throwNewPath("404 Not found", "404");
 	}
 	return (s);
 }
@@ -137,11 +99,7 @@ void	Delete::deleteBasePath(std::string s, struct stat statPath)
 			filePath(s);
 	}
 	else
-	{
-		s = "404 Not found";
-		res.setStatusCodeMsg(s);
-		throw(res.pathErrorPage("404"));
-	}
+		res.throwNewPath("404 Not found", "404");
 }
 
 void	Delete::statusOfRequested()

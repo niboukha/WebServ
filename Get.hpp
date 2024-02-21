@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Get.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 16:17:46 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 14:32:44 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class	Get
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
 		int							fd;
+		int							dirflag;
 
 	public :
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 18:35:15 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 14:57:30 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,24 +25,33 @@ class	Post
 
 		Response	&res;
 		size_t		size;
-
+		int			fd;
+		int			dirflag;
+		
 	public :
 
 		Post( Response &response );
 		~Post( );
 
-		std::string	responsHeader();
+		std::string	responsHeader(int stage);
 		std::string	responsBody();
 		
-		void	requestedStatus();
+		void	requestedStatus(int stage);
 
 		void	uploadedFile();
 
-		void	chunkedTransfer();
+		void	chunkedTransfer(std::string body);
 		void	nonChunkedTransfer();
+		void	unsupportedUpload();
 
-		void	isUploadPass();
+		bool	isUploadPass();
 		
+		int		getLength(std::string s);
+		size_t	maxBodySize();
+		void	directoryInRequest(std::string &file);
+
+		std::string	httpRedirection();
+		void		cgiPassCheck();
 		std::string	conctRootUpload( std::string s );
 };
 

@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 15:27:18 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 15:20:51 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client() : res(req), stage(REQSTAGE)
+Client::Client() : res(req), stage(REQLINE)
 {
 }
 
@@ -53,8 +53,8 @@ void	Client::serve()
 	std::string	buffer;
 	//buffer = recv()
 
-	if (stage == REQSTAGE)
+	if (stage == REQHEADER)
 		recieveRequest(buffer);
 	else
 		sendResponse();
-}
+} 

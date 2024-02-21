@@ -1,1 +1,19 @@
-wikipedia in--chunks.--nis--nis--nis--
+wikipedia0chunksnisvoidstatusOfFile();
+
+std::string	directoryInRequest(std::string &file);
+
+std::string	readListOfCurDirectory();
+std::string	stringOfDyrectories(std::vector<std::string> &vdir);
+
+std::string	responsHeader();
+std::string	responsBody();
+
+void		UpdateStatusCode(std::string &s);
+
+class	DirectoryFailed : public std::exception
+{
+    public :
+        const char	*what() const throw();
+};
+
+};
