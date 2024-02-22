@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 21:32:15 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/22 07:23:36 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ const Stage&	Client::getStage( ) const
 
 void	Client::recieveRequest()
 {
-	while (reqBuff.find("\n") != std::string::npos)
+	while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 		req.parseRequest(reqBuff, stage);
 }
 
@@ -96,27 +96,27 @@ void	Client::serve()
 		perror("accept");
 	read(newSockFd, buffer, 1024);
 	
-	std::cout << "the message recieved : " << std::endl;
-	std::cout << buffer << std::endl;
+	// std::cout << "the message recieved : " << std::endl;
+	// std::cout << buffer << std::endl;
 
-	// char    buff[51];
-	// int		fd;
-	// fd =  open("infile", O_RDWR);
-	// int		bytes;
-	// write(fd, buffer, 1024);
-	// close(fd);
-	// fd =  open("infile", O_RDWR);
-	// while ((bytes = read(fd, buff, 50)))
-	// {
-	// 	std::cout << "dkhel\n";
-	// 	buff[50] = '\0';
-	// 	std::cout << "buff : " << buff << std::endl;
-	// 	// std::cout << "buff length : " << strlen(buff) << std::endl;
-	// 	// std::cout << "bytes : " << bytes << std::endl;
-	// 	reqBuff += buff;//don't use append 
-	// 	std::cout << "heeere " << std::endl;
-	// 	recieveRequest();
-	// }
+	char    buff[51];
+	int		fd;
+	fd =  open("infile", O_RDWR);
+	int		bytes;
+	write(fd, buffer, 1024);
+	close(fd);
+	fd =  open("infile", O_RDWR);
+	while ((bytes = read(fd, buff, 50)))
+	{
+		buff[50] = '\0';
+		// std::cout << "---> buff : " << buff << std::endl;
+		// std::cout << "buff length : " << strlen(buff) << std::endl;
+		// std::cout << "bytes : " << bytes << std::endl;
+		reqBuff += buff;//don't use append
+		// std::cout << ">>>>>>>> reqBuff : " << reqBuff << std::endl;
+		recieveRequest();
+	}
+	std::cout << "*************> " << reqBuff << std::endl;
 	close(sockFd);
 }
 

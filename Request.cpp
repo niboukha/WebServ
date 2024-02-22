@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/21 21:10:58 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/22 07:22:45 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,11 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     else if (stage == REQHEADER)
     {
         parseHeader(buff);
-        matchingLocation();
-        stage = REQBODY;
+        if (!buff.compare("\r\n"))
+        {
+            matchingLocation();
+            stage = REQBODY;
+        }
     }
     
 }
@@ -114,13 +117,14 @@ void    Request::parseRequestLine(std::string    &buff)
     
     // std::cout << ">>>>>> here" << std::endl;
     // std::cout << "=====> parse request line : " << std::endl;
-    reqLine = buff.substr(0 ,buff.find("\n"));
-    std::cout << "-------> heeeere " << std::endl;
+    reqLine = buff.substr(0 ,buff.find("\r\n"));
+    // std::cout << "-------> heeeere " << std::endl;
     // std::cout << "req line : "<< reqLine << std::endl;
-    buff = buff.substr(buff.find("\n") + 1);
+    buff = buff.substr(buff.find("\r\n") + 2);
     // std::cout << "the rest in buff : " << buff << std::endl;
     splitReqLine = StringOperations::split(reqLine, " ");
-    method =splitReqLine[0];
+    // if (splitReqLine.size() != 3)//to add
+    method = splitReqLine[0];
     // std::cout << "method : " << method << std::endl;
     uri =splitReqLine[1];
     // std::cout << "uri : " << uri << std::endl;
@@ -135,10 +139,11 @@ void    Request::parseHeader(std::string &buff)
 
     // std::cout << "====> parse header : " << std::endl;
     // std::cout << "-----------> " << buff << std::endl;
-    header = buff.substr(0, buff.find("\n"));
-    // std::cout << "header : " << header << std::endl;
-    buff = buff.substr(buff.find("\n") + 1);
-    // std::cout << "buff : " << buff << std::endl;
+    header = buff.substr(0, buff.find("\r\n"));
+    // std::cout << "----> find \r\n  : " << buff.find("\r\n") << std::endl;
+    // std::cout << "========> header : " << header << std::endl;
+    buff = buff.substr(buff.find("\r\n") + 2);
+    // std::cout << "---------> buff : " << buff << std::endl;
     key = header.substr(0, header.find_first_of(":"));
     for (size_t i = 0; i < key.length(); i++)
         key[i] =  tolower(key[i]);
