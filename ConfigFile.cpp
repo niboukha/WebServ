@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/20 17:32:43 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/22 07:32:29 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,17 +97,13 @@ Server  ConfigFile::fillServer(std::fstream& configFile)
  void    ConfigFile::parseConfigFile(std::fstream &configFile)
  {
     std::vector<Server> servers;
-    Server              server;
     std::string         line;
 
     while (std::getline(configFile, line))
     {
         line = StringOperations::trim(line);
         if (!line.compare("server"))
-        {
-            server = fillServer(configFile);
-            servers.push_back(server);
-        }
+            servers.push_back(fillServer(configFile));
         else if (line.empty())
 			continue ; 
         else

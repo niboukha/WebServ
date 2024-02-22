@@ -64,14 +64,12 @@ void	Client::serve()
 	
     if (sockFd < 0)
         std::cout << "failed to create socket" << std::endl;
-		
     struct sockaddr_in	serverAdd, clientAddr;
     socklen_t 			clientAddrLen;
 	
     serverAdd.sin_family = AF_INET;
     serverAdd.sin_addr.s_addr = INADDR_ANY;
     serverAdd.sin_port = htons(PORT);
-	
     int opt = 1;
     if (setsockopt(sockFd, SOL_SOCKET,
                    SO_REUSEADDR | SO_REUSEPORT, &opt,
@@ -84,20 +82,18 @@ void	Client::serve()
     if (bind(sockFd, (struct sockaddr*) &serverAdd, sizeof(serverAdd)) < 0)
 	{
         perror("bind");
-	}
-		
-	listen(sockFd, 5);
+	}	
+	listen(sockFd, 55);
 		
 		// perror("listen");
 	clientAddrLen =  sizeof(clientAddr);
 	newSockFd = accept(sockFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
-	
 	if (newSockFd < 0)
 		perror("accept");
 	read(newSockFd, buffer, 1024);
 	
-	// std::cout << "the message recieved : " << std::endl;
-	// std::cout << buffer << std::endl;
+	std::cout << "the message recieved : " << std::endl;
+	std::cout << buffer << std::endl;
 
 	char    buff[51];
 	int		fd;
@@ -116,7 +112,7 @@ void	Client::serve()
 		// std::cout << ">>>>>>>> reqBuff : " << reqBuff << std::endl;
 		recieveRequest();
 	}
-	std::cout << "*************> " << reqBuff << std::endl;
+	// std::cout << "*************> " << reqBuff << std::endl;
 	close(sockFd);
 }
 

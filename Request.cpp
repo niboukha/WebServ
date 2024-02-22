@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 07:22:45 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/22 07:44:30 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     else if (stage == REQHEADER)
     {
         parseHeader(buff);
-        if (!buff.compare("\r\n"))
+        if (!buff.find("\r\n"))
         {
             matchingLocation();
             stage = REQBODY;
@@ -88,26 +88,18 @@ void   Request::parseUri()
 {
     size_t      autorityEnd, schemeEnd;
     
-    // std::cout << "======> prseUri : " << std::endl;
-    // std::cout << "---> URI : " << uri << std::endl;
     decodeUri();
     // uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%");check if uri is valid
     schemeEnd = uri.find(":");
     if (schemeEnd != std::string::npos)
     {   
         scheme = uri.substr(0, schemeEnd);
-        // std::cout << "scheme : " << scheme << std::endl;
         autorityEnd = uri.find("/", schemeEnd + 2);
         autority = uri.substr(schemeEnd, autorityEnd);
-        // std::cout << "autority : " << autority << std::endl;
         requestedPath = uri.substr(autorityEnd, uri.find("?", autorityEnd));
-        // std::cout << "path requested : " << requestedPath  << std::endl;
         queryParameters = uri.substr(uri.find("?", autorityEnd));
-        // std::cout << "queryParameters : " << queryParameters << std::endl;
     }
     requestedPath = uri.substr(uri.find("/"));
-    // std::cout << "if the uri relative : " <<  requestedPath << std::endl;
-    // std::cout << "=====> the end of parseURI" << std::endl;
 }
 
 void    Request::parseRequestLine(std::string    &buff)
@@ -115,43 +107,29 @@ void    Request::parseRequestLine(std::string    &buff)
     std::vector<std::string>    splitReqLine;
     std::string                 reqLine;
     
-    // std::cout << ">>>>>> here" << std::endl;
-    // std::cout << "=====> parse request line : " << std::endl;
     reqLine = buff.substr(0 ,buff.find("\r\n"));
-    // std::cout << "-------> heeeere " << std::endl;
-    // std::cout << "req line : "<< reqLine << std::endl;
     buff = buff.substr(buff.find("\r\n") + 2);
-    // std::cout << "the rest in buff : " << buff << std::endl;
     splitReqLine = StringOperations::split(reqLine, " ");
     // if (splitReqLine.size() != 3)//to add
     method = splitReqLine[0];
-    // std::cout << "method : " << method << std::endl;
     uri =splitReqLine[1];
-    // std::cout << "uri : " << uri << std::endl;
     protocolVersion = splitReqLine[2];
-    // std::cout << "protocol version : " << protocolVersion << std::endl;
-    // std::cout << "=========> the end of parse request line : "  << buff << std::endl;
 }
 
 void    Request::parseHeader(std::string &buff)
 {
     std::string key, header, value;
+    size_t      found;
 
-    // std::cout << "====> parse header : " << std::endl;
-    // std::cout << "-----------> " << buff << std::endl;
-    header = buff.substr(0, buff.find("\r\n"));
-    // std::cout << "----> find \r\n  : " << buff.find("\r\n") << std::endl;
-    // std::cout << "========> header : " << header << std::endl;
-    buff = buff.substr(buff.find("\r\n") + 2);
-    // std::cout << "---------> buff : " << buff << std::endl;
+    found = buff.find("\r\n");
+    // if (found  == std::string::npos)
+    header = buff.substr(0, found);
+    buff = buff.substr(found + 2);
     key = header.substr(0, header.find_first_of(":"));
     for (size_t i = 0; i < key.length(); i++)
         key[i] =  tolower(key[i]);
-    // std::for_each(key.begin(), key.end(), ::tolower);
-    // std::cout << "header key : " << key << std::endl;
     value = StringOperations::trim(header.substr(key.length() + 1));
     headers[key] = value;
-    // std::cout << "======> the end of parse header : " << std::endl;
 }
 
 void    Request::SetConfigFile(ConfigFile& configFile)
@@ -177,8 +155,9 @@ void    Request::matchingLocation()
     matchServer = findServer();
     server = matchServer.getServerData();
     longestOne = 0;
-    for (std::map<std::string, mapStrVect>::const_iterator i = matchServer.getLocations().begin();
-     i != matchServer.getLocations().end(); i++)
+    for (std::map<std::string, mapStrVect>::const_iterator 
+        i = matchServer.getLocations().begin();
+        i != matchServer.getLocations().end(); i++)
     {
         sizeMatching = longestMatchingLocation((i->first));
         if (longestOne < sizeMatching)
