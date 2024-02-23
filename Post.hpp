@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 14:57:30 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/21 16:06:27 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,9 +37,7 @@ class	Post
 		std::string	responsBody();
 		
 		void	requestedStatus(int stage);
-
-		void	uploadedFile();
-
+		
 		void	chunkedTransfer(std::string body);
 		void	nonChunkedTransfer();
 		void	unsupportedUpload();
@@ -50,8 +48,7 @@ class	Post
 		size_t	maxBodySize();
 		void	directoryInRequest(std::string &file);
 
-		std::string	httpRedirection();
-		void		cgiPassCheck();
+		void	cgiPassCheck();
 		std::string	conctRootUpload( std::string s );
 };
 

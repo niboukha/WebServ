@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 16:00:25 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/22 10:04:38 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,14 +68,14 @@ void	Post::nonChunkedTransfer()
 {
 	std::map<std::string, std::string>	ser;
 
-	mapStrVect			head;
+	std::map<std::string, std::string>			head;
 	std::stringstream	s;
 	std::ofstream		outfile;
 	size_t				n;	
 
 	ser  = res.getRequest().getServer();
 	head = res.getRequest().getHeaders(); 
-	s << head["Content-Length"].front();
+	s << head["content-length"];
 	s >> n;
 	if (maxBodySize() > n)
 		res.throwNewPath("413 Request Entity Too Large", "413");
@@ -184,12 +184,12 @@ void	Post::unsupportedUpload()
 
 void	Post::requestedStatus(int stage)
 {
-	mapStrVect	header;
+	std::map<std::string, std::string>	header;
 
 	header = res.getRequest().getHeaders();
 	if (!isUploadPass() && stage == REQBODY)
 	{
-		if (header.find("Content-Length") != header.end())
+		if (header.find("content-length") != header.end())
 			nonChunkedTransfer();
 		chunkedTransfer( res.getBody() );
 	}

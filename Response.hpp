@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 14:15:39 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/22 21:55:50 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,11 @@ class Response
 		std::string	path;
 		std::string	body;
 
+		std::string	headerRes;
+		std::string	bodyRes;
+		
+		int			fd;
+
 		std::map<std::string, std::string>	mimeType;
 
 	public:
@@ -45,16 +50,22 @@ class Response
 		Response( Request &request );
 		~Response( );
 
-		Stage	sendResponse(int stage);
+		Stage	sendResponse(Stage &stage);
 
 		void	setStatusCodeMsg(std::string& codeMsg);
 		void	setPath(std::string pt);
 		void	setBody(const std::string& bdy);
-
+		void	setBodyRes(const std::string& bdy);
+		
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
 		const std::string&	getPath() const;
 		const std::string&	getBody() const;
+		const int&			getfd() const;
+		const std::string&	getHeaderRes() const;
+		const std::string&	getBodyRes() const;
+		
+		
 
 		std::string		getContentType( std::string &path );
 		std::string		getContentLength( std::string &path );

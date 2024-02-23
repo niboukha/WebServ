@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 14:38:27 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 08:53:37 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,13 @@ Response::Response( Request &request ) : req( request ),
 						get(NULL), post(NULL), delt(NULL),
 						statusCodeMsg("-1"), path("-1")
 {
-
 }
 
 Response::~Response()
 {
-
+	delete get;
+	delete post;
+	delete delt;
 }
 
 void	Response::setStatusCodeMsg(std::string& codeMsg)
@@ -59,6 +60,12 @@ const std::string&	Response::getBody() const
 	return (body);
 }
 
+const int&	Response::getfd() const
+{
+	return (fd);
+}
+
+
 std::string	Response::getContentLength( std::string &path )
 {
 	FILE* 				fp;
@@ -69,7 +76,7 @@ std::string	Response::getContentLength( std::string &path )
 	fp = fopen(path.c_str(), "r");
 	fseek(fp, 0L, SEEK_END);
 	sz = ftell(fp);
-	
+
 	s << sz;
 	s >> ret;
 
@@ -83,8 +90,8 @@ std::string		Response::getContentType( std::string &path )
 	std::string	s;
 	std::string	ret;
 
+	mapOfTypes();
 	found = path.find_last_of( "." );
-
 	if (found != std::string::npos)
 	{
 		s   = path.substr(found + 1);
@@ -158,14 +165,23 @@ void	Response::throwNewPath(std::string msg, std::string code)
 	throw pathErrorPage(code);
 }
 
+const std::string&	Response::getHeaderRes() const
+{
+	return (headerRes);
+}
 
-Stage	Response::sendResponse(int stage)
+const std::string&	Response::getBodyRes() const
+{
+	return (bodyRes);
+}
+
+Stage	Response::sendResponse(Stage &stage)
 {
 	std::vector<std::string>	vect;
 
-	vect.push_back("Get");
-	vect.push_back("Delete");
-	vect.push_back("Post");
+	vect.push_back("GET");
+	vect.push_back("DELETE");
+	vect.push_back("POST");
 
 	size_t i = 0;
 	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
@@ -174,25 +190,40 @@ Stage	Response::sendResponse(int stage)
 	{
 		case 0:
 			if (get == NULL) get = new Get( *this );
-
+			if (stage == REQBODY)
+				stage = RESHEADER;
 			if (stage == RESHEADER)
 			{
-				get->responsHeader();
-				return ( RESBODY );
+				headerRes = get->responsHeader();
+				fd = open(getPath().c_str(), O_RDWR);//tmp;
+				return ( stage = RESBODY );
 			}
-			if (get->responsBody().length() == 0) return ( RESEND );
-
+			if (stage == RESBODY)
+			{
+				// if (get->getSizeofRead() != 0)
+					// std::string(bodyRes += get->responsBody(), get->getSizeofRead());
+					
+				// std::cout << bodyRes << "\n";
+				bodyRes += get->responsBody();
+				// std::cout << get->getSizeofRead() << " " << std::string(get->responsBody(), get->getSizeofRead()) << "\n"; // mn b3d
+				
+				if (get->getSizeofRead() == 0) return ( stage = RESEND );
+			}
+			break;
+			
 		case 1:
+		
 			if (delt == NULL)
 				delt = new Delete( *this );
 
 			if (stage == RESHEADER)
 			{
 				delt->responsHeader();
-				return ( RESBODY );
+				return ( stage = RESBODY );
 			}
-			if (delt->responsBody().length() == 0) return ( RESEND );
-
+			if (delt->responsBody().length() == 0) return ( stage = RESEND );
+			break;
+			
 		case 2:
 			if (post == NULL)
 		    	post = new Post( *this );
@@ -202,7 +233,7 @@ Stage	Response::sendResponse(int stage)
 				if (stage == RESHEADER)
 					stage = RESBODY;
 			}
-			if (post->responsBody().length() == 0) return ( RESEND );
+			if (post->responsBody().length() == 0) return ( stage = RESEND );
 
 		// default :
 			//will define the errors that not in methods

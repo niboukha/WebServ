@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 14:39:16 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 08:56:16 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ Get::~Get()
 {
 }
 
-Get::Get(Response &res) : response(res), dirflag(0)
+Get::Get(Response &res) : response(res), dirflag(0), sizeofRead(0)
 {
 }
 
@@ -24,6 +24,12 @@ const char*	Get::DirectoryFailed::what() const throw()
 {
 	return ("forbidden");
 }
+
+const int&		Get::getSizeofRead() const
+{
+	return (sizeofRead);
+}
+
 
 std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 {
@@ -90,17 +96,15 @@ std::string	Get::directoryInRequest(std::string &file)
 	if (file[file.length() - 1] != '/')
 	{
 		dirflag = 1;
-		response.setPath(response.getPath() + "/");
+		locationRes = response.getPath() + "/";
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
-
 	if (loc["index"].empty())
 	{
-		if (loc["auto_index"].front() == "off")
+		if (loc["autoindex"].front() == "off")
 			response.throwNewPath("403 forbidden", "403");
 		return (readListOfCurDirectory());
 	}
-
 	return (response.concatenateIndexDirectory(file));
 }
 
@@ -114,11 +118,13 @@ void Get::statusOfFile()
 {
 	std::string	s;
 	std::string	pt;
-
-	s = response.concatenatePath();
-	response.setPath(s);
+	
+	if (response.getStatusCodeMsg() == "-1")
+	{
+		s = response.concatenatePath();
+		response.setPath(s);
+	}
 	std::ifstream file(response.getPath().c_str());
-
 	if (!Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
@@ -140,25 +146,29 @@ std::string Get::responsHeader()
 {
 	std::string	s;
 	std::string	pt;
-
 	statusOfFile();
+	
 	pt = response.getPath();
 	s  = response.getRequest().getProtocolVersion() + " " +
 		response.getStatusCodeMsg() + CRLF +
-		"Content-Type: "   + response.getContentType(pt)   + CRLF +
+		"Content-Type: "   + response.getContentType(pt)   + CRLF + 
 		"Content-Length: " + response.getContentLength(pt);
 	if (dirflag == 1)
-		s = s + CRLF + "Location: " + response.getPath();
+		s = s + CRLF + "Location: " + locationRes;
 	s = s + CRLF + CRLF;
 	return (s);
 }
 
 std::string Get::responsBody()
 {
-	char buffer[1024];
-
-	fd = open(response.getPath().c_str(), O_RDWR); //can hang ??
-
-	read(fd, buffer, sizeof(buffer));
-	return (buffer);
+	char buffer[20];
+	// fd = open(response.getPath().c_str(), O_RDWR); //can hang ??
+	if (response.getfd() < 0)
+		perror(NULL);
+	sizeofRead = read(response.getfd(), buffer, sizeof(buffer));
+	// std::cout << "read return -> " << a << "\n";
+	// buffer[sizeofRead] = '\0';
+	// std::cout << sizeofRead << "\n";
+	// std::cout << buffer << "\n";
+	return (std::string(buffer, sizeofRead));
 }

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/21 13:42:23 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/22 11:33:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,17 @@
 #include <cstdlib> 
 #include <iostream> 
 #include <time.h> 
+#include <exception>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #define _XOPEN_SOURCE 700
+#define	PORT 8080
 #define	CRLF "\r\n" //carriage return and line feed
-#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webServ/mimetype.txt"
-typedef std::map<std::string, std::vector<std::string> > mapStrVect;
+#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/mimetype.txt"
+
+typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
+typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;
 
 enum	Stage
 {
@@ -58,11 +64,7 @@ enum	Stage
 // #include "Delete.hpp"
 
 #include "Exceptions.hpp"
+#include "StringOperations.hpp"
 #include "Utils.hpp"
-
-class	Server;
-class	StringOperations;
-
-std::vector<Server>  parseConfigFile(std::fstream& configFile);
 
 #endif

@@ -235,14 +235,23 @@ int	getLength(std::string s)
 
 int main()
 {
-	char buffer[19];
+	char buffer[10];
 	int fd;
-	fd = open("file.txt", O_RDWR);
+	std::string s;
+	fd = open("hh.jpg", O_RDWR);
+	int c;
+	std::cout << "hello" << "\n";
+	int i = 0;
+	while ((c = read(fd, buffer, sizeof(buffer))))
+	{
+		// buffer[c] = '\0';
+		i += c;
 
-	int c = read(fd, buffer, sizeof(buffer));
-	buffer[19] = '\0';l
-	std::cout << buffer << "\n";
-	std::cout << sizeof(buffer) << "\n";
-	std::cout << c << "\n";
+		// std::cout << std::string(buffer, c);
+		// std::cout << c << "\n";
+		// std::string (s, i) = std::string (buffer, c);
+		std::cout << std::string (s + buffer, i);
+	}
+	std::cout << i << "\n";
 	return (0);
 }

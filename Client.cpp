@@ -6,13 +6,13 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 15:20:51 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/22 22:00:36 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client() : res(req), stage(REQLINE)
+Client::Client( Request& request ) : req(request), res(req), stage(REQLINE)
 {
 }
 
@@ -30,31 +30,91 @@ const Stage&	Client::getStage( ) const
 	return ( stage );
 }
 
-void	Client::recieveRequest(std::string buffer)
+void	Client::recieveRequest()
 {
-	stage = req.parseRequest(buffer); //should catch
+	while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
+		req.parseRequest(reqBuff, stage);
 }
 
 void	Client::sendResponse()
 {
-	try
+	int i = 0;
+	while (stage != RESEND)
 	{
-		stage = res.sendResponse(stage);
+		try
+		{
+			stage = res.sendResponse(stage);
+			if (stage == RESBODY && i == 0)
+			{
+				i = 1;
+				std::cout <<"--------> " <<res.getHeaderRes() << std::endl;
+				send(newSockFd, res.getHeaderRes().c_str(), 
+				strlen(res.getHeaderRes().c_str()), 0);
+			}
+		}
+		catch (std::string path)
+		{
+			res.setPath(path);
+			stage = RESHEADER;
+		}
 	}
-	catch (std::string path)
-	{
-		res.setPath(path);
-		stage = RESHEADER;
-	}
+	std::cout <<"--------> " <<res.getBodyRes() << std::endl;
+	send(newSockFd, res.getBodyRes().c_str(), 
+	strlen(res.getBodyRes().c_str()), 0);
 }
 
 void	Client::serve()
 {
-	std::string	buffer;
-	//buffer = recv()
+	sockFd = socket(AF_INET, SOCK_STREAM, 0);
+	char	buffer[1024];
+	
+    if (sockFd < 0)
+        std::cout << "failed to create socket" << std::endl;
+    struct sockaddr_in	serverAdd, clientAddr;
+    socklen_t 			clientAddrLen;
+	
+    serverAdd.sin_family = AF_INET;
+    serverAdd.sin_addr.s_addr = INADDR_ANY;
+    serverAdd.sin_port = htons(PORT);
+    int opt = 1;
+    if (setsockopt(sockFd, SOL_SOCKET,
+                   SO_REUSEADDR | SO_REUSEPORT, &opt,
+                   sizeof(opt)) < 0)
+	{
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
+	
+    if (bind(sockFd, (struct sockaddr*) &serverAdd, sizeof(serverAdd)) < 0)
+	{
+        perror("bind");
+	}	
+	listen(sockFd, 55);
+		
+		// perror("listen");
+	clientAddrLen =  sizeof(clientAddr);
+	newSockFd = accept(sockFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
+	if (newSockFd < 0)
+		perror("accept");
+	int b = read(newSockFd, buffer, 1024);
 
-	if (stage == REQHEADER)
-		recieveRequest(buffer);
-	else
-		sendResponse();
+	char    buff[51];
+	int		fd;
+	int		bytes;
+	
+	fd =  open("infile", O_RDWR);
+	write(fd, buffer, b);
+	close(fd);
+	fd =  open("infile", O_RDWR);
+	
+	while ((bytes = read(fd, buff, 50)))
+	{
+		buff[50] = '\0';
+		reqBuff += buff;//don't use append
+		recieveRequest();
+		if (stage != REQLINE && stage != REQHEADER)
+			sendResponse();
+	}
+	close(newSockFd);
+	close(sockFd);
 } 
