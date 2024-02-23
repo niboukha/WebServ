@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/14 13:45:25 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/22 19:48:34 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,25 +17,30 @@
 #include "Response.hpp"
 #include "Request.hpp"
 
-class   Response;
+class	Response;
 class	Request;
 
-class   Client
+class	Client
 {
 	private:
 
+		Request		&req;
 		Response	res;
-		Request		req;
-		
+
 		std::string	recievedReq;
-        Stage         stage;
+		Stage		stage;
+		std::string	reqBuff;
+
+		int 	sockFd;
+		int		newSockFd;
 
 		void	recieveRequest();
 		void	sendResponse();
 
 	public:
 
-		Client();
+		Client(Request& request);
+
 		~Client();
 
 		const std::string&	getRecievedReq() const;

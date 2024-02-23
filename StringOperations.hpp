@@ -1,29 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Utils.hpp                                          :+:      :+:    :+:   */
+/*   StringOperations.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/12 15:54:43 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/22 07:09:28 by niboukha         ###   ########.fr       */
+/*   Created: 2024/02/08 09:39:23 by shicham           #+#    #+#             */
+/*   Updated: 2024/02/22 07:05:52 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#ifndef STRINGOPERATIONS_HPP
+#define STRINGOPERATIONS_HPP
+
 
 #include "WebServ.hpp"
 
-namespace Utils
+class StringOperations
 {
-	int		isDir( const char* file );
-	void	trimString( std::string &s );
-
-	std::vector<std::string>	moreThanKey( std::string s );
-	std::string					generateRundFile();
-
-
+    public:
+        StringOperations();
+        ~StringOperations();
+        static std::string trim(const std::string& str, const std::string REMOVE = "  \n\r\t");
+        static bool                     containsNonAlpha(std::string &str);
+        static  std::vector<std::string>    split(std::string s, std::string delim);
 };
 
 #endif

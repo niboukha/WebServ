@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Get.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 12:03:29 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 08:47:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,13 +23,13 @@ class	Get
 {
 	private :
 		Response					&response;
-
-		// std::string					statusCodeMsg;
-		// std::string					path;
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
-		int							fd;
-
+		// int							fd;
+		int							dirflag;
+		std::string					locationRes;
+		int							sizeofRead;
+		
 	public :
 
 		Get(Response &res);
@@ -47,6 +47,8 @@ class	Get
 
 		void		UpdateStatusCode(std::string &s);
 
+		const int&		getSizeofRead() const;
+	
 		class	DirectoryFailed : public std::exception
 		{
 			public :

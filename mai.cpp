@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include <map>
@@ -12,10 +13,13 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <limits.h>
+#include <sstream>
+#include <fcntl.h>
 #include <stdio.h>
-#include <iostream>
-#include <sstream> // for string streams
-#include <string>  // for string
+#include <string.h>
+#include <cstdlib> 
+#include <iostream> 
+#include <time.h> 
 // int main()
 // {
 // 	std::ofstream	file;
@@ -219,35 +223,35 @@ std::string fun(std::string s, struct stat statPath)
 	return (s);
 }
 
+int	getLength(std::string s)
+{
+	std::stringstream	st;
+	int					n;
+
+	st << s;
+	st >> std::hex >> n;
+	return (n);
+}
+
 int main()
 {
-	try
+	char buffer[10];
+	int fd;
+	std::string s;
+	fd = open("hh.jpg", O_RDWR);
+	int c;
+	std::cout << "hello" << "\n";
+	int i = 0;
+	while ((c = read(fd, buffer, sizeof(buffer))))
 	{
-		std::string s;
-		std::string sd;
-	struct stat statPath;
+		// buffer[c] = '\0';
+		i += c;
 
-		s = "/nfs/homes/niboukha/Desktop/web/a/";
-
-		sd = fun(s, statPath);
-		if (!stat(s.c_str(), &statPath))
-		{
-			if (S_ISDIR(statPath.st_mode))
-				directoryPath(statPath, s);
-			else if (S_ISREG(statPath.st_mode))
-				filePath(s);
-		}
-		else
-		{
-			s = "404 Not found";
-			throw("404");
-		}
-		std::cout << "fngjfhg |" << s << "|\n";
+		// std::cout << std::string(buffer, c);
+		// std::cout << c << "\n";
+		// std::string (s, i) = std::string (buffer, c);
+		std::cout << std::string (s + buffer, i);
 	}
-	catch (char const *st)
-	{
-		std::cerr << st << "\n";
-	}
-
+	std::cout << i << "\n";
 	return (0);
 }

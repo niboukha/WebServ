@@ -3,33 +3,41 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/18 12:50:08 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 08:53:37 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response( Request &request ) : req( request ), get(NULL), delt(NULL)
+Response::Response( Request &request ) : req( request ),
+						get(NULL), post(NULL), delt(NULL),
+						statusCodeMsg("-1"), path("-1")
 {
-
 }
 
 Response::~Response()
 {
-
+	delete get;
+	delete post;
+	delete delt;
 }
 
-void	Response::setStatusCodeMsg(std::string& statusCodeMsg)
+void	Response::setStatusCodeMsg(std::string& codeMsg)
 {
-	statusCodeMsg = "-1";
+	statusCodeMsg = codeMsg;
 }
 
-void	Response::setPath(std::string& path)
+void	Response::setPath(std::string pt)
 {
-	path = "-1";
+	path = pt;
+}
+
+void	Response::setBody(const std::string& bdy)
+{
+	body += bdy;
 }
 
 const Request&	Response::getRequest() const
@@ -47,20 +55,32 @@ const std::string&	Response::getPath() const
 	return (path);
 }
 
+const std::string&	Response::getBody() const
+{
+	return (body);
+}
+
+const int&	Response::getfd() const
+{
+	return (fd);
+}
+
+
 std::string	Response::getContentLength( std::string &path )
 {
-	long int			sz;
+	FILE* 				fp;
 	std::stringstream	s;
 	std::string			ret;
-
-	FILE* fp;
+	long int			sz;
 
 	fp = fopen(path.c_str(), "r");
-    fseek(fp, 0L, SEEK_END);
-    sz = ftell(fp);
-    fclose(fp);
+	fseek(fp, 0L, SEEK_END);
+	sz = ftell(fp);
+
 	s << sz;
 	s >> ret;
+
+	fclose(fp);
 	return ( ret );
 }
 
@@ -70,19 +90,19 @@ std::string		Response::getContentType( std::string &path )
 	std::string	s;
 	std::string	ret;
 
+	mapOfTypes();
 	found = path.find_last_of( "." );
-
 	if (found != std::string::npos)
 	{
-		s = path.substr(found + 1);
-		ret = contType[s];
+		s   = path.substr(found + 1);
+		ret = mimeType[s];
 	}
 	return ( ret );
 }
 
 void	Response::mapOfTypes( )
 {
-	std::ifstream	file( "/nfs/homes/niboukha/Desktop/webServ/mimetype.txt" );
+	std::ifstream	file( PATH_MIME );
 
 	std::vector<std::string>	vec;
 	std::string					s;
@@ -95,9 +115,9 @@ void	Response::mapOfTypes( )
 		Utils::trimString( s );
 		found = s.find_first_of( " \t" );
 		value = s.substr( 0, found + 1 );
-		vec = Utils::moreThanKey( s.substr(found + 1) );
+		vec   = Utils::moreThanKey( s.substr(found + 1) );
 		for ( size_t i = 0; i < vec.size(); i++ )
-			contType[vec[i]] = value;
+			mimeType[vec[i]] = value;
 	}
 }
 
@@ -106,7 +126,7 @@ std::string	Response::concatenateIndexDirectory( std::string &file )
 	mapStrVect  loc;
 	std::string	path;
 
-	loc = getRequest().getLocationMethod();
+	loc = getRequest().getLocation();
 	for (size_t i = 0; i < loc["index"].size(); i++)
 	{
 		path = loc["index"][i];
@@ -123,49 +143,100 @@ std::string	Response::concatenateIndexDirectory( std::string &file )
 
 std::string	Response::concatenatePath( )
 {
-	mapStrVect  loc;
+	mapStrVect	loc;
 	std::string	s;
-	loc = getRequest().getLocationMethod();
 
-	s = loc["root"].front() + getRequest().getPathHeader();
+	loc = getRequest().getLocation();
+	s = loc["root"].front() + getRequest().getRequestedPath();
 	return (s);
 }
 
 std::string	Response::pathErrorPage(std::string code)
 {
-	std::map<std::string, std::string>	err;
-	std::string							path;
-
-	err = req.getErrorPage();
-	path = err[code];
-	return (path);
+	return ((req.getServer().find(code))->second);
 }
 
-void	Response::prefaceMethod( )
+void	Response::throwNewPath(std::string msg, std::string code)
 {
-	if (req.getMethod() == "Get")
-	{
-		if (get == NULL)
-			get = new Get( *this );//up
-	}
-	else if (req.getMethod() == "Delete")
-	{
-		if (delt == NULL)
-			delt = new Delete(*this);
-	}
-	// else if (req.getMethod() == "Post")
-	//     post = new Post(*this);
+	std::string	s;
+	
+	s = msg;
+	setStatusCodeMsg(s);
+	throw pathErrorPage(code);
 }
 
-Stage	Response::sendResponse(int stage)
+const std::string&	Response::getHeaderRes() const
 {
-	if (stage == RESHEADER)
+	return (headerRes);
+}
+
+const std::string&	Response::getBodyRes() const
+{
+	return (bodyRes);
+}
+
+Stage	Response::sendResponse(Stage &stage)
+{
+	std::vector<std::string>	vect;
+
+	vect.push_back("GET");
+	vect.push_back("DELETE");
+	vect.push_back("POST");
+
+	size_t i = 0;
+	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
+
+	switch(i)
 	{
-		get->responsHeader();
-		return ( RESBODY );
+		case 0:
+			if (get == NULL) get = new Get( *this );
+			if (stage == REQBODY)
+				stage = RESHEADER;
+			if (stage == RESHEADER)
+			{
+				headerRes = get->responsHeader();
+				fd = open(getPath().c_str(), O_RDWR);//tmp;
+				return ( stage = RESBODY );
+			}
+			if (stage == RESBODY)
+			{
+				// if (get->getSizeofRead() != 0)
+					// std::string(bodyRes += get->responsBody(), get->getSizeofRead());
+					
+				// std::cout << bodyRes << "\n";
+				bodyRes += get->responsBody();
+				// std::cout << get->getSizeofRead() << " " << std::string(get->responsBody(), get->getSizeofRead()) << "\n"; // mn b3d
+				
+				if (get->getSizeofRead() == 0) return ( stage = RESEND );
+			}
+			break;
+			
+		case 1:
+		
+			if (delt == NULL)
+				delt = new Delete( *this );
+
+			if (stage == RESHEADER)
+			{
+				delt->responsHeader();
+				return ( stage = RESBODY );
+			}
+			if (delt->responsBody().length() == 0) return ( stage = RESEND );
+			break;
+			
+		case 2:
+			if (post == NULL)
+		    	post = new Post( *this );
+			if (stage == REQBODY || stage == RESHEADER)
+			{
+				post->responsHeader(stage);
+				if (stage == RESHEADER)
+					stage = RESBODY;
+			}
+			if (post->responsBody().length() == 0) return ( stage = RESEND );
+
+		// default :
+			//will define the errors that not in methods
 	}
-	if (get->responsBody().length() == 0)
-		return ( RESEND );
 	return ( RESBODY );
 }
-

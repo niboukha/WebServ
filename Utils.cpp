@@ -6,18 +6,18 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/12 20:37:52 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/22 07:06:06 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Utils.hpp"
 
-int		Utils::isDir( const char* file )
+int	Utils::isDir( const char* file )
 {
-    struct stat path;
+	struct stat path;
 
-    stat(file, &path);
-    return (S_ISREG(path.st_mode));
+	stat(file, &path);
+	return (S_ISREG(path.st_mode));
 }
 
 void	Utils::trimString( std::string &s )
@@ -30,7 +30,7 @@ void	Utils::trimString( std::string &s )
 	if ( foundFisrt != std::string::npos )
 	{
 		s = s.substr( 0, foundFisrt + 1 );
-    	s = s.substr( foundLast );
+		s = s.substr( foundLast );
 	}
 	else
 		s.clear();
@@ -54,3 +54,15 @@ std::vector<std::string>	Utils::moreThanKey( std::string s )
 	}
 	return (vect);
 }
+
+std::string	Utils::generateRundFile()
+{
+	std::string			path;
+	std::ostringstream	s;
+
+	path = "file";
+	s << time(0);
+
+	return (path + s.str());
+}
+
