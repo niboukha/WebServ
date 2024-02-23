@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/22 07:06:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:59:10 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
+#include "../includes/Utils.hpp"
 
 int	Utils::isDir( const char* file )
 {
@@ -66,3 +66,7 @@ std::string	Utils::generateRundFile()
 	return (path + s.str());
 }
 
+bool Utils::isFdOpen(int fd)
+{
+    return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
+}

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/22 19:48:34 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:07:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define CLIENT_HPP
 
 #include "WebServ.hpp"
-#include "Response.hpp"
-#include "Request.hpp"
+#include "../includes/Response.hpp"
+#include "../includes/Request.hpp"
 
 class	Response;
 class	Request;

@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 07:00:28 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:07:48 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "ConfigFile.hpp"
+#include "../includes/ConfigFile.hpp"
 
 ConfigFile::ConfigFile()
 {
@@ -25,6 +25,13 @@ const std::vector<Server>& ConfigFile::getServers() const
     return servers;
 }
 
+void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)
+{
+    if (location.find("index") == location.end())
+        location["index"].push_back("");
+    if (location.find("autoindex") == location.end())
+        location["autoindex"].push_back("");
+}
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
     mapStrVect location;
@@ -47,6 +54,7 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 		}
 		else
         {
+            
             configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
         }

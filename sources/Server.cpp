@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 06:39:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:59:24 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 Server::Server()
 {  
@@ -104,14 +104,16 @@ bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)
 
 bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)
 {
-    if (!directive.compare("root"))
+    if (!directive.compare("index"))
+        return true;
+    else if (!directive.compare("root"))
         Server::isValidRoot(values);
     else if (!directive.compare("allow_methodes"))
         Server::isValidAllowMethodes(values);
     else if (!directive.compare("autoindex"))
         Server::isValidAutoIndex(values);
-    else if (!directive.compare("index"))
-        Server::isValidIndex(values);
+    // else if (!directive.compare("index"))
+    //     Server::isValidIndex(values);
     else if (!directive.compare("upload_pass"))
         isValidUploadPass(values);
     else 
@@ -148,16 +150,16 @@ bool    Server::isValidAllowMethodes(std::vector<std::string> &allowMethodesValu
     return true;
 }
 
-bool    Server::isValidIndex(std::vector<std::string> &indexValue)
-{
-     if (!indexValue.size())
-        throw InvalidNumberOfArguments();
-    return true;
-}
+// bool    Server::isValidIndex(std::vector<std::string> &indexValue)
+// {
+//      if (indexValue.size())
+//         throw InvalidNumberOfArguments();
+//     return true;
+// }
 
 bool    Server::isValidAutoIndex(std::vector<std::string> &autoindexValue)
 {
-    if (autoindexValue.size() != 1)
+    if (autoindexValue.size() > 1)
         throw InvalidNumberOfArguments();
     else if (!autoindexValue[0].compare("on") or !autoindexValue[0].compare("off") )
        return true;

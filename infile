@@ -1,4 +1,4 @@
-GET /testing.html HTTP/1.1
+GET /nfs/homes/niboukha/Desktop/webserv/nff/ HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
 Cache-Control: max-age=0

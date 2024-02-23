@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/22 10:04:38 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:56:18 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Post.hpp"
+#include "../includes/Post.hpp"
 
 Post::Post( Response &response ) : res( response ), size(0), dirflag(0)
 {

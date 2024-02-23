@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 08:56:16 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:55:36 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Get.hpp"
+#include "../includes/Get.hpp"
 
 Get::~Get()
 {
@@ -101,11 +101,11 @@ std::string	Get::directoryInRequest(std::string &file)
 	}
 	if (loc["index"].empty())
 	{
-		if (loc["autoindex"].front() == "off")
+		if (loc["autoindex"].front().empty() or loc["autoindex"].front() == "off")
 			response.throwNewPath("403 forbidden", "403");
 		return (readListOfCurDirectory());
 	}
-	return (response.concatenateIndexDirectory(file));
+	return (response.concatenateIndexDirectory());
 }
 
 void Get::UpdateStatusCode(std::string &s)
@@ -124,14 +124,14 @@ void Get::statusOfFile()
 		s = response.concatenatePath();
 		response.setPath(s);
 	}
+
 	std::ifstream file(response.getPath().c_str());
+
 	if (!Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
 		s  = directoryInRequest(pt);
 		response.setPath(s);
-		if (response.getPath().empty())
-			response.throwNewPath("404 not found", "404");
 	}
 	else if (!file.is_open())
 		response.throwNewPath("404 not found", "404");
@@ -162,13 +162,10 @@ std::string Get::responsHeader()
 std::string Get::responsBody()
 {
 	char buffer[20];
-	// fd = open(response.getPath().c_str(), O_RDWR); //can hang ??
-	if (response.getfd() < 0)
-		perror(NULL);
-	sizeofRead = read(response.getfd(), buffer, sizeof(buffer));
-	// std::cout << "read return -> " << a << "\n";
-	// buffer[sizeofRead] = '\0';
-	// std::cout << sizeofRead << "\n";
-	// std::cout << buffer << "\n";
+
+	if (!Utils::isFdOpen(fd))
+		fd = open(response.getPath().c_str(), O_RDWR);
+	sizeofRead = read(fd, buffer, sizeof(buffer));
+	
 	return (std::string(buffer, sizeofRead));
 }

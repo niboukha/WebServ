@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 08:53:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:57:41 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Response.hpp"
+#include "../includes/Response.hpp"
 
 Response::Response( Request &request ) : req( request ),
 						get(NULL), post(NULL), delt(NULL),
@@ -60,28 +60,21 @@ const std::string&	Response::getBody() const
 	return (body);
 }
 
-const int&	Response::getfd() const
-{
-	return (fd);
-}
-
-
 std::string	Response::getContentLength( std::string &path )
 {
-	FILE* 				fp;
-	std::stringstream	s;
-	std::string			ret;
 	long int			sz;
+    std::stringstream	ss;
+	
+	std::ifstream file(path.c_str(), std::ios::binary);
 
-	fp = fopen(path.c_str(), "r");
-	fseek(fp, 0L, SEEK_END);
-	sz = ftell(fp);
+    file.seekg(0, std::ios::end);
+    sz = file.tellg();
 
-	s << sz;
-	s >> ret;
+    if (sz == -1)
+		return ("0");
 
-	fclose(fp);
-	return ( ret );
+    ss << sz;
+    return (ss.str());
 }
 
 std::string		Response::getContentType( std::string &path )
@@ -121,11 +114,10 @@ void	Response::mapOfTypes( )
 	}
 }
 
-std::string	Response::concatenateIndexDirectory( std::string &file )
+std::string	Response::concatenateIndexDirectory( )
 {
 	mapStrVect  loc;
 	std::string	path;
-
 	loc = getRequest().getLocation();
 	for (size_t i = 0; i < loc["index"].size(); i++)
 	{
@@ -134,10 +126,11 @@ std::string	Response::concatenateIndexDirectory( std::string &file )
 		if (myFile.is_open())
 		{
 			myFile.close();
-			return (loc["index"][i] + file);
+			return (loc["root"].front() + "/" + loc["index"][i]);
 		}
 		myFile.close();
 	}
+	throwNewPath("404 forbidden", "404");
 	return (NULL);
 }
 
@@ -195,18 +188,11 @@ Stage	Response::sendResponse(Stage &stage)
 			if (stage == RESHEADER)
 			{
 				headerRes = get->responsHeader();
-				fd = open(getPath().c_str(), O_RDWR);//tmp;
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)
 			{
-				// if (get->getSizeofRead() != 0)
-					// std::string(bodyRes += get->responsBody(), get->getSizeofRead());
-					
-				// std::cout << bodyRes << "\n";
 				bodyRes += get->responsBody();
-				// std::cout << get->getSizeofRead() << " " << std::string(get->responsBody(), get->getSizeofRead()) << "\n"; // mn b3d
-				
 				if (get->getSizeofRead() == 0) return ( stage = RESEND );
 			}
 			break;

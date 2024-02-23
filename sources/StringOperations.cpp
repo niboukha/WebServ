@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 09:39:21 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 07:05:55 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:58:46 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "StringOperations.hpp"
+#include "../includes/StringOperations.hpp"
 
 bool    StringOperations::containsNonAlpha(std::string &str)
 {

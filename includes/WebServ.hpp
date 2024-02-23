@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 11:33:33 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:07:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,15 +56,15 @@ enum	Stage
 	RESEND
 };
 
-// #include "Request.hpp"
-// #include "Response.hpp"
+// #include "../includes/Request.hpp"
+// #include "../includes/Response.hpp"
 // #include "Client.hpp"
-// #include "Get.hpp"
-// #include "Post.hpp"
-// #include "Delete.hpp"
+// #include "../includes/Get.hpp"
+// #include "../includes/Post.hpp"
+// #include "../includes/Delete.hpp"
 
 #include "Exceptions.hpp"
-#include "StringOperations.hpp"
-#include "Utils.hpp"
+#include "../includes/StringOperations.hpp"
+#include "../includes/Utils.hpp"
 
 #endif

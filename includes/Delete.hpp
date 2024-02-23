@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Delete.hpp                                         :+:      :+:    :+:   */
+/*   #include "../includes/Delete.hpp"                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: niboukha <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -14,7 +14,7 @@
 #define DELETE_HPP
 
 #include "WebServ.hpp"
-#include "Response.hpp"
+#include "../includes/Response.hpp"
 
 class Response;
 

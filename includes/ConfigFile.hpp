@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:27:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 06:59:19 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:03:38 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define CONFIGFILE_HPP
 
 #include "WebServ.hpp"
-#include "Server.hpp"
-// #include "Request.hpp"
+#include "../includes/Server.hpp"
+// #include "../includes/Request.hpp"
 // class Request;
 
 class ConfigFile
@@ -28,7 +28,9 @@ class ConfigFile
         const std::vector<Server>& getServers() const;
         void   parseConfigFile(std::fstream &configFile);
         static  Server fillServer(std::fstream& configFile);
+        
         static  mapStrVect  fillLocation(std::fstream& configFile);
+        static  void        addDirectivesMissingInLocation(mapStrVect &location);
         
 };
 

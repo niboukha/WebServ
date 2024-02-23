@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/21 16:06:27 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:07:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define POST_HPP
 
 #include "WebServ.hpp"
-#include "Utils.hpp"
-#include "Response.hpp"
+#include "../includes/Utils.hpp"
+#include "../includes/Response.hpp"
 
 class Response;
 

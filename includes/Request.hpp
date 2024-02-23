@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 10:03:46 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:06:02 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 #define REQUEST_HPP
 
 #include "WebServ.hpp"
-#include "ConfigFile.hpp"
+#include "../includes/ConfigFile.hpp"
 
 class ConfigFile;
 

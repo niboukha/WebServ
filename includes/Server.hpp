@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:26 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 06:39:50 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:39:55 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ class Server
         static  bool  locationValidDirective(std::string &directive, std::vector<std::string> &values);
         static  bool  isValidRoot(std::vector<std::string> &rootValue);
         static  bool  isValidAllowMethodes(std::vector<std::string> &allowMethodesValue);
-        static  bool  isValidIndex(std::vector<std::string> &indexValue);
+        // static  bool  isValidIndex(std::vector<std::string> &indexValue);
         static  bool  isValidAutoIndex(std::vector<std::string> &autoindexValue);
         static  bool  isValidUploadPass(std::vector<std::string> &uploadValue);
         

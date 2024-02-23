@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 08:47:33 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 12:06:24 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define GET_HPP
 
 #include "WebServ.hpp"
-#include "Utils.hpp"
-#include "Response.hpp"
+#include "../includes/Utils.hpp"
+#include "../includes/Response.hpp"
 
 class Response;
 
@@ -25,7 +25,7 @@ class	Get
 		Response					&response;
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
-		// int							fd;
+		int							fd;
 		int							dirflag;
 		std::string					locationRes;
 		int							sizeofRead;
@@ -47,7 +47,7 @@ class	Get
 
 		void		UpdateStatusCode(std::string &s);
 
-		const int&		getSizeofRead() const;
+		const int&	getSizeofRead() const;
 	
 		class	DirectoryFailed : public std::exception
 		{

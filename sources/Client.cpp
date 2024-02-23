@@ -6,11 +6,11 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/22 22:00:36 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 11:52:35 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
+#include "../includes/Client.hpp"
 
 Client::Client( Request& request ) : req(request), res(req), stage(REQLINE)
 {
@@ -32,8 +32,19 @@ const Stage&	Client::getStage( ) const
 
 void	Client::recieveRequest()
 {
-	while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
-		req.parseRequest(reqBuff, stage);
+	// try
+	// {
+		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
+			req.parseRequest(reqBuff, stage);
+	// }
+	// catch(std::string s)
+	// {
+	// 	res.setStatusCodeMsg()
+	// 	res.setPath()
+	// 	stage = RESHEADER;
+	// }
+	
+	
 }
 
 void	Client::sendResponse()
@@ -109,11 +120,12 @@ void	Client::serve()
 	
 	while ((bytes = read(fd, buff, 50)))
 	{
-		buff[50] = '\0';
+		buff[bytes] = '\0';
 		reqBuff += buff;//don't use append
 		recieveRequest();
 		if (stage != REQLINE && stage != REQHEADER)
 			sendResponse();
+		// std::cout << "hna\n";
 	}
 	close(newSockFd);
 	close(sockFd);
