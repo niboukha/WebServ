@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:59:10 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 13:36:44 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,19 @@
 int	Utils::isDir( const char* file )
 {
 	struct stat path;
+	stat(file, &path);
+	
+	return S_ISDIR(path.st_mode);
+}
+
+int	Utils::isFile( const char* file )
+{
+	struct stat path;
 
 	stat(file, &path);
 	return (S_ISREG(path.st_mode));
 }
+
 
 void	Utils::trimString( std::string &s )
 {

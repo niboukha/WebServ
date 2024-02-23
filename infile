@@ -1,4 +1,4 @@
-GET /nfs/homes/niboukha/Desktop/webserv/nff/ HTTP/1.1
+GET /testingdir/ HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
 Cache-Control: max-age=0
@@ -14,4 +14,6 @@ Sec-Fetch-User: ?1
 Sec-Fetch-Dest: document
 Accept-Encoding: gzip, deflate, br
 Accept-Language: en-US,en;q=0.9
+
+en;q=0.9
 

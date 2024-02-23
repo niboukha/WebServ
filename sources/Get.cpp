@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:55:36 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/23 13:40:27 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 	file << "\n</body>\n</html>\n";
 
 	loc = response.getRequest().getLocation();
-	s   = loc["root"].front() + pt;
+	s   = loc["root"].front() + "/" + pt;
 	return (s);
 }
 
@@ -69,7 +69,7 @@ std::string	Get::readListOfCurDirectory()
 
 		while ((pDirent = readdir(pDir)))
 			vDir.push_back(pDirent->d_name);
-
+		
 		s = "200 OK";
 		response.setStatusCodeMsg(s);
 		stringOfDyrectories(vDir);
@@ -127,13 +127,13 @@ void Get::statusOfFile()
 
 	std::ifstream file(response.getPath().c_str());
 
-	if (!Utils::isDir(response.getPath().c_str()))
+	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
 		s  = directoryInRequest(pt);
 		response.setPath(s);
 	}
-	else if (!file.is_open())
+	else if (!Utils::isFile(response.getPath().c_str()))
 		response.throwNewPath("404 not found", "404");
 	// check if location has a cgi
 
