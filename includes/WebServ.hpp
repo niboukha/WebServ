@@ -37,11 +37,15 @@
 #include <exception>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <algorithm>
+#include <iterator>
+#include <arpa/inet.h>
+#include <sstream>
 
 #define _XOPEN_SOURCE 700
 #define	PORT 8080
 #define	CRLF "\r\n" //carriage return and line feed
-#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/mimetype.txt"
+#define	PATH_MIME "/nfs/homes/shicham/Desktop/snWebserv/mimetype.txt"
 
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;

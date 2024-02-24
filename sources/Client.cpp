@@ -37,14 +37,18 @@ void	Client::recieveRequest()
 		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 			req.parseRequest(reqBuff, stage);
 	// }
-	// catch(std::string s)
+	// catch(Request::BadRequest& bReq)
 	// {
-	// 	res.setStatusCodeMsg()
-	// 	res.setPath()
+	// 	res.setStatusCodeMsg(bReq.getPairCodePath().first);//mochkil hna !!!
+	// 	res.setPath(bReq.getPairCodePath().second);
 	// 	stage = RESHEADER;
 	// }
-	
-	
+	// catch(Request::NotImplemented& NotImplemented)
+	// {
+	// 	res.setStatusCodeMsg(NotImplemented.getPairCodePath().first);
+	// 	res.setPath(NotImplemented.getPairCodePath().second);
+	// 	stage = RESHEADER;
+	// }
 }
 
 void	Client::sendResponse()
@@ -69,7 +73,7 @@ void	Client::sendResponse()
 			stage = RESHEADER;
 		}
 	}
-	std::cout <<"--------> " <<res.getBodyRes() << std::endl;
+	std::cout <<"--------> " << res.getBodyRes() << std::endl;
 	send(newSockFd, res.getBodyRes().c_str(), 
 	strlen(res.getBodyRes().c_str()), 0);
 }
@@ -113,6 +117,7 @@ void	Client::serve()
 	int		fd;
 	int		bytes;
 	
+	buffer[b] = '\0';
 	fd =  open("infile", O_RDWR);
 	write(fd, buffer, b);
 	close(fd);
@@ -121,11 +126,11 @@ void	Client::serve()
 	while ((bytes = read(fd, buff, 50)))
 	{
 		buff[bytes] = '\0';
-		reqBuff += buff;//don't use append
+		reqBuff += std::string(buff, bytes);//t9der  dir mochkil !!!
 		recieveRequest();
-		if (stage != REQLINE && stage != REQHEADER)
-			sendResponse();
-		// std::cout << "hna\n";
+		// if (stage != REQLINE && stage != REQHEADER)
+		// 	sendResponse();
+		std::cout << "hna\n";
 	}
 	close(newSockFd);
 	close(sockFd);

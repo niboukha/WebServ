@@ -61,18 +61,21 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     }
     else if (stage == REQHEADER)
     {
-        parseHeader(buff);
         if (!buff.find("\r\n"))
         {
+            if (headers.find("transfer-encoding") != headers.end()
+                and headers["transfer-encoding"].compare("chunkded"))//not implemented to check mn b3d
+               throw Request::NotImplemented("501", "/ErrorPages/400.html");
+            if (headers.find("transfer-encoding") == headers.end() 
+                and headers.find("content-length") == headers.end() 
+                and !method.compare("POST"))//bad req
+              throw Request::BadRequest("400", "/ErrorPages/400.html");
+            // if (headers.find("host") == headers.end())//to check mn b3ed
             matchingLocation();
-            // std::cout <<"----> location :" << std::endl;
-            // for (mapStrVect::iterator i = location.begin(); i != location.end(); i++)
-            // {
-            //     std::cout << "key |" << i->first << "| " << "value |" << i->second[0] << "|" << std::endl;
-            // }
-            
             stage = REQBODY;
+            return ;
         }
+        parseHeader(buff);
     }
     
 }
@@ -104,7 +107,10 @@ void   Request::parseUri()
 {
     size_t      autorityEnd, schemeEnd;
     
+    //check if the uri start with /
     decodeUri();
+    if (uri.length() > 2048)//bad req
+        throw Request::BadRequest("400", "/ErrorPages/400.html");
     // uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%");check if uri is valid
     schemeEnd = uri.find(":");
     if (schemeEnd != std::string::npos)
@@ -115,20 +121,37 @@ void   Request::parseUri()
         requestedPath = uri.substr(autorityEnd, uri.find("?", autorityEnd));
         queryParameters = uri.substr(uri.find("?", autorityEnd));
     }
-    requestedPath = uri.substr(uri.find("/"));
+    else
+        requestedPath = uri.substr(uri.find("/"));
 }
 
 void    Request::parseRequestLine(std::string    &buff)
 {
     std::vector<std::string>    splitReqLine;
     std::string                 reqLine;
-    
-    reqLine = buff.substr(0 ,buff.find("\r\n"));
-    buff = buff.substr(buff.find("\r\n") + 2);
+    size_t                      found;
+    std::string                 methodes[8] = {"GET", "POST", "DELETE", 
+                                            "PUT", "CONNECT", "OPTIONS", "TRACE", "HEAD"};
+    std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
+  
+    found = buff.find("\r\n");
+    if (found == std::string::npos)//bad req to check mn b3d
+        throw Request::BadRequest("400", "/ErrorPages/400.html");
+    reqLine = buff.substr(0 ,found);
+    if (found != (reqLine.length()) or 
+        std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
+       throw Request::BadRequest("400", "/ErrorPages/400.html");
+    buff = buff.substr(found + 2);
     splitReqLine = StringOperations::split(reqLine, " ");
-    // if (splitReqLine.size() != 3)//to add
+    if ( splitReqLine.size() != 3 
+        or (std::find(methodes, methodes + 8, splitReqLine[0]) == (methodes +  8))
+        or splitReqLine[2].compare("HTTP/1.1"))//Bad request can cz SGV !!!
+        throw Request::BadRequest("400", "/ErrorPages/400.html");
     method = splitReqLine[0];
-    uri =splitReqLine[1];
+    if (std::find(methodesImp, methodesImp + 3, method) \
+        == (methodes +  3))//Not implemented
+       throw Request::NotImplemented("501", "/ErrorPages/400.html");
+    uri = splitReqLine[1];
     protocolVersion = splitReqLine[2];
 }
 
@@ -138,14 +161,20 @@ void    Request::parseHeader(std::string &buff)
     size_t      found;
 
     found = buff.find("\r\n");
-    // if (found  == std::string::npos)
+    if (found == std::string::npos)//bad req to check 
+        throw Request::BadRequest("400", "/ErrorPages/400.html");
     header = buff.substr(0, found);
+    if (found != header.length())//bad req
+        throw Request::BadRequest("400", "/ErrorPages/400.html");
     buff = buff.substr(found + 2);
-    key = header.substr(0, header.find_first_of(":"));
-    for (size_t i = 0; i < key.length(); i++)
-        key[i] =  tolower(key[i]);
-    value = StringOperations::trim(header.substr(key.length() + 1));
-    headers[key] = value;
+    if (!header.empty())//update
+    { 
+        key = header.substr(0, header.find_first_of(":"));
+        key = StringOperations::trim(key);
+        std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
+        value = StringOperations::trim(header.substr(key.length() + 1));
+        headers[key] = value;
+    }
 }
 
 void    Request::SetConfigFile(ConfigFile& configFile)
@@ -168,7 +197,7 @@ void    Request::matchingLocation()
     Server  matchServer;
     size_t  longestOne, sizeMatching;
 
-    matchServer = findServer();
+    matchServer = matchingServer();
     // std::cout << "matching server : " << matchServer.getServerData().at("host")<< std::endl;
     // for (size_t i = 0; i < ; i++)
     // {
@@ -191,7 +220,7 @@ void    Request::matchingLocation()
     } 
 }
 
-Server  Request::findServer()
+Server  Request::matchingServer()
 {
     std::vector<Server> servers;
     std::pair<std::string, std::string> pair;

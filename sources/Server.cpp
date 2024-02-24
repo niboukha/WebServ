@@ -12,6 +12,12 @@
 
 #include "../includes/Server.hpp"
 
+bool     (*Server::functionsServer[])(std::string &) = {&Server::isValidHost, &Server::isValidPort, 
+                                                &Server::isValidErrorPage, 
+                                                &Server::isValidClientMaxBodySize};//update
+
+bool     (*Server::functionsLocation[])(std::vector<std::string> &) = {&Server::isValidRoot, &Server::isValidAutoIndex, 
+                                                        &Server::isValidUploadPass};//update
 Server::Server()
 {  
 }
@@ -40,130 +46,127 @@ const std::map<std::string,  mapStrVect>& Server::getLocations() const
     return locations;
 }
 
-bool Server::serverValidDirective(std::string &directive, std::string& value)
-{
-    if (!directive.compare("host"))
-        Server::isValidHost(value);
-    else if (!directive.compare("port"))
-        Server::isValidPort(value);
-    else if (!directive.compare("error_page"))
-        Server::isValidErrorPage(value);
-    else if (!directive.compare("client_max_body_size"))
-        Server::isValidClientMaxBodySize(value);
-    else if (!directive.compare("server_name"))
-        Server::isValidServerName(value);
-    else
-        throw UnknownServerDirective();
-    return true;
-}
-
-bool   Server::isValidHost(std::string &hostValue)
-{
-    int a, b, c, d;
-    
- //should check
-    if (!hostValue.compare("localhost"))
-        return true;
-    else if (sscanf(hostValue.c_str(),"%d.%d.%d.%d", &a, &b, &c, &d) != 4
-    or a <= 0 or a >= 255 or  b <= 0 or b >= 255 or c <= 0 
-    or c >= 255 or  d <= 0 or d >= 255)
-        throw InvalidDirectiveArgument();
-    return true;
-}
-
-bool Server::isValidPort(std::string &portValue)
-{
-    int port;
-    
-    if (portValue.find_first_not_of("0123456789") != std::string::npos
-    or sscanf(portValue.c_str(),"%d", &port) != 1 or port < 0 or port > 65536)
-        throw InvalidDirectiveArgument();
-    return true;
-}
-
-bool    Server::isValidErrorPage(std::string &errorPageValue)
-{
-    int error;
-    
-    if (errorPageValue.find_first_not_of("0123456789") != std::string::npos
-    or sscanf(errorPageValue.c_str(),"%d", &error) != 1)
-        throw InvalidDirectiveArgument();
-    return true;
-}
-
-bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)
-{
-    int ClientMaxBodySize;
+ void     Server::addErrorPagesMissing()//update
+ {
+    if (serverData.find("404") == serverData.end())
+        serverData["404"] = "/ErrorPages/404.html";
+    if (serverData.find("501") == serverData.end())
+        serverData["501"] = "/ErrorPages/501.html";
+    if (serverData.find("400") == serverData.end())
+        serverData["400"] = "/ErrorPages/400.html";
+    if (serverData.find("414") == serverData.end())
+        serverData["414"] = "/ErrorPages/414.html";
+    if (serverData.find("413") == serverData.end())
+        serverData["413"] = "/ErrorPages/413.html";
+    if (serverData.find("405") == serverData.end())
+        serverData["405"] = "/ErrorPages/405.html";
+    if (serverData.find("403") == serverData.end())
+        serverData["403"] = "/ErrorPages/403.html";
+ }
  
- if ( ClientMaxBodySizeValue.find_first_not_of("0123456789") != std::string::npos
-    or sscanf(ClientMaxBodySizeValue.c_str(), "%d", &ClientMaxBodySize) != 1 
-    or ClientMaxBodySize < 0)
+bool Server::serverValidDirective(std::string &directive, std::string& value)//update
+{
+    std::string    directives[4] = {"host", "port", "error_page", "client_max_body_size"};
+
+    if (!directive.compare("server_name"))
+        return true;
+    for(size_t i = 0; i < 4; i++)
+    {
+        if (!directives[i].compare(directive))
+        {
+            functionsServer[i](value);
+            return true;
+        }
+    }
+    throw UnknownServerDirective();
+}
+
+bool   Server::isValidHost(std::string &hostValue)//update
+{
+    struct in_addr addr;
+    
+    if (!hostValue.compare("localhost") 
+    or inet_aton(hostValue.c_str(), &addr))//to avoid
+        return true;
+    throw InvalidDirectiveArgument();
+}
+
+bool Server::isValidPort(std::string &portValue)//update
+{
+    std::istringstream iss(portValue);
+    int port;
+    char remain;
+    
+    if (!(iss >> port) or (iss >> remain) or port < 0 or port > 65536)
         throw InvalidDirectiveArgument();
     return true;
 }
 
-bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)
+bool    Server::isValidErrorPage(std::string &errorPageValue)//update
 {
-    if (!directive.compare("index"))
-        return true;
-    else if (!directive.compare("root"))
-        Server::isValidRoot(values);
-    else if (!directive.compare("allow_methodes"))
-        Server::isValidAllowMethodes(values);
-    else if (!directive.compare("autoindex"))
-        Server::isValidAutoIndex(values);
-    // else if (!directive.compare("index"))
-    //     Server::isValidIndex(values);
-    else if (!directive.compare("upload_pass"))
-        isValidUploadPass(values);
-    else 
-        throw   UnknownLocationDirective();
+    std::istringstream iss(errorPageValue);
+    int error;
+    char remain;
+    
+    if (!(iss >> error) or (iss >> remain))//to chek mn b3ed 
+        throw InvalidDirectiveArgument();
     return true;
 }
 
-bool    Server::isValidUploadPass(std::vector<std::string> &uploadValue)
+bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//update
 {
-    if (uploadValue.size() != 1)
-         throw InvalidDirectiveArgument();
+    std::istringstream iss(ClientMaxBodySizeValue);
+    int ClientMaxBodySize;
+    char  remain;
+ 
+    if (!(iss >> ClientMaxBodySize) or (iss >> remain) or (ClientMaxBodySize < 0))
+        throw InvalidDirectiveArgument();
     return true;
 }
-bool    Server::isValidServerName(std::string &serverNameValue)
+
+bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)//update
 {
-    (void) serverNameValue;
-    // if (serverNameValues.size() != 1)
-    //      throw InvalidNumberOfArguments();
-    return true;     
+    std::string locDirectives[4] = {"root", "autoindex", "upload_pass"};
+
+    if (!directive.compare("index") 
+        or !directive.compare("allow_methodes"))
+        return true;
+    for(size_t i = 0; i < 3; i++)
+    {
+        if (!locDirectives[i].compare(directive))
+        {
+            functionsLocation[i](values);
+            return true;
+        }
+    }
+    throw  UnknownLocationDirective();
 }
 
 bool    Server::isValidRoot(std::vector<std::string> &rootValue)
 {
-    if (rootValue.size() != 1)
+    if (rootValue.size() > 1)//to check
        throw InvalidNumberOfArguments();
     return true;
 }
-
-bool    Server::isValidAllowMethodes(std::vector<std::string> &allowMethodesValue)
-{
-    //should check
-     if (!allowMethodesValue.size())
-       throw InvalidNumberOfArguments();
-    return true;
-}
-
-// bool    Server::isValidIndex(std::vector<std::string> &indexValue)
-// {
-//      if (indexValue.size())
-//         throw InvalidNumberOfArguments();
-//     return true;
-// }
 
 bool    Server::isValidAutoIndex(std::vector<std::string> &autoindexValue)
 {
-    if (autoindexValue.size() > 1)
+    if (!autoindexValue.size())
+        return true;
+    else if (autoindexValue.size() > 1)
         throw InvalidNumberOfArguments();
-    else if (!autoindexValue[0].compare("on") or !autoindexValue[0].compare("off") )
+    else if (autoindexValue.size() == 1 
+        and (!autoindexValue[0].compare("on") 
+        or !autoindexValue[0].compare("off")) )
        return true;
     throw InvalidDirectiveArgument();
+}
+
+bool        Server::isValidUploadPass(std::vector<std::string> &uploadValue)
+{
+     if (uploadValue.size() > 1)
+        throw InvalidNumberOfArguments();
+    return true ;
 }
 
 bool    Server::serverObligatoryDirectives()
@@ -174,6 +177,18 @@ bool    Server::serverObligatoryDirectives()
     {
         if (serverData.find(serverDirectives[i]) == serverData.end())
             throw MissingServerDirectives();   
+    }
+    return true;
+}
+
+bool    Server::locationObligatoryDirectives(std::map<std::string, std::string> &loc)//i didn't use it 
+{
+    std::string locDirectives[4] = {"root", "index", "autoindex", "allow_methodes"};
+
+     for (size_t i = 0; i < 4; i++)
+    {
+        if (loc.find(locDirectives[i]) == loc.end())
+            throw MissingLocationDirectives();   
     }
     return true;
 }

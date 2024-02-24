@@ -97,4 +97,13 @@ class MissingServerDirectives : public std::exception
         }   
 };
 
+class MissingLocationDirectives : public std::exception
+{
+     public:
+        const char* what() const throw()
+        {
+            return ("config file: some necessary directives missing in location block");
+        }   
+};
+
 #endif

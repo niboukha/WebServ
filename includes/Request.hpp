@@ -53,8 +53,53 @@ class Request
 		void		parseHeader(std::string& buff);
         void		SetConfigFile(ConfigFile& configFile);
 		void		matchingLocation();
-		Server		findServer();
+		Server		matchingServer();
 		size_t		longestMatchingLocation(const std::string& prefix);
+
+		class BadRequest : std::exception
+		{
+			private:
+					std::pair<std::string, std::string>	pairCodePath;
+			public:
+				BadRequest(const char* codeError, const char* path) : 
+					pairCodePath(codeError, path)
+				{
+				}
+				virtual ~BadRequest() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
+				{
+				}
+				virtual const char* what() const throw() 
+				{
+					return NULL;
+    			}
+				const std::pair<std::string, std::string>& getPairCodePath() const
+				{
+					return pairCodePath;
+				}
+		};
+
+		class NotImplemented : std::exception
+		{
+			private:
+					std::pair<std::string, std::string>	pairCodePath;
+			public:
+				NotImplemented(const char* codeError, const char* path) : 
+					pairCodePath(codeError, path)
+				{
+				}
+				virtual ~NotImplemented() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
+				{
+				}
+				virtual const char* what() const throw() 
+				{
+					return NULL;
+    			}
+				const std::pair<std::string, std::string>& getPairCodePath() const
+				{
+					return pairCodePath;
+				}
+		};
+		
 };
 
 
