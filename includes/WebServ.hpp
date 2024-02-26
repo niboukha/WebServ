@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 12:07:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 17:20:26 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,8 @@
 #define _XOPEN_SOURCE 700
 #define	PORT 8080
 #define	CRLF "\r\n" //carriage return and line feed
-#define	PATH_MIME "/nfs/homes/shicham/Desktop/snWebserv/mimetype.txt"
-
+#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/extraFiles/mimetype.txt"
+#define	BUF 1024
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;
 

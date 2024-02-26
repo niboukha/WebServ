@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 12:06:02 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 18:34:26 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,10 @@ class Request
 {
     private:
 		ConfigFile							configFileData;
-		std::map<std::string, std::string>	server;
 		mapStrVect							location;
+		std::map<std::string, std::string>	server;
 		std::map<std::string, std::string>	headers;
+		std::map<std::string, std::string>	errorPages;
 		std::string							method;
 		std::string							requestedPath;
 		std::string							protocolVersion;
@@ -44,8 +45,9 @@ class Request
 		const	std::string getProtocolVersion( ) const;
 		const	std::map<std::string, std::string>	getServer( ) const;
 		const	std::map<std::string, std::string>	getHeaders() const;
+		const	std::map<std::string, std::string>	getErrorPages() const;
 
-		
+		void		fillErrorPages();
 		void		parseUri( );
 		void		decodeUri();
 		std::string decodePercentEncoded(std::string hexastr);

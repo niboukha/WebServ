@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 13:40:27 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 07:17:21 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,10 @@ const char*	Get::DirectoryFailed::what() const throw()
 	return ("forbidden");
 }
 
-const int&		Get::getSizeofRead() const
+const int&	Get::getSizeofRead() const
 {
 	return (sizeofRead);
 }
-
 
 std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 {
@@ -95,7 +94,7 @@ std::string	Get::directoryInRequest(std::string &file)
 
 	if (file[file.length() - 1] != '/')
 	{
-		dirflag = 1;
+		dirflag     = 1;
 		locationRes = response.getPath() + "/";
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
@@ -108,25 +107,17 @@ std::string	Get::directoryInRequest(std::string &file)
 	return (response.concatenateIndexDirectory());
 }
 
-void Get::UpdateStatusCode(std::string &s)
-{
-	if (response.getStatusCodeMsg() == "-1")
-		response.setStatusCodeMsg(s);
-}
-
-void Get::statusOfFile()
+void	Get::statusOfFile()
 {
 	std::string	s;
 	std::string	pt;
 	
 	if (response.getStatusCodeMsg() == "-1")
 	{
-		s = response.concatenatePath();
+		s = response.concatenatePath( response.getRequest().getRequestedPath() );
 		response.setPath(s);
 	}
-
 	std::ifstream file(response.getPath().c_str());
-
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
@@ -138,11 +129,11 @@ void Get::statusOfFile()
 	// check if location has a cgi
 
 	s = "200 ok";
-	UpdateStatusCode(s);
+	response.UpdateStatusCode(s);
 	file.close();
 }
 
-std::string Get::responsHeader()
+std::string	Get::responsHeader()
 {
 	std::string	s;
 	std::string	pt;
@@ -156,10 +147,11 @@ std::string Get::responsHeader()
 	if (dirflag == 1)
 		s = s + CRLF + "Location: " + locationRes;
 	s = s + CRLF + CRLF;
+	
 	return (s);
 }
 
-std::string Get::responsBody()
+std::string	Get::responsBody()
 {
 	char buffer[20];
 

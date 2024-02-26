@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 11:59:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 11:39:45 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,23 +46,25 @@ const std::map<std::string,  mapStrVect>& Server::getLocations() const
     return locations;
 }
 
- void     Server::addErrorPagesMissing()//update
- {
-    if (serverData.find("404") == serverData.end())
-        serverData["404"] = "/ErrorPages/404.html";
-    if (serverData.find("501") == serverData.end())
-        serverData["501"] = "/ErrorPages/501.html";
-    if (serverData.find("400") == serverData.end())
-        serverData["400"] = "/ErrorPages/400.html";
-    if (serverData.find("414") == serverData.end())
-        serverData["414"] = "/ErrorPages/414.html";
-    if (serverData.find("413") == serverData.end())
-        serverData["413"] = "/ErrorPages/413.html";
-    if (serverData.find("405") == serverData.end())
-        serverData["405"] = "/ErrorPages/405.html";
-    if (serverData.find("403") == serverData.end())
-        serverData["403"] = "/ErrorPages/403.html";
- }
+//  void     Server::addErrorPagesMissing()//update
+//  {
+//     if (serverData.find("404") == serverData.end())
+//         serverData["404"] = "/ErrorPages/404.html";
+//     if (serverData.find("501") == serverData.end())
+//         serverData["501"] = "/ErrorPages/501.html";
+//     if (serverData.find("400") == serverData.end())
+//         serverData["400"] = "/ErrorPages/400.html";
+//     if (serverData.find("414") == serverData.end())
+//         serverData["414"] = "/ErrorPages/414.html";
+//     if (serverData.find("413") == serverData.end())
+//         serverData["413"] = "/ErrorPages/413.html";
+//     if (serverData.find("405") == serverData.end())
+//         serverData["405"] = "/ErrorPages/405.html";
+//     if (serverData.find("403") == serverData.end())
+//         serverData["403"] = "/ErrorPages/403.html";
+//     if (serverData.find("201") == serverData.end())
+//         serverData["201"] = "/ErrorPages/201.html";
+//  }
  
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
 {
@@ -115,9 +117,9 @@ bool    Server::isValidErrorPage(std::string &errorPageValue)//update
 
 bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//update
 {
-    std::istringstream iss(ClientMaxBodySizeValue);
-    int ClientMaxBodySize;
-    char  remain;
+    std::istringstream  iss(ClientMaxBodySizeValue);
+    long long           ClientMaxBodySize;
+    char                remain;
  
     if (!(iss >> ClientMaxBodySize) or (iss >> remain) or (ClientMaxBodySize < 0))
         throw InvalidDirectiveArgument();
@@ -129,7 +131,8 @@ bool    Server::locationValidDirective(std::string &directive, std::vector<std::
     std::string locDirectives[4] = {"root", "autoindex", "upload_pass"};
 
     if (!directive.compare("index") 
-        or !directive.compare("allow_methodes"))
+        or !directive.compare("allow_methodes")
+        or !directive.compare("cgi_pass"))
         return true;
     for(size_t i = 0; i < 3; i++)
     {

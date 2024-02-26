@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 12:07:48 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 11:26:32 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
         location["allow_methodes"].push_back("");
     if (location.find("upload_pass") == location.end())
         location["upload_pass"].push_back("");
+    if (location.find("cgi_pass") == location.end())
+        location["cgi_pass"].push_back("");
     
 }
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
@@ -104,7 +106,7 @@ Server  ConfigFile::fillServer(std::fstream& configFile)
 		}
     }
     server.setServerData(servData);
-    server.addErrorPagesMissing();
+    // server.addErrorPagesMissing();
     server.serverObligatoryDirectives();
     server.setLocations(locations);
     return server;

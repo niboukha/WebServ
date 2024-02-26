@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 12:06:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/24 21:37:03 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,10 @@ class	Get
 		Response					&response;
 		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
+		std::string					locationRes;
+		
 		int							fd;
 		int							dirflag;
-		std::string					locationRes;
 		int							sizeofRead;
 		
 	public :
@@ -45,8 +46,6 @@ class	Get
 		std::string	responsHeader();
 		std::string	responsBody();
 
-		void		UpdateStatusCode(std::string &s);
-
 		const int&	getSizeofRead() const;
 	
 		class	DirectoryFailed : public std::exception
@@ -56,6 +55,5 @@ class	Get
 		};
 
 };
-
 
 #endif

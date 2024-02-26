@@ -24,6 +24,8 @@ class	Delete
 
 		Response	&res;
 		int			fd;
+		int			sizeofRead;
+
 	public :
 
 		Delete(Response &response);
@@ -32,14 +34,16 @@ class	Delete
 		std::string	responsHeader();
 		std::string	responsBody();
 
-		void	WriteAccess();
-		void	directoryPath(struct stat st, std::string &pt);
-		void	filePath(std::string &s);
-		void	statusOfRequested();
+		const int&	getSizeofRead() const;
 
+		void		directoryPath(struct stat st, std::string &pt);
+		void		filePath(std::string &s);
+		void		statusOfRequested();
+		void		pathOfSentPage(std::string s, std::string code);
 		std::string	nestedDirectories(std::string s, struct stat statPath);
 
-		void	deleteBasePath(std::string s, struct stat statPath);
+		void		deleteBasePath(std::string s, struct stat statPath);
+
 };
 
 #endif

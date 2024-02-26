@@ -6,13 +6,13 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:55:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/25 12:23:53 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Delete.hpp"
 
-Delete::Delete(Response &response) : res(response)
+Delete::Delete(Response &response) : res(response), sizeofRead(0)
 {
 }
 
@@ -20,39 +20,41 @@ Delete::~Delete()
 {
 }
 
-void Delete::WriteAccess()
+const int&		Delete::getSizeofRead() const
 {
-	struct stat st;
-	std::string s;
+	return (sizeofRead);
+}
 
-	if (st.st_mode & S_IWUSR)
-		res.throwNewPath("500 Internal Server Error", "500");
-	else
-		res.throwNewPath("403 Forbidden", "403");
+void	Delete::pathOfSentPage(std::string s, std::string code)
+{
+	res.setStatusCodeMsg(s);
+	res.setPath(res.pathErrorPage(code));
 }
 
 void Delete::directoryPath(struct stat st, std::string &pt)
 {
-	std::string err;
-
 	if (pt[pt.length() - 1] != '/')
-		res.throwNewPath("409 conflict", "409");
-		
+	{
+		pathOfSentPage("409 conflict", "409");
+		return ;
+	}
+
 	if (!(st.st_mode & S_IWUSR))
-		res.throwNewPath("403 Forbidden", "403");
-		
-	if ((st.st_mode & S_IWUSR) && std::remove(res.getPath().c_str()))
-		res.throwNewPath("500 Internal Server Error", "500");
+	{
+		pathOfSentPage("403 Forbidden", "403");
+		return ;
+	}
+
+	if ((st.st_mode & S_IWUSR) && std::remove(pt.c_str()))
+		pathOfSentPage("500 Internal Server Error", "500");
 	else
-		res.throwNewPath("204 No Content", "204");
+		pathOfSentPage("204 No Content", "204");
 }
 
 void	Delete::filePath(std::string &s)
 {
-	std::string err;
-
 	if (!std::remove(s.c_str()))
-		res.throwNewPath("204 No Content", "204");
+		pathOfSentPage("204 No Content", "204");
 }
 
 std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
@@ -61,14 +63,15 @@ std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 	struct dirent	*pDirent;
 	std::string		str;
 
-	pDir = opendir(s.c_str());
+	if ((pDir = opendir(s.c_str())) == NULL)
+		return (s);
 	str  = s;
-
 	while ((pDirent = readdir(pDir)))
 	{
+		if (strlen(pDirent->d_name) == 0)
+			break;
 		s = pDirent->d_name;
-
-		if (s[0] == '.')
+		if (s == "." || s == "..")
 			continue;
 
 		s = str + pDirent->d_name;
@@ -84,9 +87,10 @@ std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 				filePath(s);
 		}
 		else
-			res.throwNewPath("404 Not found", "404");
+			pathOfSentPage("404 Not found", "404");
 	}
-	return (s);
+	closedir(pDir);
+	return (str);
 }
 
 void	Delete::deleteBasePath(std::string s, struct stat statPath)
@@ -99,15 +103,18 @@ void	Delete::deleteBasePath(std::string s, struct stat statPath)
 			filePath(s);
 	}
 	else
-		res.throwNewPath("404 Not found", "404");
+		pathOfSentPage("404 Not found", "404");
 }
 
 void	Delete::statusOfRequested()
 {
 	std::string	pt;
 	struct stat	statPath;
-
+	
+	pt = res.concatenatePath( res.getRequest().getRequestedPath() );
+	res.setPath(pt);
 	pt = res.getPath();
+	
 	nestedDirectories(pt, statPath);
 	res.setPath(pt);
 	deleteBasePath(pt, statPath);
@@ -123,17 +130,18 @@ std::string	Delete::responsHeader()
 	s  = res.getRequest().getProtocolVersion() + " " +
 		res.getStatusCodeMsg() + CRLF +
 		"Content-Type: "   + res.getContentType(pt)   + CRLF +
-		"Content-Length: " + res.getContentLength(pt) + CRLF + // wish content length (dleted file or something else)
+		"Content-Length: " + res.getContentLength(pt) + CRLF +
 		CRLF;
 	return (s);
 }
 
 std::string	Delete::responsBody()
 {
-	char buffer[1024];
+	char buffer[20];
 
-	fd = open(res.getPath().c_str(), O_RDWR);
-
-	read(fd, buffer, sizeof(buffer));
-	return (buffer);
+	if (!Utils::isFdOpen(fd))
+		fd = open(res.getPath().c_str(), O_RDWR);
+	sizeofRead = read(fd, buffer, sizeof(buffer));
+	
+	return (std::string(buffer, sizeofRead));
 }

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:56:58 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 18:15:43 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Response
 		std::string	statusCodeMsg;
 		std::string	path;
 		std::string	body;
+		long long 	uploadLength;
 
 		std::string	headerRes;
 		std::string	bodyRes;
@@ -53,29 +54,30 @@ class Response
 		void	setStatusCodeMsg(std::string& codeMsg);
 		void	setPath(std::string pt);
 		void	setBody(const std::string& bdy);
-		void	setBodyRes(const std::string& bdy);
+		void	setUploadLength(long long  b);
+		
 		
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
 		const std::string&	getPath() const;
 		const std::string&	getBody() const;
-		const int&			getfd() const;
 		const std::string&	getHeaderRes() const;
 		const std::string&	getBodyRes() const;
-		
-		
+		const long long &	getUploadLength() const;
 
 		std::string		getContentType( std::string &path );
 		std::string		getContentLength( std::string &path );
 
 		void			mapOfTypes( );
 		std::string		concatenateIndexDirectory( );
-		std::string		concatenatePath( );
+		std::string		concatenatePath( std::string p );
 		std::string		pathErrorPage(std::string code);
 
-		void			throwNewPath(std::string msg, std::string code);
+		void			UpdateStatusCode(std::string &s);
 
-		void			prefaceMethod( );
+		std::string		getExtensionFile();
+
+		void			throwNewPath(std::string msg, std::string code);
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:57:41 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 18:15:49 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 Response::Response( Request &request ) : req( request ),
 						get(NULL), post(NULL), delt(NULL),
-						statusCodeMsg("-1"), path("-1")
+						statusCodeMsg("-1"), path("-1"),
+						uploadLength(0)
 {
 }
 
@@ -40,6 +41,11 @@ void	Response::setBody(const std::string& bdy)
 	body += bdy;
 }
 
+void	Response::setUploadLength(long long  b)
+{
+	uploadLength = b;
+}
+
 const Request&	Response::getRequest() const
 {
 	return ( req );
@@ -60,6 +66,27 @@ const std::string&	Response::getBody() const
 	return (body);
 }
 
+const std::string&	Response::getHeaderRes() const
+{
+	return (headerRes);
+}
+
+const std::string&	Response::getBodyRes() const
+{
+	return (bodyRes);
+}
+
+void	Response::UpdateStatusCode(std::string &s)
+{
+	if (getStatusCodeMsg() == "-1")
+		setStatusCodeMsg(s);
+}
+
+const long long &		Response::getUploadLength() const
+{
+	return (uploadLength);
+}
+
 std::string	Response::getContentLength( std::string &path )
 {
 	long int			sz;
@@ -77,9 +104,48 @@ std::string	Response::getContentLength( std::string &path )
     return (ss.str());
 }
 
+void	Response::mapOfTypes( )
+{
+	std::ifstream	file( PATH_MIME );
+
+	std::vector<std::string>	vec;
+	std::string					s;
+	std::string					value;
+	size_t 						found;
+
+	std::getline(file, s);
+	while ( std::getline( file, s ) )
+	{
+		Utils::trimString( s );
+		found = s.find_first_of( " \t" );
+		value = s.substr( 0, found + 1 );
+		vec   = Utils::moreThanKey( s.substr(found + 1) );
+
+		for ( size_t  i = 0; i < vec.size(); i++ )
+			mimeType[vec[i]] = value;
+	}
+}
+
+std::string	Response::getExtensionFile()
+{
+	std::map<std::string, std::string>	header;
+
+	Response::mapOfTypes( );
+	header = getRequest().getHeaders();
+	std::map<std::string, std::string> ::iterator	it = mimeType.begin();
+	
+	for(; it != mimeType.end(); it++)
+	{
+		Utils::trimString( it->second );
+		if (header["content-type"] == it->second )
+			return (it->first);
+	}
+	return ("txt");
+}
+
 std::string		Response::getContentType( std::string &path )
 {
-	size_t		found;
+	size_t 		found;
 	std::string	s;
 	std::string	ret;
 
@@ -93,36 +159,16 @@ std::string		Response::getContentType( std::string &path )
 	return ( ret );
 }
 
-void	Response::mapOfTypes( )
-{
-	std::ifstream	file( PATH_MIME );
-
-	std::vector<std::string>	vec;
-	std::string					s;
-	std::string					value;
-	size_t						found;
-
-	std::getline(file, s);
-	while ( std::getline( file, s ) )
-	{
-		Utils::trimString( s );
-		found = s.find_first_of( " \t" );
-		value = s.substr( 0, found + 1 );
-		vec   = Utils::moreThanKey( s.substr(found + 1) );
-		for ( size_t i = 0; i < vec.size(); i++ )
-			mimeType[vec[i]] = value;
-	}
-}
-
 std::string	Response::concatenateIndexDirectory( )
 {
 	mapStrVect  loc;
-	std::string	path;
+	
 	loc = getRequest().getLocation();
-	for (size_t i = 0; i < loc["index"].size(); i++)
+
+	for (size_t  i = 0; i < loc["index"].size(); i++)
 	{
-		path = loc["index"][i];
 		std::ifstream	myFile(loc["index"][i].c_str());
+
 		if (myFile.is_open())
 		{
 			myFile.close();
@@ -134,13 +180,13 @@ std::string	Response::concatenateIndexDirectory( )
 	return (NULL);
 }
 
-std::string	Response::concatenatePath( )
+std::string	Response::concatenatePath( std::string p ) //real path 
 {
 	mapStrVect	loc;
 	std::string	s;
 
 	loc = getRequest().getLocation();
-	s = loc["root"].front() + getRequest().getRequestedPath();
+	s   = loc["root"].front() + p;
 	return (s);
 }
 
@@ -158,16 +204,6 @@ void	Response::throwNewPath(std::string msg, std::string code)
 	throw pathErrorPage(code);
 }
 
-const std::string&	Response::getHeaderRes() const
-{
-	return (headerRes);
-}
-
-const std::string&	Response::getBodyRes() const
-{
-	return (bodyRes);
-}
-
 Stage	Response::sendResponse(Stage &stage)
 {
 	std::vector<std::string>	vect;
@@ -176,7 +212,7 @@ Stage	Response::sendResponse(Stage &stage)
 	vect.push_back("DELETE");
 	vect.push_back("POST");
 
-	size_t i = 0;
+	long long  i = 0;
 	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
 
 	switch(i)
@@ -196,31 +232,50 @@ Stage	Response::sendResponse(Stage &stage)
 				if (get->getSizeofRead() == 0) return ( stage = RESEND );
 			}
 			break;
-			
+
 		case 1:
-		
+
 			if (delt == NULL)
 				delt = new Delete( *this );
-
+			if (stage == REQBODY)
+				stage = RESHEADER;
 			if (stage == RESHEADER)
 			{
-				delt->responsHeader();
+				headerRes = delt->responsHeader();
 				return ( stage = RESBODY );
 			}
-			if (delt->responsBody().length() == 0) return ( stage = RESEND );
-			break;
-			
-		case 2:
-			if (post == NULL)
-		    	post = new Post( *this );
-			if (stage == REQBODY || stage == RESHEADER)
+			if (stage == RESBODY)
 			{
-				post->responsHeader(stage);
-				if (stage == RESHEADER)
-					stage = RESBODY;
+				bodyRes += delt->responsBody();
+				if (delt->getSizeofRead() == 0)
+					return ( stage = RESEND );
 			}
-			if (post->responsBody().length() == 0) return ( stage = RESEND );
+			break;
 
+		case 2:
+
+			if (post == NULL)
+			{
+		    	post = new Post( *this );
+			}
+			if (stage == REQBODY)
+			{
+				post->requestedStatus(stage);
+				// std::cout << "stage in response : " << stage << "\n";
+				return (stage);
+			}
+			if (stage == RESHEADER)
+			{
+				// std::cout << "stage in head : " << stage << "\n";
+				headerRes = post->responsHeader(stage);
+				return ( stage = RESBODY );
+			}
+			if (stage == RESBODY)
+			{
+				bodyRes += post->responsBody();
+				if (post->getSizeofRead() == 0) return ( stage = RESEND );
+			}
+			break;
 		// default :
 			//will define the errors that not in methods
 	}

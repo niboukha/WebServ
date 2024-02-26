@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 12:07:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/25 11:48:09 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ class	Client
 
 		const std::string&	getRecievedReq() const;
 		const Stage&		getStage() const;
-
+		
 		void	serve();
 
 };

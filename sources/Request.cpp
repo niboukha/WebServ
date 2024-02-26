@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 11:56:58 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 18:34:06 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,22 @@ const	std::map<std::string, std::string>	Request::getHeaders() const
 	return (headers);
 }
 
+const	std::map<std::string, std::string>	Request::getErrorPages() const
+{
+    return (errorPages);
+}
 
+void    Request::fillErrorPages()
+{
+    errorPages["404"] = "/ErrorPages/404.html";
+    errorPages["501"] = "/ErrorPages/501.html";
+    errorPages["400"] = "/ErrorPages/400.html";
+    errorPages["414"] = "/ErrorPages/414.html";
+    errorPages["413"] = "/ErrorPages/413.html";
+    errorPages["405"] = "/ErrorPages/405.html";
+    errorPages["403"] = "/ErrorPages/403.html";
+    errorPages["201"] = "/ErrorPages/201.html";
+}
 void   Request::parseRequest(std::string &buff, Stage &stage)
 {
     if (stage == REQLINE)
@@ -64,7 +79,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         if (!buff.find("\r\n"))
         {
             if (headers.find("transfer-encoding") != headers.end()
-                and headers["transfer-encoding"].compare("chunkded"))//not implemented to check mn b3d
+                and headers["transfer-encoding"].compare("chunked"))//not implemented to check mn b3d
                throw Request::NotImplemented("501", "/ErrorPages/400.html");
             if (headers.find("transfer-encoding") == headers.end() 
                 and headers.find("content-length") == headers.end() 
@@ -72,6 +87,8 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
               throw Request::BadRequest("400", "/ErrorPages/400.html");
             // if (headers.find("host") == headers.end())//to check mn b3ed
             matchingLocation();
+            fillErrorPages();
+            buff = buff.substr(buff.find("\r\n") + 2);
             stage = REQBODY;
             return ;
         }

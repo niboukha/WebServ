@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 13:36:44 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 07:13:57 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ int	Utils::isFile( const char* file )
 	stat(file, &path);
 	return (S_ISREG(path.st_mode));
 }
-
 
 void	Utils::trimString( std::string &s )
 {
@@ -78,4 +77,24 @@ std::string	Utils::generateRundFile()
 bool Utils::isFdOpen(int fd)
 {
     return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
+}
+
+int	Utils::getLength(std::string s)
+{
+	std::stringstream	st;
+	int					n;
+
+	st << s;
+	st >> std::hex >> n;
+	return (n);
+}
+
+long long	Utils::stringToInt(std::string s)
+{
+	std::stringstream	ss;
+	long long					n;
+	
+	ss << s;
+	ss >> n;
+	return (n);
 }
