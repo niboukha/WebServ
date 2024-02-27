@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 18:15:49 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 06:53:55 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,13 +128,12 @@ void	Response::mapOfTypes( )
 
 std::string	Response::getExtensionFile()
 {
-	std::map<std::string, std::string>	header;
+	std::map<std::string, std::string>				header;
+	std::map<std::string, std::string> ::iterator	it;
 
 	Response::mapOfTypes( );
 	header = getRequest().getHeaders();
-	std::map<std::string, std::string> ::iterator	it = mimeType.begin();
-	
-	for(; it != mimeType.end(); it++)
+	for(it = mimeType.begin(); it != mimeType.end(); it++)
 	{
 		Utils::trimString( it->second );
 		if (header["content-type"] == it->second )
@@ -192,7 +191,20 @@ std::string	Response::concatenatePath( std::string p ) //real path
 
 std::string	Response::pathErrorPage(std::string code)
 {
-	return ((req.getServer().find(code))->second);
+	std::map<std::string, std::string>	confgError;
+	std::map<std::string, std::string>	serError;
+	std::string							sE;
+	struct stat 						statPath;
+	
+	confgError = req.getServer();
+	serError   = req.getErrorPages();
+	sE         = concatenatePath( confgError[code] );
+	
+	if (!Utils::isFile(sE.c_str())
+		or (!stat(sE.c_str(), &statPath)
+		and !(statPath.st_mode & S_IWUSR)) )
+			return (serError[code]);
+	return (confgError[code]);
 }
 
 void	Response::throwNewPath(std::string msg, std::string code)
@@ -218,12 +230,14 @@ Stage	Response::sendResponse(Stage &stage)
 	switch(i)
 	{
 		case 0:
+			
 			if (get == NULL) get = new Get( *this );
 			if (stage == REQBODY)
 				stage = RESHEADER;
 			if (stage == RESHEADER)
 			{
 				headerRes = get->responsHeader();
+			std::cout << req.getMethod() << "\n";
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)

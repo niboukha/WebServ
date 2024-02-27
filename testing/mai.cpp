@@ -162,7 +162,7 @@ void directoryPath(struct stat st, std::string pt)
 		err = "403 Forbidden";
 		throw("403");
 	}
-	if ((st.st_mode & S_IWUSR) && std::remove(pt.c_str()))
+	if ((st.st_mode & S_IWUSR) and std::remove(pt.c_str()))
 	{
 		err = "500 Internal Server Error";
 		throw("500");

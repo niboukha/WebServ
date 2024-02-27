@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 07:13:57 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 20:00:00 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ std::string	Utils::generateRundFile()
 
 bool Utils::isFdOpen(int fd)
 {
-    return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
+    return fcntl(fd, F_GETFD) != -1 or errno != EBADF;
 }
 
 int	Utils::getLength(std::string s)

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 18:31:58 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 07:07:52 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ void	Client::sendResponse()
 			if (stage == RESBODY && i == 0)
 			{
 				i = 1;
+				std::cout << res.getPath() << "\n";
 				std::cout << res.getHeaderRes() << "\n";
 				send(newSockFd, res.getHeaderRes().c_str(), 
 				strlen(res.getHeaderRes().c_str()), 0);
@@ -83,6 +84,7 @@ void	Client::sendResponse()
 		catch (std::string path)
 		{
 			res.setPath(path);
+			// std::cout << res.getPath() << "\n";
 			stage = RESHEADER;
 		}
 	}

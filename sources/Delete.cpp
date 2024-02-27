@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/25 12:23:53 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 20:00:18 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ void Delete::directoryPath(struct stat st, std::string &pt)
 		return ;
 	}
 
-	if ((st.st_mode & S_IWUSR) && std::remove(pt.c_str()))
+	if ((st.st_mode & S_IWUSR) and std::remove(pt.c_str()))
 		pathOfSentPage("500 Internal Server Error", "500");
 	else
 		pathOfSentPage("204 No Content", "204");
@@ -71,7 +71,7 @@ std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 		if (strlen(pDirent->d_name) == 0)
 			break;
 		s = pDirent->d_name;
-		if (s == "." || s == "..")
+		if (s == "." or s == "..")
 			continue;
 
 		s = str + pDirent->d_name;

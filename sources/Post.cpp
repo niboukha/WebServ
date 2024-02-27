@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 18:32:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 20:00:18 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,24 +53,6 @@ long long	Post::maxBodySize( )
 
 	return ( n );
 }
-
-// std::string	Post::getExtensionFile()
-// {
-// 	std::map<std::string, std::string>	header;
-// 	std::map<std::string, std::string>	ext;
-
-// 	header = res.getRequest().getHeaders();
-// 	ext = res.getMimeType();
-// 	std::map<std::string, std::string> ::iterator	it = ext.begin();
-	
-// 	for(; it != ext.end(); it++)
-// 	{
-// 		std::cout << header["content-type"] << " " << it->second << "\n";
-// 		if (header["content-type"] == it->second)
-// 			return (it->first);
-// 	}
-// 	return ("txt");
-// }
 
 bool	Post::isUploadPass( Stage &stage )
 {
@@ -226,7 +208,7 @@ void	Post::requestedStatus(Stage &stage)
 	
 	header = res.getRequest().getHeaders();
 
-	if (isUploadPass( stage ) == true && stage == REQBODY)
+	if (isUploadPass( stage ) == true and stage == REQBODY)
 	{
 		if (header.find("content-length") != header.end())
 			nonChunkedTransfer(stage);

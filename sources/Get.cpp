@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 07:17:21 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 07:03:45 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,10 +113,11 @@ void	Get::statusOfFile()
 	std::string	pt;
 	
 	if (response.getStatusCodeMsg() == "-1")
-	{
 		s = response.concatenatePath( response.getRequest().getRequestedPath() );
-		response.setPath(s);
-	}
+	else
+		s = response.concatenatePath (response.getPath());
+	response.setPath(s);
+	
 	std::ifstream file(response.getPath().c_str());
 	if (Utils::isDir(response.getPath().c_str()))
 	{
@@ -125,7 +126,10 @@ void	Get::statusOfFile()
 		response.setPath(s);
 	}
 	else if (!Utils::isFile(response.getPath().c_str()))
+	{
+		
 		response.throwNewPath("404 not found", "404");
+	}
 	// check if location has a cgi
 
 	s = "200 ok";
@@ -137,8 +141,8 @@ std::string	Get::responsHeader()
 {
 	std::string	s;
 	std::string	pt;
+
 	statusOfFile();
-	
 	pt = response.getPath();
 	s  = response.getRequest().getProtocolVersion() + " " +
 		response.getStatusCodeMsg() + CRLF +
@@ -158,6 +162,7 @@ std::string	Get::responsBody()
 	if (!Utils::isFdOpen(fd))
 		fd = open(response.getPath().c_str(), O_RDWR);
 	sizeofRead = read(fd, buffer, sizeof(buffer));
-	
+	if (sizeofRead == 0)
+		close(fd);
 	return (std::string(buffer, sizeofRead));
 }
