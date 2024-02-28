@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 20:00:18 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 16:58:53 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,13 @@
 
 // long long	Post::uploadSize = 0;
 
-Post::Post( Response &response ) : res( response ), size(0),
-									dirflag(0), sizeofRead(0),
-									enter(false), uploadSize(0)
+Post::Post( Response &response ) :	res( response ),
+									size( 0 ),
+									isMoved( false ),
+									sizeofRead( 0 ),
+									enter( false ),
+									uploadSize( 0 ),
+									saveOffset( 0 )
 {
 }
 
@@ -25,7 +29,7 @@ Post::~Post( )
 
 }
 
-const int&	Post::getSizeofRead() const
+const std::streampos	Post::getSizeofRead() const
 {
 	return (sizeofRead);
 }
@@ -36,7 +40,7 @@ std::string	Post::conctRootUpload(std::string s)
 	std::string	pt;
 
 	loc = res.getRequest().getLocation();
-	pt = loc["root"].front() + s + "/";
+	pt  = loc["root"].front() + s + "/";
 	return (pt);
 }
 
@@ -47,10 +51,8 @@ long long	Post::maxBodySize( )
 	long long							n;
 
 	ser  = res.getRequest().getServer();
-	
 	s << ser["client_max_body_size"];
 	s >> n;
-
 	return ( n );
 }
 
@@ -68,7 +70,7 @@ bool	Post::isUploadPass( Stage &stage )
 	if (loc["upload_pass"].empty())
 	{
 		stage = RESHEADER;
-		s = res.concatenatePath( res.getRequest().getRequestedPath() );
+		s     = res.concatenatePath( res.getRequest().getRequestedPath() );
 		res.setPath(s);
 		return (false);
 	}
@@ -91,7 +93,7 @@ void	Post::nonChunkedTransfer(Stage &stage)
 
 	head = res.getRequest().getHeaders(); 
 
-	if (maxBodySize() < Utils::stringToInt(head["content-length"]))
+	if (maxBodySize() < Utils::stringToLong(head["content-length"]))
 	{
 		stage = RESHEADER;
 		res.throwNewPath("413 Request Entity Too Large", "413");
@@ -100,8 +102,9 @@ void	Post::nonChunkedTransfer(Stage &stage)
 		outfile.open(res.getPath().c_str(), std::ios_base::app);
 
 	outfile << res.getBody();
+	std::cout << uploadSize << " " << Utils::stringToLong(head["content-length"]) << "\n";
 	uploadSize += res.getBody().size();
-	if (uploadSize == Utils::stringToInt(head["content-length"]))
+	if (uploadSize == Utils::stringToLong(head["content-length"]))
 	{
 		stage = RESHEADER;
 		outfile.close();
@@ -170,7 +173,7 @@ void	Post::directoryInRequest(std::string &path, std::ifstream &file)
 	loc = res.getRequest().getLocation();
 	if (path[path.length() - 1] != '/')
 	{
-		dirflag = 1;
+		isMoved = true;
 		res.setPath(res.getPath() + "/");
 		file.close();
 		res.throwNewPath("301 Moved Permanently", "301");
@@ -207,7 +210,6 @@ void	Post::requestedStatus(Stage &stage)
 	std::map<std::string, std::string>	header;
 	
 	header = res.getRequest().getHeaders();
-
 	if (isUploadPass( stage ) == true and stage == REQBODY)
 	{
 		if (header.find("content-length") != header.end())
@@ -226,30 +228,32 @@ std::string	Post::responsHeader(Stage &stage)
 
 	if (res.getStatusCodeMsg() != "-1")
 		res.setPath(res.concatenatePath(res.getPath()));
-	// std::cout << res.getPath() << "\n";
 	requestedStatus(stage);
 	pt = res.getPath();
 	s  = res.getRequest().getProtocolVersion() + " " +
 		res.getStatusCodeMsg() + CRLF +
-		"Content-Type: "   + res.getContentType(pt) + CRLF +
-		"Content-Length: " + res.getContentLength(pt);
+		"Content-Type: "       + res.getContentType(pt) + CRLF +
+		"Content-Length: "     + res.getContentLength(pt);
 
-	if (dirflag == 1)
+	if (isMoved == true)
 		s = s + CRLF + "Location: " + res.getPath();
-
 	s = s + CRLF + CRLF;
 	return (s);
 }
 
 std::string	Post::responsBody()
 {
-	char buffer[20];
+	std::ifstream	in(res.getPath().c_str(), std::ios_base::binary);
+	char			buff[20];
 
-	if (!Utils::isFdOpen(fd))
-		fd = open(res.getPath().c_str(), O_RDWR);
-	sizeofRead = read(fd, buffer, sizeof(buffer));
+	in.seekg(saveOffset, std::ios::cur);
+	in.read(buff, sizeof(buff));
+	sizeofRead  = in.gcount();
+	saveOffset += sizeofRead;
 
-	return (std::string(buffer, sizeofRead));
+	if (sizeofRead == 0)
+		in.close();
+	return (std::string(buff, sizeofRead));
 }
 
 // std::string	Post::httpRedirection()

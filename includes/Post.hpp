@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 18:09:47 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 15:56:04 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,18 +25,18 @@ class	Post
 		Response	&res;
 
 		long long	size;
-		int			fd;
-		int			dirflag;
+		bool		isMoved;
 		int			sizeofRead;
 		bool		enter;
 		long long	uploadSize;
+		long long	saveOffset;
 
 	public :
 
 		Post( Response &response );
 		~Post( );
 
-		const int&	getSizeofRead() const;
+		const std::streampos	getSizeofRead() const;
 
 		std::string	responsHeader(Stage &stage);
 		std::string	responsBody();

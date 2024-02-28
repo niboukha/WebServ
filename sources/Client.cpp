@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 07:07:52 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 22:06:13 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,9 +92,9 @@ void	Client::sendResponse()
 	{
 		i = 2;
 		s = res.getPath();
-		std::cout << res.getBodyRes() << "\n";
+		// std::cout << res.getBodyRes() << "\n";
 		send(newSockFd, res.getBodyRes().c_str(), 
-		Utils::stringToInt(res.getContentLength(s)), 0);
+		Utils::stringToLong(res.getContentLength(s)), 0);
 	}
 }
 

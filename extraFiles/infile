@@ -1,9 +1,7 @@
-GET /upload/file1708967707.avif/ HTTP/1.1
-Content-Length: 1000
-Content-Type: text/html
-User-Agent: PostmanRuntime/7.36.3
+DELETE //../../Downloads/hh.jpg HTTP/1.1
+User-Agent: PostmanRuntime/7.34.0
 Accept: */*
-Postman-Token: 8995baa4-638f-447f-9a5c-ad201dad846d
+Postman-Token: 71cd206a-d0e5-4117-a191-d1713cfae5d7
 Host: localhost:8080
 Accept-Encoding: gzip, deflate, br
 Connection: keep-alive

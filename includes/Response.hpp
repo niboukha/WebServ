@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 18:15:43 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 22:12:12 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,18 +63,17 @@ class Response
 		const std::string&	getBody() const;
 		const std::string&	getHeaderRes() const;
 		const std::string&	getBodyRes() const;
-		const long long &	getUploadLength() const;
+		const long long  &	getUploadLength() const;
 
 		std::string		getContentType( std::string &path );
 		std::string		getContentLength( std::string &path );
 
 		void			mapOfTypes( );
+		void			UpdateStatusCode(std::string &s);
+		bool			isRealPath(std::string path);
 		std::string		concatenateIndexDirectory( );
 		std::string		concatenatePath( std::string p );
 		std::string		pathErrorPage(std::string code);
-
-		void			UpdateStatusCode(std::string &s);
-
 		std::string		getExtensionFile();
 
 		void			throwNewPath(std::string msg, std::string code);

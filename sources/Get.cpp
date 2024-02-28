@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 07:03:45 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 22:14:21 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,20 @@ Get::~Get()
 {
 }
 
-Get::Get(Response &res) : response(res), dirflag(0), sizeofRead(0)
+Get::Get(Response &res)	:	response(res),
+							sizeofRead(0),
+							saveOffset(0),
+							isMoved(false)
+							
 {
 }
 
-const char*	Get::DirectoryFailed::what() const throw()
+const char*	Get::DirectoryFailed::what( ) const throw( )
 {
 	return ("forbidden");
 }
 
-const int&	Get::getSizeofRead() const
+const std::streampos&	Get::getSizeofRead() const
 {
 	return (sizeofRead);
 }
@@ -51,14 +55,13 @@ std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 
 std::string	Get::readListOfCurDirectory()
 {
-	std::string	s;
+	struct dirent	*pDirent;
+	DIR				*pDir;
+	char			cwd[PATH_MAX];
+	std::string		s;
 
 	try
 	{
-		struct dirent	*pDirent;
-		char			cwd[PATH_MAX];
-		DIR				*pDir;
-
 		if (!getcwd(cwd, sizeof(cwd)))
 			throw DirectoryFailed();
 
@@ -94,7 +97,7 @@ std::string	Get::directoryInRequest(std::string &file)
 
 	if (file[file.length() - 1] != '/')
 	{
-		dirflag     = 1;
+		isMoved     = true;
 		locationRes = response.getPath() + "/";
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
@@ -115,7 +118,10 @@ void	Get::statusOfFile()
 	if (response.getStatusCodeMsg() == "-1")
 		s = response.concatenatePath( response.getRequest().getRequestedPath() );
 	else
+	{
+		std::cout << "hereeeeeeeeeee >> " << response.concatenatePath (response.getPath()) << "\n";
 		s = response.concatenatePath (response.getPath());
+	}
 	response.setPath(s);
 	
 	std::ifstream file(response.getPath().c_str());
@@ -126,10 +132,7 @@ void	Get::statusOfFile()
 		response.setPath(s);
 	}
 	else if (!Utils::isFile(response.getPath().c_str()))
-	{
-		
 		response.throwNewPath("404 not found", "404");
-	}
 	// check if location has a cgi
 
 	s = "200 ok";
@@ -143,13 +146,14 @@ std::string	Get::responsHeader()
 	std::string	pt;
 
 	statusOfFile();
+	std::cout << response.getPath() << "\n";
 	pt = response.getPath();
-	s  = response.getRequest().getProtocolVersion() + " " +
-		response.getStatusCodeMsg() + CRLF +
-		"Content-Type: "   + response.getContentType(pt)   + CRLF + 
+	s  = response.getRequest().getProtocolVersion()       + " "  +
+		response.getStatusCodeMsg()                       + CRLF +
+		"Content-Type: "   + response.getContentType(pt)  + CRLF + 
 		"Content-Length: " + response.getContentLength(pt);
-	if (dirflag == 1)
-		s = s + CRLF + "Location: " + locationRes;
+	if (isMoved == true)
+		s = s + CRLF + "Location: " + response.getPath();
 	s = s + CRLF + CRLF;
 	
 	return (s);
@@ -157,12 +161,14 @@ std::string	Get::responsHeader()
 
 std::string	Get::responsBody()
 {
-	char buffer[20];
+	std::ifstream	in(response.getPath().c_str(), std::ios_base::binary);
+	char			buff[1024];
 
-	if (!Utils::isFdOpen(fd))
-		fd = open(response.getPath().c_str(), O_RDWR);
-	sizeofRead = read(fd, buffer, sizeof(buffer));
+	in.seekg(saveOffset, std::ios::cur);	
+	in.read(buff, sizeof(buff));
+	sizeofRead  = in.gcount();
+	saveOffset += sizeofRead;
 	if (sizeofRead == 0)
-		close(fd);
-	return (std::string(buffer, sizeofRead));
+		in.close();
+	return (std::string(buff, sizeofRead));
 }

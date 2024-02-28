@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/26 20:00:00 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 15:52:24 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,10 +89,10 @@ int	Utils::getLength(std::string s)
 	return (n);
 }
 
-long long	Utils::stringToInt(std::string s)
+long long	Utils::stringToLong(std::string s)
 {
 	std::stringstream	ss;
-	long long					n;
+	long long			n;
 	
 	ss << s;
 	ss >> n;

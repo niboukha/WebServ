@@ -22,9 +22,10 @@ class	Delete
 {
 	private :
 
-		Response	&res;
-		int			fd;
-		int			sizeofRead;
+		Response		&res;
+		std::streampos	sizeofRead;
+		long long		saveOffset;
+
 
 	public :
 
@@ -34,9 +35,9 @@ class	Delete
 		std::string	responsHeader();
 		std::string	responsBody();
 
-		const int&	getSizeofRead() const;
+		const std::streampos&	getSizeofRead() const;
 
-		void		directoryPath(struct stat st, std::string &pt);
+		void		directoryPath(DIR *pDir, struct stat st, std::string &pt);
 		void		filePath(std::string &s);
 		void		statusOfRequested();
 		void		pathOfSentPage(std::string s, std::string code);

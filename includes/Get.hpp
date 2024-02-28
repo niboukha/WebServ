@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/24 21:37:03 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 11:36:50 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,21 @@ class Response;
 class	Get
 {
 	private :
+	
 		Response					&response;
-		std::string					fillAutoIndexFile;
 		std::vector<std::string>	vDir;
-		std::string					locationRes;
 		
-		int							fd;
-		int							dirflag;
-		int							sizeofRead;
+		std::string					fillAutoIndexFile;
+		std::string					locationRes;
+		std::streampos				sizeofRead;
+		long long					saveOffset;
+		bool						isMoved;
+		
+		class	DirectoryFailed : public std::exception
+		{
+			public :
+				const char	*what() const throw();
+		};
 		
 	public :
 
@@ -37,23 +44,14 @@ class	Get
 		~Get();
 
 		void		statusOfFile();
-
-		std::string	directoryInRequest(std::string &file);
-
-		std::string	readListOfCurDirectory();
-		std::string	stringOfDyrectories(std::vector<std::string> &vdir);
-
 		std::string	responsHeader();
 		std::string	responsBody();
 
-		const int&	getSizeofRead() const;
-	
-		class	DirectoryFailed : public std::exception
-		{
-			public :
-				const char	*what() const throw();
-		};
-
+		std::string	directoryInRequest(std::string &file);
+		std::string	readListOfCurDirectory();
+		std::string	stringOfDyrectories(std::vector<std::string> &vdir);
+		
+		const std::streampos&	getSizeofRead() const;
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/26 18:34:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/28 07:06:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,14 +57,20 @@ const	std::map<std::string, std::string>	Request::getErrorPages() const
 
 void    Request::fillErrorPages()
 {
-    errorPages["404"] = "/ErrorPages/404.html";
-    errorPages["501"] = "/ErrorPages/501.html";
-    errorPages["400"] = "/ErrorPages/400.html";
-    errorPages["414"] = "/ErrorPages/414.html";
-    errorPages["413"] = "/ErrorPages/413.html";
-    errorPages["405"] = "/ErrorPages/405.html";
-    errorPages["403"] = "/ErrorPages/403.html";
-    errorPages["201"] = "/ErrorPages/201.html";
+    errorPages["201"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/201.html";
+    errorPages["204"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/204.html";
+    errorPages["301"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/301.html";
+    errorPages["401"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/401.html";
+    errorPages["403"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/403.html";
+    errorPages["404"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/404.html";
+    errorPages["409"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/409.html";
+    errorPages["413"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/413.html";
+    errorPages["500"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/500.html";
+    
+    errorPages["501"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/501.html";
+    errorPages["400"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/400.html";
+    errorPages["414"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/414.html";
+    errorPages["405"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/405.html";
 }
 void   Request::parseRequest(std::string &buff, Stage &stage)
 {

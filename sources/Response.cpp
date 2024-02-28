@@ -6,16 +6,19 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 06:53:55 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/28 07:09:53 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Response.hpp"
 
-Response::Response( Request &request ) : req( request ),
-						get(NULL), post(NULL), delt(NULL),
-						statusCodeMsg("-1"), path("-1"),
-						uploadLength(0)
+Response::Response( Request &request ) :	req( request ),
+											get( NULL ),
+											post( NULL ),
+											delt( NULL ),
+											statusCodeMsg( "-1" ),
+											path( "-1" ),
+											uploadLength(0 )
 {
 }
 
@@ -76,31 +79,30 @@ const std::string&	Response::getBodyRes() const
 	return (bodyRes);
 }
 
+const long long &		Response::getUploadLength() const
+{
+	return (uploadLength);
+}
+
 void	Response::UpdateStatusCode(std::string &s)
 {
 	if (getStatusCodeMsg() == "-1")
 		setStatusCodeMsg(s);
 }
 
-const long long &		Response::getUploadLength() const
-{
-	return (uploadLength);
-}
-
 std::string	Response::getContentLength( std::string &path )
 {
-	long int			sz;
     std::stringstream	ss;
+	long int			length;
 	
 	std::ifstream file(path.c_str(), std::ios::binary);
 
     file.seekg(0, std::ios::end);
-    sz = file.tellg();
-
-    if (sz == -1)
+    length = file.tellg();
+    if (length == -1)
 		return ("0");
-
-    ss << sz;
+    ss << length;
+	file.close();
     return (ss.str());
 }
 
@@ -179,6 +181,33 @@ std::string	Response::concatenateIndexDirectory( )
 	return (NULL);
 }
 
+bool	Response::isRealPath(std::string path)
+{
+	char		bufRec[PATH_MAX];
+	char		bufCur[PATH_MAX];
+	char		*resource;
+	char		*currentPath;
+	std::string	res;
+	std::string	curr;
+	
+	resource    = realpath(path.c_str(), bufRec);
+	currentPath = realpath(".", bufCur);
+	res			= bufRec;
+	curr		= bufCur;
+	if (resource)
+	{
+		if (res.find(curr) == std::string::npos)
+		{
+			std::cout << res << "| |" << curr << "|\n";
+			res = "403 forbidden";
+			setStatusCodeMsg(res);
+			setPath(pathErrorPage("403"));
+			return (false);
+		}
+	}
+	return (true);
+}
+
 std::string	Response::concatenatePath( std::string p ) //real path 
 {
 	mapStrVect	loc;
@@ -186,6 +215,8 @@ std::string	Response::concatenatePath( std::string p ) //real path
 
 	loc = getRequest().getLocation();
 	s   = loc["root"].front() + p;
+	if (isRealPath(s) == false)
+		return (getPath());
 	return (s);
 }
 
@@ -236,6 +267,7 @@ Stage	Response::sendResponse(Stage &stage)
 				stage = RESHEADER;
 			if (stage == RESHEADER)
 			{
+
 				headerRes = get->responsHeader();
 			std::cout << req.getMethod() << "\n";
 				return ( stage = RESBODY );
