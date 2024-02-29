@@ -41,6 +41,7 @@ void	Response::setPath(std::string pt)
 
 void	Response::setBody(const std::string& bdy)
 {
+	// std::cout << bdy.size() << "_" << body.size() << "\n";
 	body = bdy;
 }
 

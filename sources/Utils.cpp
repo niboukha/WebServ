@@ -79,10 +79,10 @@ bool Utils::isFdOpen(int fd)
     return fcntl(fd, F_GETFD) != -1 or errno != EBADF;
 }
 
-int	Utils::getLength(std::string s)
+long long	Utils::getLength(std::string s)
 {
 	std::stringstream	st;
-	int					n;
+	long long			n;
 
 	st << s;
 	st >> std::hex >> n;

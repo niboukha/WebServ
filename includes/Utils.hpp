@@ -24,7 +24,7 @@ namespace Utils
 	std::vector<std::string>	moreThanKey( std::string s );
 	std::string					generateRundFile();
 	bool						isFdOpen(int fd);
-	int							getLength(std::string s);
+	long long					getLength(std::string s);
 	long long					stringToLong(std::string s);
 
 };

@@ -146,7 +146,8 @@ std::string	Get::responsHeader()
 	s  = response.getRequest().getProtocolVersion()       + " "  +
 		response.getStatusCodeMsg()                       + CRLF +
 		"Content-Type: "   + response.getContentType(pt)  + CRLF + 
-		"Content-Length: " + response.getContentLength(pt);
+		"Content-Length: " + response.getContentLength(pt)  + CRLF + 
+		"Accept-Ranges: bytes";
 	if (isMoved)
 		s = s + CRLF + "Location: " + response.getPath();
 	s = s + CRLF + CRLF;

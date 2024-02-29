@@ -140,10 +140,10 @@ void	Client::serve()
 		i += b;
 		// std::cout << "------> b = " << b << " " << i << std::endl;
 		write(fd, buffer, b);
-		if (i == 134481)
+		if (i == 693)
 			break;
 	}
-	
+	// 19870998
 	// int b = read(newSockFd, buffer, 1000);
 
 	char    buff[BUF];
@@ -160,7 +160,13 @@ void	Client::serve()
 		recieveRequest();
 		if (stage != REQLINE && stage != REQHEADER)
 		{
-			res.setBody(reqBuff);
+			if (!res.getBody().empty())
+				res.setBody(res.getBody() + reqBuff);
+			else
+			{
+				// std::cout << "hnnaaaaaaaaa\n";
+				res.setBody(reqBuff);
+			}
 			reqBuff.clear();
 			sendResponse();
 		}

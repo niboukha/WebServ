@@ -100,15 +100,15 @@ void	Post::nonChunkedTransfer(Stage &stage)
 		outfile.open(res.getPath().c_str(), std::ios_base::app);
 
 	outfile << res.getBody();
-	// std::cout << "|"<< res.getBody() << "|\n";
 	uploadSize += res.getBody().size();
-	std::cout << uploadSize << " " << res.getBody().size() << "\n";
+	std::cout << uploadSize << " " << Utils::stringToLong(head["content-length"])<< "\n";
 	if (uploadSize == Utils::stringToLong(head["content-length"]))
 	{
 		stage = RESHEADER;
 		outfile.close();
 		res.throwNewPath("201 Created", "201");
 	}
+	res.setBody("");
 }
 
 void	Post::chunkedTransfer(std::string body, Stage &stage)
@@ -117,11 +117,10 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 	std::string		lrn;
 	size_t			foundLen;
 	size_t			foundBuff;
-	int				hexLen;
+	long long		hexLen = 0;
 
 	if (!outfile.is_open())
 		outfile.open(res.getPath().c_str(), std::ios_base::app);
-	static size_t a = 0;
 	while (body.size())
 	{
 		foundLen = body.find("\r\n");
@@ -134,16 +133,13 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 			break;
 
 		hexLen = Utils::getLength(lrn);
-		std::cout << lrn << "| |" << hexLen << "\n";
 		if (hexLen == 0)
 		{
-			std::cout << "in hexLen : " << lrn << "\n";
+			outfile << body.substr(0, body.size() - 5);
 			stage = RESHEADER;
 			outfile.close();
 			res.throwNewPath("201 Created", "201");
 		}
-		if (lrn.empty())
-			break;
 		foundBuff = body.find("\r\n", hexLen);
 		if (foundBuff != std::string::npos)
 		{
@@ -153,13 +149,11 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 			std::string(body, hexLen);
 			outfile << body.substr(foundLen + 2, hexLen);
 			body = body.substr(foundBuff + 2);
+			res.setBody(body);
 		}
 		else
 			break;
 	}
-	a += body.size();
-	std::cout << a << "\n";
-	// std::cout << body.size() << "\n";
 }
 
 void	Post::cgiPassCheck()
