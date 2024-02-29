@@ -70,7 +70,7 @@ class Response
 
 		void			mapOfTypes( );
 		void			UpdateStatusCode(std::string &s);
-		bool			isRealPath(std::string path);
+		void			isRealPath(std::string &path);
 		std::string		concatenateIndexDirectory( );
 		std::string		concatenatePath( std::string p );
 		std::string		pathErrorPage(std::string code);

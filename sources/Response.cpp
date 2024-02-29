@@ -41,7 +41,7 @@ void	Response::setPath(std::string pt)
 
 void	Response::setBody(const std::string& bdy)
 {
-	body += bdy;
+	body = bdy;
 }
 
 void	Response::setUploadLength(long long  b)
@@ -181,7 +181,7 @@ std::string	Response::concatenateIndexDirectory( )
 	return (NULL);
 }
 
-bool	Response::isRealPath(std::string path)
+void	Response::isRealPath(std::string &path)
 {
 	char		bufRec[PATH_MAX];
 	char		bufCur[PATH_MAX];
@@ -189,23 +189,23 @@ bool	Response::isRealPath(std::string path)
 	char		*currentPath;
 	std::string	res;
 	std::string	curr;
-	
+
 	resource    = realpath(path.c_str(), bufRec);
 	currentPath = realpath(".", bufCur);
-	res			= bufRec;
-	curr		= bufCur;
+
 	if (resource)
 	{
+		res			= bufRec;
+		curr		= bufCur;
 		if (res.find(curr) == std::string::npos)
 		{
-			std::cout << res << "| |" << curr << "|\n";
 			res = "403 forbidden";
 			setStatusCodeMsg(res);
-			setPath(pathErrorPage("403"));
-			return (false);
+			throw (pathErrorPage("403"));	
 		}
+		if (path[path.length() - 1] == '/')
+			path = res + "/";
 	}
-	return (true);
 }
 
 std::string	Response::concatenatePath( std::string p ) //real path 
@@ -215,8 +215,7 @@ std::string	Response::concatenatePath( std::string p ) //real path
 
 	loc = getRequest().getLocation();
 	s   = loc["root"].front() + p;
-	if (isRealPath(s) == false)
-		return (getPath());
+	isRealPath(s);
 	return (s);
 }
 
@@ -229,7 +228,7 @@ std::string	Response::pathErrorPage(std::string code)
 	
 	confgError = req.getServer();
 	serError   = req.getErrorPages();
-	sE         = concatenatePath( confgError[code] );
+	sE         = confgError[code];
 	
 	if (!Utils::isFile(sE.c_str())
 		or (!stat(sE.c_str(), &statPath)
@@ -267,9 +266,7 @@ Stage	Response::sendResponse(Stage &stage)
 				stage = RESHEADER;
 			if (stage == RESHEADER)
 			{
-
 				headerRes = get->responsHeader();
-			std::cout << req.getMethod() << "\n";
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)

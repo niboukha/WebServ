@@ -46,6 +46,21 @@
 #define	CRLF "\r\n" //carriage return and line feed
 #define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/extraFiles/mimetype.txt"
 #define	BUF 1024
+
+#define	ERROR_201 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/201.html"
+#define	ERROR_204 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/204.html"
+#define	ERROR_301 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/301.html"
+#define	ERROR_401 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/401.html"
+#define	ERROR_403 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/403.html"
+#define	ERROR_404 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/404.html"
+#define	ERROR_409 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/409.html"
+#define	ERROR_413 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/413.html"
+#define	ERROR_500 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/500.html"
+#define	ERROR_501 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/501.html"
+#define	ERROR_400 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/400.html"
+#define	ERROR_414 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/414.html"
+#define	ERROR_405 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/405.html"
+
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;
 

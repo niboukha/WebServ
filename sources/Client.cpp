@@ -33,30 +33,30 @@ const Stage&	Client::getStage( ) const
 
 void	Client::recieveRequest()
 {
-	// std::string	s;
+	std::string	s;
 	
-	// try
-	// {
+	try
+	{
 
 		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 			req.parseRequest(reqBuff, stage);
 		
-	// }
-	// catch(Request::BadRequest& bReq)
-	// {
+	}
+	catch(Request::BadRequest& bReq)
+	{
 
-	// 	s = bReq.getPairCodePath().first;
-	// 	res.setStatusCodeMsg(s);//mochkil hna !!!
-	// 	res.setPath(bReq.getPairCodePath().second);
-	// 	stage = RESHEADER;
-	// }
-	// catch(Request::NotImplemented& NotImplemented)
-	// {
-	// 	s = NotImplemented.getPairCodePath().first;
-	// 	res.setStatusCodeMsg(s);
-	// 	res.setPath(NotImplemented.getPairCodePath().second);
-	// 	stage = RESHEADER;
-	// }
+		s = bReq.getPairCodePath().first;
+		res.setStatusCodeMsg(s);//mochkil hna !!!
+		res.setPath(bReq.getPairCodePath().second);
+		stage = RESHEADER;
+	}
+	catch(Request::NotImplemented& NotImplemented)
+	{
+		s = NotImplemented.getPairCodePath().first;
+		res.setStatusCodeMsg(s);
+		res.setPath(NotImplemented.getPairCodePath().second);
+		stage = RESHEADER;
+	}
 }
 
 void	Client::sendResponse()
@@ -101,7 +101,7 @@ void	Client::sendResponse()
 void	Client::serve()
 {
 	sockFd = socket(AF_INET, SOCK_STREAM, 0);
-	char	buffer[4244990];
+	char	buffer[1000];
 	
     if (sockFd < 0)
         std::cout << "failed to create socket" << std::endl;
@@ -131,15 +131,27 @@ void	Client::serve()
 	newSockFd = accept(sockFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
 	if (newSockFd < 0)
 		perror("accept");
-	int b = read(newSockFd, buffer, 4244990);
+	int b;
+	int	fd;
+	int i = 0;
+	fd =  open("extraFiles/infile", O_RDWR | O_TRUNC);
+	while ( (b = read(newSockFd, buffer, 1000)))
+	{
+		i += b;
+		// std::cout << "------> b = " << b << " " << i << std::endl;
+		write(fd, buffer, b);
+		if (i == 134481)
+			break;
+	}
+	
+	// int b = read(newSockFd, buffer, 1000);
 
 	char    buff[BUF];
-	int		fd;
+	// int		fd;
 	int		byte;
 
-	fd =  open("extraFiles/infile", O_RDWR | O_TRUNC);
-	write(fd, buffer, b);
-	close(fd);
+	// write(fd, buffer, b);
+	// close(fd);
 	fd =  open("extraFiles/infile", O_RDWR);
 
 	while ((byte = read(fd, buff, BUF)))
@@ -154,5 +166,5 @@ void	Client::serve()
 		}
 	}
 	close(newSockFd);
-	close(sockFd);
+	// close(sockFd);
 } 

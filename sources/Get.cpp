@@ -116,14 +116,10 @@ void	Get::statusOfFile()
 	std::string	pt;
 	
 	if (response.getStatusCodeMsg() == "-1")
-		s = response.concatenatePath( response.getRequest().getRequestedPath() );
-	else
 	{
-		std::cout << "hereeeeeeeeeee >> " << response.concatenatePath (response.getPath()) << "\n";
-		s = response.concatenatePath (response.getPath());
+		s = response.concatenatePath( response.getRequest().getRequestedPath() );
+		response.setPath(s);
 	}
-	response.setPath(s);
-	
 	std::ifstream file(response.getPath().c_str());
 	if (Utils::isDir(response.getPath().c_str()))
 	{
@@ -146,13 +142,12 @@ std::string	Get::responsHeader()
 	std::string	pt;
 
 	statusOfFile();
-	std::cout << response.getPath() << "\n";
 	pt = response.getPath();
 	s  = response.getRequest().getProtocolVersion()       + " "  +
 		response.getStatusCodeMsg()                       + CRLF +
 		"Content-Type: "   + response.getContentType(pt)  + CRLF + 
 		"Content-Length: " + response.getContentLength(pt);
-	if (isMoved == true)
+	if (isMoved)
 		s = s + CRLF + "Location: " + response.getPath();
 	s = s + CRLF + CRLF;
 	

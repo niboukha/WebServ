@@ -14,7 +14,8 @@
 
 Delete::Delete( Response &response ) :	res(response),
 										sizeofRead(0), 
-										saveOffset(0)
+										saveOffset(0),
+										isReal(true)
 {
 }
 
@@ -143,9 +144,12 @@ void	Delete::statusOfRequested( )
 	
 	try
 	{
-		res.setPath (res.concatenatePath( res.getRequest().getRequestedPath() ));
+		if (res.getStatusCodeMsg() == "-1")
+		{
+			res.setPath (res.concatenatePath( res.getRequest().getRequestedPath() ));
+			isReal = false;
+		}
 		base = res.getPath();
-		std::cout << res.getPath() << "\n";
 		if (!stat(base.c_str(), &statPath))
 		{
 			if (S_ISDIR(statPath.st_mode))
@@ -162,7 +166,10 @@ void	Delete::statusOfRequested( )
 	}
 	catch(std::string code)
 	{
-		res.setPath(res.pathErrorPage(code));
+		if (isReal)
+			res.setPath (code);
+		else
+			res.setPath(res.pathErrorPage(code));
 	}
 }
 
@@ -173,7 +180,6 @@ std::string	Delete::responsHeader()
 	
 	statusOfRequested();
 
-	res.setPath(res.concatenatePath(res.getPath()));
 	pt = res.getPath();
 	s  = res.getRequest().getProtocolVersion()         + " "  +
 		 res.getStatusCodeMsg()                        + CRLF +

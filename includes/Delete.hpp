@@ -23,9 +23,10 @@ class	Delete
 	private :
 
 		Response		&res;
+		
 		std::streampos	sizeofRead;
 		long long		saveOffset;
-
+		bool			isReal;
 
 	public :
 

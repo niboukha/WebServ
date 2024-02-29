@@ -57,20 +57,19 @@ const	std::map<std::string, std::string>	Request::getErrorPages() const
 
 void    Request::fillErrorPages()
 {
-    errorPages["201"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/201.html";
-    errorPages["204"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/204.html";
-    errorPages["301"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/301.html";
-    errorPages["401"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/401.html";
-    errorPages["403"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/403.html";
-    errorPages["404"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/404.html";
-    errorPages["409"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/409.html";
-    errorPages["413"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/413.html";
-    errorPages["500"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/500.html";
-    
-    errorPages["501"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/501.html";
-    errorPages["400"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/400.html";
-    errorPages["414"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/414.html";
-    errorPages["405"] = "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/405.html";
+    errorPages["201"] = ERROR_201;
+    errorPages["204"] = ERROR_204;
+    errorPages["301"] = ERROR_301;
+    errorPages["401"] = ERROR_401;
+    errorPages["403"] = ERROR_403;
+    errorPages["404"] = ERROR_404;
+    errorPages["409"] = ERROR_409;
+    errorPages["413"] = ERROR_413;
+    errorPages["500"] = ERROR_500;
+    errorPages["501"] = ERROR_501;
+    errorPages["400"] = ERROR_400;
+    errorPages["414"] = ERROR_414;
+    errorPages["405"] = ERROR_405;
 }
 void   Request::parseRequest(std::string &buff, Stage &stage)
 {
@@ -78,7 +77,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     {
         parseRequestLine(buff);
         parseUri();
-        stage =  REQHEADER;
+        stage = REQHEADER;
     }
     else if (stage == REQHEADER)
     {
@@ -100,7 +99,6 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         }
         parseHeader(buff);
     }
-    
 }
 
 std::string Request::decodePercentEncoded(std::string hexastr)
