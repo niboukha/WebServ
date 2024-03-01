@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/28 07:09:53 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 20:27:11 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,29 @@ Response::Response( Request &request ) :	req( request ),
 
 Response::~Response()
 {
+	std::cout << "-------------------->in destructor\n";
 	delete get;
 	delete post;
 	delete delt;
+}
+
+const Response& Response::operator=(const Response& copy)
+{
+	if (this != &copy)
+	{
+	
+		get 			 = copy.get;
+		post			 = copy.post;
+		delt			 = copy.delt;
+		statusCodeMsg	= copy.statusCodeMsg;
+		path 			= copy.path;
+		body			= copy.body;
+		uploadLength 	= copy.uploadLength;
+		headerRes 		= copy.headerRes;
+		bodyRes 		= copy.bodyRes;
+		mimeType		= copy.mimeType;
+	}
+	return *this;
 }
 
 void	Response::setStatusCodeMsg(std::string& codeMsg)
@@ -48,6 +68,11 @@ void	Response::setBody(const std::string& bdy)
 void	Response::setUploadLength(long long  b)
 {
 	uploadLength = b;
+}
+
+void	Response::setHeaderRes(const std::string& header)
+{
+	headerRes = header;
 }
 
 const Request&	Response::getRequest() const
@@ -255,16 +280,15 @@ Stage	Response::sendResponse(Stage &stage)
 	vect.push_back("DELETE");
 	vect.push_back("POST");
 
-	long long  i = 0;
+	int  i = 0;
 	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
 
 	switch(i)
 	{
 		case 0:
-			
 			if (get == NULL) get = new Get( *this );
 			if (stage == REQBODY)
-				stage = RESHEADER;
+				return (stage = RESHEADER);
 			if (stage == RESHEADER)
 			{
 				headerRes = get->responsHeader();
@@ -272,8 +296,9 @@ Stage	Response::sendResponse(Stage &stage)
 			}
 			if (stage == RESBODY)
 			{
-				bodyRes += get->responsBody();
-				if (get->getSizeofRead() == 0) return ( stage = RESEND );
+				bodyRes = get->responsBody();
+				if (get->getSizeofRead() == 0)
+					return ( stage = RESEND );
 			}
 			break;
 
@@ -290,7 +315,7 @@ Stage	Response::sendResponse(Stage &stage)
 			}
 			if (stage == RESBODY)
 			{
-				bodyRes += delt->responsBody();
+				bodyRes = delt->responsBody();
 				if (delt->getSizeofRead() == 0)
 					return ( stage = RESEND );
 			}
@@ -316,7 +341,7 @@ Stage	Response::sendResponse(Stage &stage)
 			}
 			if (stage == RESBODY)
 			{
-				bodyRes += post->responsBody();
+				bodyRes = post->responsBody();
 				if (post->getSizeofRead() == 0) return ( stage = RESEND );
 			}
 			break;

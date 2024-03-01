@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 22:12:12 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 12:21:48 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,13 +49,15 @@ class Response
 		Response( Request &request );
 		~Response( );
 
+		const Response&	operator=(const Response& copy);
+		
 		Stage	sendResponse(Stage &stage);
 
 		void	setStatusCodeMsg(std::string& codeMsg);
 		void	setPath(std::string pt);
 		void	setBody(const std::string& bdy);
 		void	setUploadLength(long long  b);
-		
+		void	setHeaderRes(const std::string& header);
 		
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/28 07:13:34 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 10:38:45 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,7 +192,7 @@ std::string	Delete::responsHeader()
 std::string	Delete::responsBody()
 {
 	std::ifstream	in(res.getPath().c_str(), std::ios_base::binary);
-	char			buff[20];
+	char			buff[1024];
 
 	in.seekg(saveOffset, std::ios::cur);	
 	in.read(buff, sizeof(buff));

@@ -3,23 +3,43 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/28 07:06:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 21:53:49 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Request.hpp"
 
 Request::Request()
-{
+{   
 }
 
 Request::~Request()
 {
+    std::cout << "REQ DEST " << std::endl;
 }
 
+const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!
+{
+    if (this != &copy)
+    {
+    	configFileData  = copy.configFileData;
+	    location        = copy.location;
+		server          = copy.server;
+		headers         = copy.headers;
+		errorPages      = copy.errorPages;
+		method          = copy.method;
+		requestedPath   = copy.requestedPath;
+		protocolVersion = copy.protocolVersion;
+		uri             = copy.uri;
+		autority        = copy.autority;
+		scheme          = copy.scheme;
+		queryParameters = copy.queryParameters;
+    }
+    return *this;
+}
 const std::string  Request::getMethod( ) const
 {
     return ( method );
@@ -85,11 +105,11 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         {
             if (headers.find("transfer-encoding") != headers.end()
                 and headers["transfer-encoding"].compare("chunked"))//not implemented to check mn b3d
-               throw Request::NotImplemented("501", "/ErrorPages/400.html");
+               throw Request::NotImplemented("501", "501 Not Implemented");//to ckeck
             if (headers.find("transfer-encoding") == headers.end() 
                 and headers.find("content-length") == headers.end() 
                 and !method.compare("POST"))//bad req
-              throw Request::BadRequest("400", "/ErrorPages/400.html");
+              throw Request::BadRequest("400", "400 Bad Request");
             // if (headers.find("host") == headers.end())//to check mn b3ed
             matchingLocation();
             fillErrorPages();
@@ -131,7 +151,7 @@ void   Request::parseUri()
     //check if the uri start with /
     decodeUri();
     if (uri.length() > 2048)//bad req
-        throw Request::BadRequest("400", "/ErrorPages/400.html");
+        throw Request::BadRequest("400", "400 Bad Request");
     // uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%");check if uri is valid
     schemeEnd = uri.find(":");
     if (schemeEnd != std::string::npos)
@@ -155,25 +175,27 @@ void    Request::parseRequestLine(std::string    &buff)
                                             "PUT", "CONNECT", "OPTIONS", "TRACE", "HEAD"};
     std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
   
+//   std::cout << "-----> here " << std::endl;
     found = buff.find("\r\n");
     if (found == std::string::npos)//bad req to check mn b3d
-        throw Request::BadRequest("400", "/ErrorPages/400.html");
+        throw Request::BadRequest("400", "400 Bad Request");
     reqLine = buff.substr(0 ,found);
     if (found != (reqLine.length()) or 
         std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
-       throw Request::BadRequest("400", "/ErrorPages/400.html");
+       throw Request::BadRequest("400", "400 Bad Request");
     buff = buff.substr(found + 2);
     splitReqLine = StringOperations::split(reqLine, " ");
     if ( splitReqLine.size() != 3 
         or (std::find(methodes, methodes + 8, splitReqLine[0]) == (methodes +  8))
         or splitReqLine[2].compare("HTTP/1.1"))//Bad request can cz SGV !!!
-        throw Request::BadRequest("400", "/ErrorPages/400.html");
+        throw Request::BadRequest("400", "400 Bad Request");
     method = splitReqLine[0];
     if (std::find(methodesImp, methodesImp + 3, method) \
         == (methodes +  3))//Not implemented
-       throw Request::NotImplemented("501", "/ErrorPages/400.html");
+       throw Request::NotImplemented("501", "501 Not Implemented");
     uri = splitReqLine[1];
     protocolVersion = splitReqLine[2];
+    // std::cout << "====> the end of parse req line " << std::endl;
 }
 
 void    Request::parseHeader(std::string &buff)
@@ -183,10 +205,10 @@ void    Request::parseHeader(std::string &buff)
 
     found = buff.find("\r\n");
     if (found == std::string::npos)//bad req to check 
-        throw Request::BadRequest("400", "/ErrorPages/400.html");
+        throw Request::BadRequest("400", "400 Bad Request");
     header = buff.substr(0, found);
     if (found != header.length())//bad req
-        throw Request::BadRequest("400", "/ErrorPages/400.html");
+        throw Request::BadRequest("400", "400 Bad Request");
     buff = buff.substr(found + 2);
     if (!header.empty())//update
     { 

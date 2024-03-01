@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/26 18:34:26 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 12:21:59 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Request
     public:
         Request();
         ~Request();
+		const	Request&	operator=(const Request& copy);
         void   parseRequest(std::string &buff, Stage &stage);
 		
 		const	std::string getMethod( ) const;

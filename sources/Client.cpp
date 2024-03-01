@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 22:06:13 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 18:31:12 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,16 +20,45 @@ Client::~Client()
 {
 }
 
-const std::string&	Client::getRecievedReq() const
-{
-	return (recievedReq);
-}
+
+// const Client&	Client::operator=(const Client& other)
+// {
+// 	if (this != &other)
+// 	{
+// 		reqBuff = other.reqBuff;
+// 		stage	= other.stage;
+// 		res 	= other.res;
+// 		reqBuff = other.reqBuff;
+// 		sendBuff = other.sendBuff;
+// 	}
+// 	return *this;
+	
+// }
 
 const Stage&	Client::getStage( ) const
 {
 	return ( stage );
 }
 
+const std::string& Client::getReqBuff() const
+{
+	return reqBuff;
+}
+
+const std::string&	Client::getSendBuff() const
+{
+	return sendBuff;
+}
+
+void	Client::setReqBuff(const std::string& buff)
+{
+	reqBuff = buff;
+}
+
+void	Client::setSendBuff(const std::string& buff)
+{
+	sendBuff = buff;
+}
 
 void	Client::recieveRequest()
 {
@@ -48,7 +77,7 @@ void	Client::recieveRequest()
 		s = bReq.getPairCodePath().first;
 		res.setStatusCodeMsg(s);//mochkil hna !!!
 		res.setPath(bReq.getPairCodePath().second);
-		stage = RESHEADER;
+		stage = RESHEADER; 
 	}
 	catch(Request::NotImplemented& NotImplemented)
 	{
@@ -61,116 +90,39 @@ void	Client::recieveRequest()
 
 void	Client::sendResponse()
 {
-	std::string	s;
-	int			i;
-	
-	i = 0;
-	while (stage != RESEND)
+	try
 	{
-		try
+		stage = res.sendResponse(stage);
+		if (stage == RESBODY)
 		{
-			stage = res.sendResponse(stage);
-			if (stage == REQBODY)
-				break;
-			if (stage == RESBODY && i == 0)
+			if (!res.getHeaderRes().empty())
 			{
-				i = 1;
-				std::cout << res.getPath() << "\n";
-				std::cout << res.getHeaderRes() << "\n";
-				send(newSockFd, res.getHeaderRes().c_str(), 
-				strlen(res.getHeaderRes().c_str()), 0);
+				sendBuff = res.getHeaderRes();
+				res.setHeaderRes("");
+			}
+			else
+			{
+				sendBuff = res.getBodyRes();
 			}
 		}
-		catch (std::string path)
-		{
-			res.setPath(path);
-			// std::cout << res.getPath() << "\n";
-			stage = RESHEADER;
-		}
+		else
+			sendBuff.clear();
 	}
-	if (stage == RESEND && i == 1)
+	catch (std::string path)
 	{
-		i = 2;
-		s = res.getPath();
-		// std::cout << res.getBodyRes() << "\n";
-		send(newSockFd, res.getBodyRes().c_str(), 
-		Utils::stringToLong(res.getContentLength(s)), 0);
+		res.setPath(path);
+		stage = RESHEADER;
 	}
 }
 
 void	Client::serve()
 {
-	sockFd = socket(AF_INET, SOCK_STREAM, 0);
-	char	buffer[1000];
-	
-    if (sockFd < 0)
-        std::cout << "failed to create socket" << std::endl;
-    struct sockaddr_in	serverAdd, clientAddr;
-    socklen_t 			clientAddrLen;
-	
-    serverAdd.sin_family = AF_INET;
-    serverAdd.sin_addr.s_addr = INADDR_ANY;
-    serverAdd.sin_port = htons(PORT);
-    int opt = 1;
-    if (setsockopt(sockFd, SOL_SOCKET,
-                   SO_REUSEADDR | SO_REUSEPORT, &opt,
-                   sizeof(opt)) < 0)
-	{
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-	
-    if (bind(sockFd, (struct sockaddr*) &serverAdd, sizeof(serverAdd)) < 0)
-	{
-        perror("bind");
-	}	
-	listen(sockFd, 55);
-		
-		// perror("listen");
-	clientAddrLen =  sizeof(clientAddr);
-	newSockFd = accept(sockFd, (struct sockaddr*)&clientAddr, &clientAddrLen);
-	if (newSockFd < 0)
-		perror("accept");
-	int b;
-	int	fd;
-	int i = 0;
-	fd =  open("extraFiles/infile", O_RDWR | O_TRUNC);
-	while ( (b = read(newSockFd, buffer, 1000)))
-	{
-		i += b;
-		// std::cout << "------> b = " << b << " " << i << std::endl;
-		write(fd, buffer, b);
-		if (i == 693)
-			break;
-	}
-	// 19870998
-	// int b = read(newSockFd, buffer, 1000);
-
-	char    buff[BUF];
-	// int		fd;
-	int		byte;
-
-	// write(fd, buffer, b);
-	// close(fd);
-	fd =  open("extraFiles/infile", O_RDWR);
-
-	while ((byte = read(fd, buff, BUF)))
-	{
-		reqBuff += std::string(buff, byte);//t9der  dir mochkil !!!
+	if (stage < REQBODY)
 		recieveRequest();
-		if (stage != REQLINE && stage != REQHEADER)
-		{
-			if (!res.getBody().empty())
-				res.setBody(res.getBody() + reqBuff);
-			else
-			{
-				// std::cout << "hnnaaaaaaaaa\n";
-				res.setBody(reqBuff);
-			}
-			reqBuff.clear();
-			sendResponse();
-		}
-	}
-	close(newSockFd);
-	// close(sockFd);
+	if (!res.getBody().empty())
+		res.setBody(res.getBody() + reqBuff);
+	else
+		res.setBody(reqBuff);
+	reqBuff.clear();
+	sendResponse();
 } 

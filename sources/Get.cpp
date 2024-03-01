@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Get.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 22:14:21 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 18:43:48 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,12 +146,10 @@ std::string	Get::responsHeader()
 	s  = response.getRequest().getProtocolVersion()       + " "  +
 		response.getStatusCodeMsg()                       + CRLF +
 		"Content-Type: "   + response.getContentType(pt)  + CRLF + 
-		"Content-Length: " + response.getContentLength(pt)  + CRLF + 
-		"Accept-Ranges: bytes";
+		"Content-Length: " + response.getContentLength(pt);
 	if (isMoved)
 		s = s + CRLF + "Location: " + response.getPath();
 	s = s + CRLF + CRLF;
-	
 	return (s);
 }
 

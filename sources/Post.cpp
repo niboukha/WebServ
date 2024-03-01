@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 16:58:53 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 19:08:54 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ void	Post::nonChunkedTransfer(Stage &stage)
 
 	outfile << res.getBody();
 	uploadSize += res.getBody().size();
-	std::cout << uploadSize << " " << Utils::stringToLong(head["content-length"])<< "\n";
+	// std::cout << uploadSize << " " << Utils::stringToLong(head["content-length"])<< "\n";
 	if (uploadSize == Utils::stringToLong(head["content-length"]))
 	{
 		stage = RESHEADER;
@@ -117,8 +117,9 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 	std::string		lrn;
 	size_t			foundLen;
 	size_t			foundBuff;
-	long long		hexLen = 0;
+	long long		hexLen;
 
+	hexLen = 0;
 	if (!outfile.is_open())
 		outfile.open(res.getPath().c_str(), std::ios_base::app);
 	while (body.size())
@@ -248,7 +249,7 @@ std::string	Post::responsHeader(Stage &stage)
 std::string	Post::responsBody()
 {
 	std::ifstream	in(res.getPath().c_str(), std::ios_base::binary);
-	char			buff[20];
+	char			buff[1024];
 
 	in.seekg(saveOffset, std::ios::cur);
 	in.read(buff, sizeof(buff));
