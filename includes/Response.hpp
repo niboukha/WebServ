@@ -48,16 +48,14 @@ class Response
 
 		Response( Request &request );
 		~Response( );
-
-		const Response&	operator=(const Response& copy);
 		
-		Stage	sendResponse(Stage &stage);
+		Stage				sendResponse(Stage &stage);
 
-		void	setStatusCodeMsg(std::string& codeMsg);
-		void	setPath(std::string pt);
-		void	setBody(const std::string& bdy);
-		void	setUploadLength(long long  b);
-		void	setHeaderRes(const std::string& header);
+		void				setStatusCodeMsg(std::string& codeMsg);
+		void				setPath(std::string pt);
+		void				setBody(const std::string& bdy);
+		void				setUploadLength(long long  b);
+		void				setHeaderRes(const std::string& header);
 		
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
@@ -67,18 +65,18 @@ class Response
 		const std::string&	getBodyRes() const;
 		const long long  &	getUploadLength() const;
 
-		std::string		getContentType( std::string &path );
-		std::string		getContentLength( std::string &path );
+		std::string			getContentType( std::string &path );
+		std::string			getContentLength( std::string &path );
 
-		void			mapOfTypes( );
-		void			UpdateStatusCode(std::string &s);
-		void			isRealPath(std::string &path);
-		std::string		concatenateIndexDirectory( );
-		std::string		concatenatePath( std::string p );
-		std::string		pathErrorPage(std::string code);
-		std::string		getExtensionFile();
+		void				mapOfTypes( );
+		void				UpdateStatusCode(std::string &s);
+		void				isRealPath(std::string &path);
+		std::string			concatenateIndexDirectory( );
+		std::string			concatenatePath( std::string p );
+		std::string			pathErrorPage(std::string code);
+		std::string			getExtensionFile();
 
-		void			throwNewPath(std::string msg, std::string code);
+		void				throwNewPath(std::string msg, std::string code);
 
 };
 

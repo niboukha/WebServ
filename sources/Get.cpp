@@ -12,15 +12,15 @@
 
 #include "../includes/Get.hpp"
 
-Get::~Get()
+Get::Get(Response &res)	:	response  (res),
+							sizeofRead(0),
+							saveOffset(0),
+							isMoved   (false)
+							
 {
 }
 
-Get::Get(Response &res)	:	response(res),
-							sizeofRead(0),
-							saveOffset(0),
-							isMoved(false)
-							
+Get::~Get()
 {
 }
 
@@ -50,6 +50,7 @@ std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 
 	loc = response.getRequest().getLocation();
 	s   = loc["root"].front() + "/" + pt;
+	file.close();
 	return (s);
 }
 
@@ -71,7 +72,7 @@ std::string	Get::readListOfCurDirectory()
 
 		while ((pDirent = readdir(pDir)))
 			vDir.push_back(pDirent->d_name);
-		
+
 		s = "200 OK";
 		response.setStatusCodeMsg(s);
 		stringOfDyrectories(vDir);
@@ -121,6 +122,7 @@ void	Get::statusOfFile()
 		response.setPath(s);
 	}
 	std::ifstream file(response.getPath().c_str());
+
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
@@ -128,7 +130,10 @@ void	Get::statusOfFile()
 		response.setPath(s);
 	}
 	else if (!Utils::isFile(response.getPath().c_str()))
+	{
+		file.close();
 		response.throwNewPath("404 not found", "404");
+	}
 	// check if location has a cgi
 
 	s = "200 ok";
@@ -145,7 +150,7 @@ std::string	Get::responsHeader()
 	pt = response.getPath();
 	s  = response.getRequest().getProtocolVersion()       + " "  +
 		response.getStatusCodeMsg()                       + CRLF +
-		"Content-Type: "   + response.getContentType(pt)  + CRLF + 
+		"Content-Type: "   + response.getContentType(pt)  + CRLF +
 		"Content-Length: " + response.getContentLength(pt);
 	if (isMoved)
 		s = s + CRLF + "Location: " + response.getPath();
@@ -158,7 +163,7 @@ std::string	Get::responsBody()
 	std::ifstream	in(response.getPath().c_str(), std::ios_base::binary);
 	char			buff[1024];
 
-	in.seekg(saveOffset, std::ios::cur);	
+	in.seekg(saveOffset, std::ios::cur);
 	in.read(buff, sizeof(buff));
 	sizeofRead  = in.gcount();
 	saveOffset += sizeofRead;

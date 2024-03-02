@@ -29,25 +29,6 @@ Response::~Response()
 	delete delt;
 }
 
-const Response& Response::operator=(const Response& copy)
-{
-	if (this != &copy)
-	{
-	
-		get 			 = copy.get;
-		post			 = copy.post;
-		delt			 = copy.delt;
-		statusCodeMsg	= copy.statusCodeMsg;
-		path 			= copy.path;
-		body			= copy.body;
-		uploadLength 	= copy.uploadLength;
-		headerRes 		= copy.headerRes;
-		bodyRes 		= copy.bodyRes;
-		mimeType		= copy.mimeType;
-	}
-	return *this;
-}
-
 void	Response::setStatusCodeMsg(std::string& codeMsg)
 {
 	statusCodeMsg = codeMsg;
@@ -60,7 +41,6 @@ void	Response::setPath(std::string pt)
 
 void	Response::setBody(const std::string& bdy)
 {
-	// std::cout << bdy.size() << "_" << body.size() << "\n";
 	body = bdy;
 }
 
@@ -117,10 +97,9 @@ void	Response::UpdateStatusCode(std::string &s)
 
 std::string	Response::getContentLength( std::string &path )
 {
-    std::stringstream	ss;
 	long int			length;
-	
-	std::ifstream file(path.c_str(), std::ios::binary);
+    std::stringstream	ss;
+	std::ifstream 		file(path.c_str(), std::ios::binary);
 
     file.seekg(0, std::ios::end);
     length = file.tellg();
@@ -133,8 +112,7 @@ std::string	Response::getContentLength( std::string &path )
 
 void	Response::mapOfTypes( )
 {
-	std::ifstream	file( PATH_MIME );
-
+	std::ifstream				file( PATH_MIME );
 	std::vector<std::string>	vec;
 	std::string					s;
 	std::string					value;
@@ -151,9 +129,10 @@ void	Response::mapOfTypes( )
 		for ( size_t  i = 0; i < vec.size(); i++ )
 			mimeType[vec[i]] = value;
 	}
+	file.close();
 }
 
-std::string	Response::getExtensionFile()
+std::string	Response::getExtensionFile( )
 {
 	std::map<std::string, std::string>				header;
 	std::map<std::string, std::string> ::iterator	it;
@@ -171,9 +150,9 @@ std::string	Response::getExtensionFile()
 
 std::string		Response::getContentType( std::string &path )
 {
-	size_t 		found;
 	std::string	s;
 	std::string	ret;
+	size_t 		found;
 
 	mapOfTypes();
 	found = path.find_last_of( "." );
@@ -222,6 +201,7 @@ void	Response::isRealPath(std::string &path)
 	{
 		res			= bufRec;
 		curr		= bufCur;
+
 		if (res.find(curr) == std::string::npos)
 		{
 			res = "403 forbidden";
@@ -285,7 +265,6 @@ Stage	Response::sendResponse(Stage &stage)
 	switch(i)
 	{
 		case 0:
-		// std::cout << " get ikhan -> " << req.getMethod() << "\n";
 			if (get == NULL) get = new Get( *this );
 			if (stage == REQBODY)
 				return (stage = RESHEADER);
@@ -304,8 +283,7 @@ Stage	Response::sendResponse(Stage &stage)
 
 		case 1:
 
-			if (delt == NULL)
-				delt = new Delete( *this );
+			if (delt == NULL) delt = new Delete( *this );
 			if (stage == REQBODY)
 				stage = RESHEADER;
 			if (stage == RESHEADER)
@@ -323,19 +301,14 @@ Stage	Response::sendResponse(Stage &stage)
 
 		case 2:
 
-			if (post == NULL)
-			{
-		    	post = new Post( *this );
-			}
+			if (post == NULL) post = new Post( *this );
 			if (stage == REQBODY)
 			{
 				post->requestedStatus(stage);
-				// std::cout << "stage in response : " << stage << "\n";
 				return (stage);
 			}
 			if (stage == RESHEADER)
 			{
-				// std::cout << "stage in head : " << stage << "\n";
 				headerRes = post->responsHeader(stage);
 				return ( stage = RESBODY );
 			}
@@ -348,6 +321,5 @@ Stage	Response::sendResponse(Stage &stage)
 		// default :
 			//will define the errors that not in methods
 	}
-	// std::cout << ">>>>>>>>>>>>>>>> req.getMethod() " << req.getMethod() << std::endl;
 	return ( RESBODY );
 }

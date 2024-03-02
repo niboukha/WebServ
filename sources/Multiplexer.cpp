@@ -112,6 +112,7 @@ void    Multiplexer::multiplexing()
 
     while (1)
     {
+        signal(SIGPIPE, SIG_IGN);
         tmpReadFds = readFds;
         tmpWriteFds = writeFds;
         readyFds = select(maxFds + 1, &tmpReadFds, &tmpWriteFds, NULL, NULL);
@@ -125,6 +126,7 @@ void    Multiplexer::multiplexing()
                     newClient =  acceptNewConnection(fd);
                     if (newClient > maxFds and newClient <= 1024)
                         maxFds = newClient;
+                    // std::cout << maxFds << " " << newClient << "\n";
                     FD_SET(newClient, &readFds);
                     FD_SET(newClient, &writeFds);
                     clients.push_back(std::make_pair(newClient, Client(configFile)));
@@ -133,33 +135,55 @@ void    Multiplexer::multiplexing()
                 }
                 else
                 {
-                    
                     findClient(fd, it);
-                    if (FD_ISSET(fd, &readFds) and it != clients.end() and it->second.getStage() < RESHEADER)
+                    if (FD_ISSET(fd, &tmpReadFds) and it != clients.end() and it->second.getStage() < RESHEADER)
                     {
                         b = read(fd, buff, 1024);
+                        if (b <= 0)
+                        {
+                            perror("holla : ");
+                            exit(1);
+                        }
                         if (b > 0)
                         {
                             it->second.setReqBuff(it->second.getReqBuff() + std::string(buff, b)) ;
                             it->second.serve();
                         }
-                        
                     }
-                    if (FD_ISSET(fd, &writeFds) and  it != clients.end() and it->second.getStage() >= RESHEADER)
+                    if (FD_ISSET(fd, &tmpWriteFds) and  it != clients.end() and it->second.getStage() >= RESHEADER)
                     {
                         it->second.serve();
-                        s = send(fd, it->second.getSendBuff().c_str(), it->second.getSendBuff().size(), 0);
+                        if ( it->second.getSendBuff().size() > 0 and it->second.getStage() < RESEND)
+                        {
+                            // std::cout << "before send : " << std::endl;
+
+                            // std::cout << "-----+--> size() " << it->second.getSendBuff().size() << " " << fd << std::endl;
+                            s = send(fd, it->second.getSendBuff().c_str(), it->second.getSendBuff().size(), 0);
+                            // std::cout << s << "\n";
+                            if (s == -1)
+                            {
+                                // std::cout << "it failed \n";
+                                FD_CLR(fd, &readFds);
+                                FD_CLR(fd, &writeFds);
+                                it = clients.erase(it);
+                                close(fd);
+                                // perror(NULL);
+                                continue;
+                            }
+                            it->second.setSendBuff("");
+                            // std::cout << "after send " << s << std::endl;
+                        }
                         if (it->second.getStage() == RESEND)
                         {
+                            // std::cout << "--------> here --------> " << std::endl; 
                             FD_CLR(fd, &readFds);
                             FD_CLR(fd, &writeFds);
-                            clients.erase(it);
+                            it = clients.erase(it);
                             close(fd);
                         }
                     }
                 }
-            }
-            
+            }   
         }
     }
 }

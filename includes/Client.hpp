@@ -31,33 +31,24 @@ class	Client
 		std::string	reqBuff;
 		std::string	sendBuff;
 		
-		void	recieveRequest();
-		void	sendResponse();
+		void		recieveRequest();
+		void		sendResponse();
 
 	public:
 
 		Client(ConfigFile &config);
-		// Client(const Client&  copy) : req(copy.req) , res(copy.req)
-		// {
-		// 	*this = copy;
-		// }
-		// Client() : req(){};
 		Client(const Client&copy);
+	
 		~Client();
 
-
 		void	serve();
-		
+	
 		const Stage&		getStage() const;
-
-		// const	Client& operator=(const Client& other);
-		
-
 		const std::string&	getReqBuff() const;
 		const std::string&	getSendBuff() const;
 
-		void	setReqBuff(const std::string& buff);
-		void	setSendBuff(const std::string& buff);
+		void				setReqBuff(const std::string& buff);
+		void				setSendBuff(const std::string& buff);
 
 
 };

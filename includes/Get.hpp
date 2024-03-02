@@ -43,15 +43,15 @@ class	Get
 		Get(Response &res);
 		~Get();
 
-		void		statusOfFile();
-		std::string	responsHeader();
-		std::string	responsBody();
+		void					statusOfFile();
+		std::string				responsHeader();
+		std::string				responsBody();
 
-		std::string	directoryInRequest(std::string &file);
-		std::string	readListOfCurDirectory();
-		std::string	stringOfDyrectories(std::vector<std::string> &vdir);
-		
 		const std::streampos&	getSizeofRead() const;
+		
+		std::string				directoryInRequest(std::string &file);
+		std::string				readListOfCurDirectory();
+		std::string				stringOfDyrectories(std::vector<std::string> &vdir);		
 };
 
 #endif

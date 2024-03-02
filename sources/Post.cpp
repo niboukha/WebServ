@@ -91,7 +91,8 @@ void	Post::nonChunkedTransfer(Stage &stage)
 
 	head = res.getRequest().getHeaders(); 
 
-	if (maxBodySize() < Utils::stringToLong(head["content-length"]))
+	// std::cout <<maxBodySize() << " " <<  Utils::stringToLong(head["content-length"]) << "\n";
+	if (maxBodySize() < Utils::stringToLong(head["content-length"]))//overflow of content = 0
 	{
 		stage = RESHEADER;
 		res.throwNewPath("413 Request Entity Too Large", "413");
@@ -127,8 +128,8 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 		foundLen = body.find("\r\n");
 		if (foundLen != std::string::npos)
 		{
-			std::string(body, body.size());
-			lrn = body.substr(0, foundLen);
+			// std::string(body, body.size());
+			lrn = std::string(body, 0, foundLen);
 		}
 		else
 			break;
@@ -136,7 +137,7 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 		hexLen = Utils::getLength(lrn);
 		if (hexLen == 0)
 		{
-			outfile << body.substr(0, body.size() - 5);
+			outfile << std::string(body, 0, body.size() - 5);
 			stage = RESHEADER;
 			outfile.close();
 			res.throwNewPath("201 Created", "201");
@@ -147,9 +148,9 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 			size += hexLen;
 			if (maxBodySize() < size)
 				res.throwNewPath("413 Request Entity Too Large", "413");
-			std::string(body, hexLen);
-			outfile << body.substr(foundLen + 2, hexLen);
-			body = body.substr(foundBuff + 2);
+			// std::string(body, hexLen);
+			outfile << std::string(body, foundLen + 2, hexLen);
+			body = std::string(body, foundBuff + 2);
 			res.setBody(body);
 		}
 		else
@@ -192,7 +193,7 @@ void	Post::unsupportedUpload( )
 {
 	std::ifstream	file(res.getPath().c_str());
 	std::string		s;
-	mapStrVect	loc;
+	mapStrVect		loc;
 
 	loc = res.getRequest().getLocation();
 	s   = res.getPath();

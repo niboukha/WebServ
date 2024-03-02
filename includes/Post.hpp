@@ -36,27 +36,25 @@ class	Post
 		Post( Response &response );
 		~Post( );
 
+		std::string				responsHeader(Stage &stage);
+		std::string				responsBody();
+
+		void					requestedStatus(Stage &stage);
+
+
+
+		void					chunkedTransfer(std::string body, Stage &stage);
+		void					nonChunkedTransfer(Stage &stage);
+		void					unsupportedUpload( );
+
+		void					cgiPassCheck();
+		void					directoryInRequest(std::string &path, std::ifstream	&file);
+		std::string				conctRootUpload( std::string s );
+		std::string				getExtensionFile();
+		long long				maxBodySize();
+		bool					isUploadPass( Stage &stage );
+
 		const std::streampos	getSizeofRead() const;
-
-		std::string	responsHeader(Stage &stage);
-		std::string	responsBody();
-
-		void	requestedStatus(Stage &stage);
-
-		void	chunkedTransfer(std::string body, Stage &stage);
-		void	nonChunkedTransfer(Stage &stage);
-		void	unsupportedUpload( );
-
-		bool	isUploadPass( Stage &stage );
-	
-		long long	maxBodySize();
-		void		directoryInRequest(std::string &path, std::ifstream	&file);
-
-		void		cgiPassCheck();
-		std::string	conctRootUpload( std::string s );
-
-		std::string	getExtensionFile();
-
 };
 
 

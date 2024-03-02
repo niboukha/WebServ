@@ -41,10 +41,12 @@ int main(int ac, char **av, char** env)
     }
     catch(const std::exception& e)
     {
+        std::cout << "iiii-> iii\n";
         std::cerr << e.what() << '\n';
     }
     catch(const char *msg)
     {
         std::cerr << msg << '\n';
     }
+    return (0);
 }
