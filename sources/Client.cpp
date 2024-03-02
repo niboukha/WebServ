@@ -6,13 +6,13 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 18:31:12 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/02 09:04:06 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
-Client::Client( Request& request ) : req(request), res(req), stage(REQLINE)
+Client::Client(ConfigFile& config ) : req(config), res(req), stage(REQLINE)
 {
 }
 
@@ -20,20 +20,9 @@ Client::~Client()
 {
 }
 
-
-// const Client&	Client::operator=(const Client& other)
-// {
-// 	if (this != &other)
-// 	{
-// 		reqBuff = other.reqBuff;
-// 		stage	= other.stage;
-// 		res 	= other.res;
-// 		reqBuff = other.reqBuff;
-// 		sendBuff = other.sendBuff;
-// 	}
-// 	return *this;
-	
-// }
+Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage)
+{
+}
 
 const Stage&	Client::getStage( ) const
 {

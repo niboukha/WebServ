@@ -6,19 +6,22 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/01 21:53:49 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/02 09:04:25 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Request.hpp"
 
+Request::Request(ConfigFile& config): configFileData(config)
+{
+    
+}
 Request::Request()
 {   
 }
 
 Request::~Request()
 {
-    std::cout << "REQ DEST " << std::endl;
 }
 
 const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!

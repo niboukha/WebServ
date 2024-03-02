@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 13:59:04 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/02 08:45:12 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,24 +24,25 @@ class	Client
 {
 	private:
 
-		Request		&req;
+		Request		req;
 		Response	res;
 
 		Stage		stage;
 		std::string	reqBuff;
 		std::string	sendBuff;
+		
 		void	recieveRequest();
 		void	sendResponse();
 
 	public:
 
-		Client(Request& request);
+		Client(ConfigFile &config);
 		// Client(const Client&  copy) : req(copy.req) , res(copy.req)
 		// {
 		// 	*this = copy;
 		// }
 		// Client() : req(){};
-
+		Client(const Client&copy);
 		~Client();
 
 

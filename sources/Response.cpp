@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 20:27:11 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/02 09:04:36 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ Response::Response( Request &request ) :	req( request ),
 
 Response::~Response()
 {
-	std::cout << "-------------------->in destructor\n";
 	delete get;
 	delete post;
 	delete delt;
@@ -286,6 +285,7 @@ Stage	Response::sendResponse(Stage &stage)
 	switch(i)
 	{
 		case 0:
+		// std::cout << " get ikhan -> " << req.getMethod() << "\n";
 			if (get == NULL) get = new Get( *this );
 			if (stage == REQBODY)
 				return (stage = RESHEADER);
@@ -348,5 +348,6 @@ Stage	Response::sendResponse(Stage &stage)
 		// default :
 			//will define the errors that not in methods
 	}
+	// std::cout << ">>>>>>>>>>>>>>>> req.getMethod() " << req.getMethod() << std::endl;
 	return ( RESBODY );
 }

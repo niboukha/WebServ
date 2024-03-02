@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/01 21:59:58 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/02 09:04:20 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,16 +80,16 @@ int   Multiplexer::acceptNewConnection(int masterSocket)
 
 void Multiplexer::findClient(int fd, std::list<std::pair<int, Client> >::iterator& it)
 {
-    std::list<std::pair<int, Client> >::iterator i = clients.begin();
-    for (; i != clients.end(); i++)
-    { 
-        if (i->first == fd)
-        {
-             it = i;
-            break;
+    if (clients.size())
+    {
+        it = clients.begin();
+        for (; it != clients.end(); it++)
+        { 
+            if (it->first == fd)
+                return ;
         }
+        it =  clients.end();
     }
-    it =  clients.end();
 }
 void    Multiplexer::multiplexing()
 {
@@ -97,6 +97,7 @@ void    Multiplexer::multiplexing()
     int     maxFds, readyFds, newClient, b , s;
     char    buff[1024];
     int     i = 0;
+    std::list<std::pair<int, Client> >::iterator  it;
     // std::string buffSend;
     // (void)b;
     
@@ -105,7 +106,6 @@ void    Multiplexer::multiplexing()
     FD_ZERO(&writeFds);
     for (size_t i = 0; i < masterSockets.size(); i++)
     {
-        // std::cout << acceptNewConnection(masterSockets[i]) << std::endl;
         FD_SET(masterSockets[i], &readFds);
         maxFds = masterSockets[i];
     }
@@ -119,7 +119,6 @@ void    Multiplexer::multiplexing()
         {
             for (int fd = 0; fd < maxFds + 1; fd++)
             {
-                // std::cout << "-------> start | " << fd << std::endl;
                if (std::find(masterSockets.begin(), masterSockets.end(), fd) != masterSockets.end()
                     and FD_ISSET(fd, &tmpReadFds))
                 {
@@ -128,20 +127,13 @@ void    Multiplexer::multiplexing()
                         maxFds = newClient;
                     FD_SET(newClient, &readFds);
                     FD_SET(newClient, &writeFds);
-                    // Request        req;//to ckeck mn b3ed !!!
-                    // Client          client(req);
-                    std::cout << "----> here " << std::endl;
-                    req.push_back(Request());
-                    req[i].SetConfigFile(configFile);
-                    // clients[newClient] = Client(req);
-                    std::cout << "=======> keleb" << std::endl;
-                    // clients.insert(std::make_pair(newClient, Client(req[i])));
-                    clients.push_back(std::make_pair(newClient, Client(req[i])));
+                    clients.push_back(std::make_pair(newClient, Client(configFile)));
+                    it = clients.begin();
                     i++;
                 }
                 else
                 {
-                    std::list<std::pair<int, Client> >::iterator  it;
+                    
                     findClient(fd, it);
                     if (FD_ISSET(fd, &readFds) and it != clients.end() and it->second.getStage() < RESHEADER)
                     {
@@ -156,16 +148,14 @@ void    Multiplexer::multiplexing()
                     if (FD_ISSET(fd, &writeFds) and  it != clients.end() and it->second.getStage() >= RESHEADER)
                     {
                         it->second.serve();
-                        // std::cout << " ===> send bufff : " <<  it->second.getSendBuff().size()<< std::endl;
                         s = send(fd, it->second.getSendBuff().c_str(), it->second.getSendBuff().size(), 0);
-                        
                         if (it->second.getStage() == RESEND)
                         {
                             FD_CLR(fd, &readFds);
                             FD_CLR(fd, &writeFds);
+                            clients.erase(it);
                             close(fd);
                         }
-                            std::cout << "in RESENDDDDDDDD\n";
                     }
                 }
             }

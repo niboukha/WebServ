@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/01 12:21:59 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/02 06:32:32 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class Request
 		
     public:
         Request();
+		Request(ConfigFile& config);
         ~Request();
 		const	Request&	operator=(const Request& copy);
         void   parseRequest(std::string &buff, Stage &stage);
