@@ -49,7 +49,7 @@ class Response
 		Response( Request &request );
 		~Response( );
 		
-		Stage				sendResponse(Stage &stage);
+		Stage				sendResponse(Stage &stage, std::string &reqBuff);
 
 		void				setStatusCodeMsg(std::string& codeMsg);
 		void				setPath(std::string pt);

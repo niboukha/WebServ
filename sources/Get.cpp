@@ -58,15 +58,11 @@ std::string	Get::readListOfCurDirectory()
 {
 	struct dirent	*pDirent;
 	DIR				*pDir;
-	char			cwd[PATH_MAX];
 	std::string		s;
 
 	try
 	{
-		if (!getcwd(cwd, sizeof(cwd)))
-			throw DirectoryFailed();
-
-		pDir = opendir(cwd);
+		pDir = opendir(response.getPath().c_str());
 		if (!pDir)
 			throw DirectoryFailed();
 
@@ -96,10 +92,11 @@ std::string	Get::directoryInRequest(std::string &file)
 
 	loc = response.getRequest().getLocation();
 
+		std::cout << "URL -> " << response.getRequest().getRequestedPath() << "\n";
 	if (file[file.length() - 1] != '/')
 	{
 		isMoved     = true;
-		locationRes = response.getPath() + "/";
+		locationRes = "/" + response.getRequest().getRequestedPath() + "/";
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
 	if (loc["index"].empty())
@@ -122,7 +119,6 @@ void	Get::statusOfFile()
 		response.setPath(s);
 	}
 	std::ifstream file(response.getPath().c_str());
-
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pt = response.getPath();
@@ -153,7 +149,7 @@ std::string	Get::responsHeader()
 		"Content-Type: "   + response.getContentType(pt)  + CRLF +
 		"Content-Length: " + response.getContentLength(pt);
 	if (isMoved)
-		s = s + CRLF + "Location: " + response.getPath();
+		s = s + CRLF + "Location: " + locationRes;
 	s = s + CRLF + CRLF;
 	return (s);
 }

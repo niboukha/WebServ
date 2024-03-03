@@ -22,29 +22,28 @@ class	Post
 {
 	private :
 
-		Response	&res;
+		Response		&res;
 
-		long long	size;
-		bool		isMoved;
-		int			sizeofRead;
-		bool		enter;
-		long long	uploadSize;
-		long long	saveOffset;
+		long long		size;
+		bool			isMoved;
+		int				sizeofRead;
+		bool			enter;
+		long long		uploadSize;
+		long long		saveOffset;
+		std::ofstream	UploadFile;
 
 	public :
 
 		Post( Response &response );
 		~Post( );
 
-		std::string				responsHeader(Stage &stage);
+		std::string				responsHeader(Stage &stage, std::string &reqBuff);
 		std::string				responsBody();
 
-		void					requestedStatus(Stage &stage);
-
-
+		void					requestedStatus(Stage &stage, std::string &reqBuff);
 
 		void					chunkedTransfer(std::string body, Stage &stage);
-		void					nonChunkedTransfer(Stage &stage);
+		void					nonChunkedTransfer(Stage &stage, std::string &reqBuff);
 		void					unsupportedUpload( );
 
 		void					cgiPassCheck();

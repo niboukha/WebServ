@@ -24,25 +24,25 @@ Request::~Request()
 {
 }
 
-const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!
-{
-    if (this != &copy)
-    {
-    	configFileData  = copy.configFileData;
-	    location        = copy.location;
-		server          = copy.server;
-		headers         = copy.headers;
-		errorPages      = copy.errorPages;
-		method          = copy.method;
-		requestedPath   = copy.requestedPath;
-		protocolVersion = copy.protocolVersion;
-		uri             = copy.uri;
-		autority        = copy.autority;
-		scheme          = copy.scheme;
-		queryParameters = copy.queryParameters;
-    }
-    return *this;
-}
+// const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!
+// {
+//     if (this != &copy)
+//     {
+//     	configFileData  = copy.configFileData;
+// 	    location        = copy.location;
+// 		server          = copy.server;
+// 		headers         = copy.headers;
+// 		errorPages      = copy.errorPages;
+// 		method          = copy.method;
+// 		requestedPath   = copy.requestedPath;
+// 		protocolVersion = copy.protocolVersion;
+// 		uri             = copy.uri;
+// 		autority        = copy.autority;
+// 		scheme          = copy.scheme;
+// 		queryParameters = copy.queryParameters;
+//     }
+//     return *this;
+// }
 const std::string  Request::getMethod( ) const
 {
     return ( method );
@@ -150,7 +150,7 @@ void    Request::decodeUri()
 void   Request::parseUri()
 {
     size_t      autorityEnd, schemeEnd;
-    
+
     //check if the uri start with /
     decodeUri();
     if (uri.length() > 2048)//bad req

@@ -95,7 +95,7 @@ void    Multiplexer::multiplexing()
 {
     fd_set  readFds, writeFds, tmpReadFds, tmpWriteFds;
     int     maxFds, readyFds, newClient, b , s;
-    char    buff[1024];
+    char    buff[2048];
     int     i = 0;
     std::list<std::pair<int, Client> >::iterator  it;
     // std::string buffSend;
@@ -112,7 +112,6 @@ void    Multiplexer::multiplexing()
 
     while (1)
     {
-        signal(SIGPIPE, SIG_IGN);
         tmpReadFds = readFds;
         tmpWriteFds = writeFds;
         readyFds = select(maxFds + 1, &tmpReadFds, &tmpWriteFds, NULL, NULL);
@@ -138,12 +137,13 @@ void    Multiplexer::multiplexing()
                     findClient(fd, it);
                     if (FD_ISSET(fd, &tmpReadFds) and it != clients.end() and it->second.getStage() < RESHEADER)
                     {
-                        b = read(fd, buff, 1024);
-                        if (b <= 0)
-                        {
-                            perror("holla : ");
-                            exit(1);
-                        }
+                        b = read(fd, buff, 2048);
+                        signal(SIGPIPE, SIG_IGN);
+                        // if (b <= 0)
+                        // {
+                        //     perror("holla : ");
+                        //     exit(1);
+                        // }
                         if (b > 0)
                         {
                             it->second.setReqBuff(it->second.getReqBuff() + std::string(buff, b)) ;
@@ -162,12 +162,10 @@ void    Multiplexer::multiplexing()
                             // std::cout << s << "\n";
                             if (s == -1)
                             {
-                                // std::cout << "it failed \n";
                                 FD_CLR(fd, &readFds);
                                 FD_CLR(fd, &writeFds);
                                 it = clients.erase(it);
                                 close(fd);
-                                // perror(NULL);
                                 continue;
                             }
                             it->second.setSendBuff("");

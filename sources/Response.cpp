@@ -251,7 +251,7 @@ void	Response::throwNewPath(std::string msg, std::string code)
 	throw pathErrorPage(code);
 }
 
-Stage	Response::sendResponse(Stage &stage)
+Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 {
 	std::vector<std::string>	vect;
 
@@ -304,12 +304,12 @@ Stage	Response::sendResponse(Stage &stage)
 			if (post == NULL) post = new Post( *this );
 			if (stage == REQBODY)
 			{
-				post->requestedStatus(stage);
+				post->requestedStatus(stage, reqBuff);
 				return (stage);
 			}
 			if (stage == RESHEADER)
 			{
-				headerRes = post->responsHeader(stage);
+				headerRes = post->responsHeader(stage, reqBuff);
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)

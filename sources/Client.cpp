@@ -81,7 +81,7 @@ void	Client::sendResponse()
 {
 	try
 	{
-		stage = res.sendResponse(stage);
+		stage = res.sendResponse(stage, reqBuff);
 		if (stage == RESBODY)
 		{
 			if (!res.getHeaderRes().empty())
@@ -108,10 +108,10 @@ void	Client::serve()
 {
 	if (stage < REQBODY)
 		recieveRequest();
-	if (!res.getBody().empty())
-		res.setBody(res.getBody() + reqBuff);
-	else
-		res.setBody(reqBuff);
-	reqBuff.clear();
+	// if (!res.getBody().empty())
+	// 	res.setBody(res.getBody() + reqBuff);
+	// else
+	// 	res.setBody(reqBuff);
+	// reqBuff.clear();
 	sendResponse();
 } 
