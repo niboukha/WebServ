@@ -33,8 +33,8 @@ class	Delete
 		Delete(Response &response);
 		~Delete();
 
-		std::string	responsHeader();
-		std::string	responsBody();
+		void	responsHeader(std::string &headerRes);
+		void	responsBody(std::string &bodyRes);
 
 		const std::streampos&	getSizeofRead() const;
 

@@ -31,6 +31,7 @@ class	Get
 		std::streampos				sizeofRead;
 		long long					saveOffset;
 		bool						isMoved;
+		// std::ifstream				in;
 		
 		class	DirectoryFailed : public std::exception
 		{
@@ -44,12 +45,12 @@ class	Get
 		~Get();
 
 		void					statusOfFile();
-		std::string				responsHeader();
-		std::string				responsBody();
+		void					responsHeader(std::string	&headerRes);
+		void					responsBody(std::string &bodyRes);
 
 		const std::streampos&	getSizeofRead() const;
 		
-		std::string				directoryInRequest(std::string &file);
+		std::string				directoryInRequest(std::string &path, std::ifstream &file);
 		std::string				readListOfCurDirectory();
 		std::string				stringOfDyrectories(std::vector<std::string> &vdir);		
 };

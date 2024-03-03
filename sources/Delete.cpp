@@ -173,23 +173,21 @@ void	Delete::statusOfRequested( )
 	}
 }
 
-std::string	Delete::responsHeader()
+void	Delete::responsHeader(std::string &headerRes)
 {
-	std::string	s;
 	std::string	pt;
 	
 	statusOfRequested();
 
 	pt = res.getPath();
-	s  = res.getRequest().getProtocolVersion()         + " "  +
-		 res.getStatusCodeMsg()                        + CRLF +
-		 "Content-Type: "   + res.getContentType(pt)   + CRLF +
-		 "Content-Length: " + res.getContentLength(pt) + CRLF +
-		 CRLF;
-	return (s);
+	headerRes  = res.getRequest().getProtocolVersion()         + " "  +
+				 res.getStatusCodeMsg()                        + CRLF +
+		 		 "Content-Type: "   + res.getContentType(pt)   + CRLF +
+				 "Content-Length: " + res.getContentLength(pt) + CRLF +
+				 CRLF;
 }
 
-std::string	Delete::responsBody()
+void	Delete::responsBody(std::string &bodyRes)
 {
 	std::ifstream	in(res.getPath().c_str(), std::ios_base::binary);
 	char			buff[1024];
@@ -201,5 +199,5 @@ std::string	Delete::responsBody()
 
 	if (sizeofRead == 0)
 		in.close();
-	return (std::string(buff, sizeofRead));
+	bodyRes = std::string(buff, sizeofRead);
 }

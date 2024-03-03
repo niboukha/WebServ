@@ -20,6 +20,7 @@ Response::Response( Request &request ) :	req( request ),
 											path( "-1" ),
 											uploadLength(0 )
 {
+	mapOfTypes();
 }
 
 Response::~Response()
@@ -124,27 +125,36 @@ void	Response::mapOfTypes( )
 		Utils::trimString( s );
 		found = s.find_first_of( " \t" );
 		value = s.substr( 0, found + 1 );
-		vec   = Utils::moreThanKey( s.substr(found + 1) );
+		vec   = Utils::moreThanKey( s.substr(found + 1));
 
 		for ( size_t  i = 0; i < vec.size(); i++ )
+		{
+			Utils::trimString(value);
+			Utils::trimString(vec[i]);
 			mimeType[vec[i]] = value;
+		}
 	}
 	file.close();
 }
 
 std::string	Response::getExtensionFile( )
 {
-	std::map<std::string, std::string>				header;
+	const std::map<std::string, std::string>		&header = getRequest().getHeaders();;
 	std::map<std::string, std::string> ::iterator	it;
 
-	Response::mapOfTypes( );
-	header = getRequest().getHeaders();
 	for(it = mimeType.begin(); it != mimeType.end(); it++)
 	{
-		Utils::trimString( it->second );
-		if (header["content-type"] == it->second )
-			return (it->first);
+		if ( header.find( "content-type" )->second == it->second )
+			return ( it->first );
 	}
+
+	// const std::map<std::string, std::string>	&header = getRequest().getHeaders();;
+	// std::string									ext;
+	
+	// ext = header.find("content-type")->second;
+	// std::cout << ext << "\n"
+	// if (mimeType.find(ext) != mimeType.end())
+	// 	return (mimeType.find(ext)->first);
 	return ("txt");
 }
 
@@ -154,7 +164,6 @@ std::string		Response::getContentType( std::string &path )
 	std::string	ret;
 	size_t 		found;
 
-	mapOfTypes();
 	found = path.find_last_of( "." );
 	if (found != std::string::npos)
 	{
@@ -213,41 +222,35 @@ void	Response::isRealPath(std::string &path)
 	}
 }
 
-std::string	Response::concatenatePath( std::string p ) //real path 
+std::string	Response::concatenatePath( std::string p )
 {
-	mapStrVect	loc;
-	std::string	s;
+	const mapStrVect	&loc = getRequest().getLocation();
+	std::string	path;
 
-	loc = getRequest().getLocation();
-	s   = loc["root"].front() + p;
-	isRealPath(s);
-	return (s);
+	path   = loc.find("root")->second.front() + p;
+	isRealPath(path);
+	return (path);
 }
 
 std::string	Response::pathErrorPage(std::string code)
 {
-	std::map<std::string, std::string>	confgError;
-	std::map<std::string, std::string>	serError;
-	std::string							sE;
-	struct stat 						statPath;
-	
-	confgError = req.getServer();
-	serError   = req.getErrorPages();
-	sE         = confgError[code];
-	
-	if (!Utils::isFile(sE.c_str())
-		or (!stat(sE.c_str(), &statPath)
+	const std::map<std::string, std::string>	&confgError = req.getServer();
+	const std::map<std::string, std::string>	&serError 	= req.getErrorPages();
+	struct stat 								statPath;
+
+	if (!Utils::isFile(confgError.find(code)->second.c_str())
+		or   (!stat(confgError.find(code)->second.c_str(), &statPath)
 		and !(statPath.st_mode & S_IWUSR)) )
-			return (serError[code]);
-	return (confgError[code]);
+			return (serError.find(code)->second);
+	return (confgError.find(code)->second);
 }
 
 void	Response::throwNewPath(std::string msg, std::string code)
 {
-	std::string	s;
+	std::string	path;
 	
-	s = msg;
-	setStatusCodeMsg(s);
+	path = msg;
+	setStatusCodeMsg(path);
 	throw pathErrorPage(code);
 }
 
@@ -270,12 +273,12 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 				return (stage = RESHEADER);
 			if (stage == RESHEADER)
 			{
-				headerRes = get->responsHeader();
+				get->responsHeader(headerRes);
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)
 			{
-				bodyRes = get->responsBody();
+				get->responsBody(bodyRes);
 				if (get->getSizeofRead() == 0)
 					return ( stage = RESEND );
 			}
@@ -288,12 +291,12 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 				stage = RESHEADER;
 			if (stage == RESHEADER)
 			{
-				headerRes = delt->responsHeader();
+				delt->responsHeader(headerRes);
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)
 			{
-				bodyRes = delt->responsBody();
+				delt->responsBody(bodyRes);
 				if (delt->getSizeofRead() == 0)
 					return ( stage = RESEND );
 			}

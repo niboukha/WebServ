@@ -90,9 +90,7 @@ void	Client::sendResponse()
 				res.setHeaderRes("");
 			}
 			else
-			{
 				sendBuff = res.getBodyRes();
-			}
 		}
 		else
 			sendBuff.clear();

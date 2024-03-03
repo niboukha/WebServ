@@ -12,16 +12,14 @@
 
 #include "../includes/Post.hpp"
 
-// long long	Post::uploadSize = 0;
-
 Post::Post( Response &response ) :	res( response ),
 									size( 0 ),
 									isMoved( false ),
 									sizeofRead( 0 ),
 									enter( false ),
 									uploadSize( 0 ),
-									saveOffset( 0 )
-									// UploadFile()
+									saveOffset( 0 ),
+									contentLengthLong ( 0 )
 {
 }
 
@@ -37,22 +35,21 @@ const std::streampos	Post::getSizeofRead() const
 
 std::string	Post::conctRootUpload(std::string s)
 {
-	mapStrVect	loc;
-	std::string	pt;
+	const mapStrVect	&loc = res.getRequest().getLocation();
+	std::string			pt;
 
-	loc = res.getRequest().getLocation();
-	pt  = loc["root"].front() + s + "/";
+	if (loc.find("root") != loc.end())
+		pt  = loc.find("root")->second.front() + s + "/";
 	return (pt);
 }
 
 long long	Post::maxBodySize( )
 {
-	std::map<std::string, std::string>	ser;
-	std::stringstream					s;
-	long long							n;
+	const std::map<std::string, std::string>	&ser = res.getRequest().getServer();
+	std::stringstream							s;
+	long long									n;
 
-	ser  = res.getRequest().getServer();
-	s << ser["client_max_body_size"];
+	s << ser.find("client_max_body_size")->second;
 	s >> n;
 	return ( n );
 }
@@ -60,27 +57,20 @@ long long	Post::maxBodySize( )
 void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 {
 	const std::map<std::string, std::string>	&head = res.getRequest().getHeaders();
-	struct stat statPath;
 
-	if (stat(res.getPath().c_str(), &statPath) == -1)
+	if (!UploadFile.is_open())
 	{
-		std::cout << "mraa\n";
-		UploadFile.open(res.getPath().c_str(), std::ofstream::out | std::ios_base::app);
+		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
+		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
+		if (maxBodySize() < contentLengthLong)
+		{
+			stage = RESHEADER;
+			res.throwNewPath("413 Request Entity Too Large", "413");
+		}
 	}
-		exit(1);
-	// if (!UploadFile.is_open())
-	// {
-	// 	UploadFile.open(res.getPath().c_str(), std::ios_base::app);
-	// }
-	if (maxBodySize() < Utils::stringToLong(head.find("content-length")->second))
-	{
-		stage = RESHEADER;
-		res.throwNewPath("413 Request Entity Too Large", "413");
-	}
-
 	UploadFile << reqBuff;
 	uploadSize += reqBuff.size();
-	if (uploadSize == Utils::stringToLong(head.find("content-length")->second))
+	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;
 		UploadFile.close();
@@ -134,19 +124,17 @@ void	Post::chunkedTransfer(std::string body, Stage &stage)
 
 void	Post::cgiPassCheck()
 {
-	mapStrVect	loc;
+	const mapStrVect	&loc = res.getRequest().getLocation();
 
-	loc = res.getRequest().getLocation();
-	if (loc["cgi_pass"].front().empty())
+	if (loc.find("cgi_pass")->second.front().empty())
 		res.throwNewPath("403 forbidden", "403");
 	//else exist
 }
 
 void	Post::directoryInRequest(std::string &path, std::ifstream &file)
 {
-	mapStrVect	loc;
+	const mapStrVect	&loc = res.getRequest().getLocation();
 
-	loc = res.getRequest().getLocation();
 	if (path[path.length() - 1] != '/')
 	{
 		isMoved = true;
@@ -154,7 +142,7 @@ void	Post::directoryInRequest(std::string &path, std::ifstream &file)
 		file.close();
 		res.throwNewPath("301 Moved Permanently", "301");
 	}
-	if (loc["index"].empty())
+	if (loc.find("index")->second.empty())
 	{
 		file.close();
 		res.throwNewPath("403 forbidden", "403");
@@ -165,11 +153,10 @@ void	Post::directoryInRequest(std::string &path, std::ifstream &file)
 
 void	Post::unsupportedUpload( )
 {
-	std::ifstream	file(res.getPath().c_str());
-	std::string		s;
-	mapStrVect		loc;
+	const mapStrVect	&loc = res.getRequest().getLocation();
+	std::ifstream		file(res.getPath().c_str());
+	std::string			s;
 
-	loc = res.getRequest().getLocation();
 	s   = res.getPath();
 	if (Utils::isDir(s.c_str()))
 		directoryInRequest(s, file);
@@ -178,7 +165,7 @@ void	Post::unsupportedUpload( )
 		file.close();
 		res.throwNewPath("404 not found", "404");
 	}
-	if (loc["cgi_pass"].empty())
+	if (loc.find("cgi_pass")->second.empty())
 	{
 		file.close();
 		res.throwNewPath("403 forbidden", "403");
@@ -189,9 +176,9 @@ void	Post::unsupportedUpload( )
 
 bool	Post::isUploadPass( Stage &stage )
 {
-	std::string	s;
-	struct stat	statPath;
 	const mapStrVect	&loc = res.getRequest().getLocation();
+	struct stat			statPath;
+	std::string			s;
 
 	if (enter) return (enter);
 	enter = true;

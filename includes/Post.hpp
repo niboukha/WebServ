@@ -31,6 +31,7 @@ class	Post
 		long long		uploadSize;
 		long long		saveOffset;
 		std::ofstream	UploadFile;
+		long long		contentLengthLong;
 
 	public :
 

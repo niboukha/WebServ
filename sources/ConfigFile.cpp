@@ -27,20 +27,24 @@ const std::vector<Server>& ConfigFile::getServers() const
 
 void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
 {
+    std::vector<std::string>    vect;
+    
+    vect.push_back("");
     if (location.find("root") == location.end())//redo lbal !!!
-        location["root"].push_back("");
+        location["root"] = vect;
     if (location.find("index") == location.end())
-        location["index"].push_back("");
+        location["index"] = vect;
     if (location.find("autoindex") == location.end())
-        location["autoindex"].push_back("");
+        location["autoindex"] = vect;
     if (location.find("allow_methodes") == location.end())
-        location["allow_methodes"].push_back("");
+        location["allow_methodes"] = vect;
     if (location.find("upload_pass") == location.end())
-        location["upload_pass"].push_back("");
+        location["upload_pass"] = vect;
     if (location.find("cgi_pass") == location.end())
-        location["cgi_pass"].push_back("");
+        location["cgi_pass"] = vect;
     
 }
+
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
     mapStrVect location;

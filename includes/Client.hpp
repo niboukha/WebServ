@@ -30,7 +30,7 @@ class	Client
 		Stage		stage;
 		std::string	reqBuff;
 		std::string	sendBuff;
-		
+
 		void		recieveRequest();
 		void		sendResponse();
 
@@ -49,7 +49,6 @@ class	Client
 
 		void				setReqBuff(const std::string& buff);
 		void				setSendBuff(const std::string& buff);
-
 
 };
 
