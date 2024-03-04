@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 12:07:48 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/26 11:26:32 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,13 +25,26 @@ const std::vector<Server>& ConfigFile::getServers() const
     return servers;
 }
 
-void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)
+void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
 {
+    std::vector<std::string>    vect;
+    
+    vect.push_back("");
+    if (location.find("root") == location.end())//redo lbal !!!
+        location["root"] = vect;
     if (location.find("index") == location.end())
-        location["index"].push_back("");
+        location["index"] = vect;
     if (location.find("autoindex") == location.end())
-        location["autoindex"].push_back("");
+        location["autoindex"] = vect;
+    if (location.find("allow_methodes") == location.end())
+        location["allow_methodes"] = vect;
+    if (location.find("upload_pass") == location.end())
+        location["upload_pass"] = vect;
+    if (location.find("cgi_pass") == location.end())
+        location["cgi_pass"] = vect;
+    
 }
+
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
     mapStrVect location;
@@ -54,7 +67,7 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 		}
 		else
         {
-            
+            addDirectivesMissingInLocation(location);//update
             configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
         }
@@ -80,7 +93,7 @@ Server  ConfigFile::fillServer(std::fstream& configFile)
             or (!values[0].compare("error_page") and values.size() != 3))
 				throw InvalidNumberOfArguments();
 			if (!values[0].compare("location"))
-				locations[values[1]] = fillLocation(configFile);//sould heck if the location already exists
+				locations[values[1]] = fillLocation(configFile);//sould check if the location already exists
 			else if (Server::serverValidDirective(values[0], values[1]))
 			{
 				if (!values[0].compare("error_page"))
@@ -97,6 +110,7 @@ Server  ConfigFile::fillServer(std::fstream& configFile)
 		}
     }
     server.setServerData(servData);
+    // server.addErrorPagesMissing();
     server.serverObligatoryDirectives();
     server.setLocations(locations);
     return server;

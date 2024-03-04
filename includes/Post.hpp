@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 14:11:44 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/02/27 15:56:04 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,39 +16,47 @@
 #include "WebServ.hpp"
 #include "../includes/Utils.hpp"
 #include "../includes/Response.hpp"
-
 class Response;
 
 class	Post
 {
 	private :
 
-		Response	&res;
-		size_t		size;
-		int			fd;
-		int			dirflag;
-		
+		Response		&res;
+
+		long long		size;
+		bool			isMoved;
+		int				sizeofRead;
+		bool			enter;
+		long long		uploadSize;
+		long long		saveOffset;
+		long long		contentLengthLong;
+		std::ofstream	UploadFile;
+		std::ifstream	in;
+		long long		maxBody;
+
 	public :
 
 		Post( Response &response );
 		~Post( );
 
-		std::string	responsHeader(int stage);
-		std::string	responsBody();
-		
-		void	requestedStatus(int stage);
-		
-		void	chunkedTransfer(std::string body);
-		void	nonChunkedTransfer();
-		void	unsupportedUpload();
+		void					responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes);
+		void					responsBody(std::string &bodyRes);
 
-		bool	isUploadPass();
+		void					requestedStatus(Stage &stage, std::string &reqBuff);
 
-		size_t	maxBodySize();
-		void	directoryInRequest(std::string &file);
+		void					chunkedTransfer(std::string &reqBuff, Stage &stage);
+		void					nonChunkedTransfer(Stage &stage, std::string &reqBuff);
+		void					unsupportedUpload( );
 
-		void	cgiPassCheck();
-		std::string	conctRootUpload( std::string s );
+		void					cgiPassCheck();
+		void					directoryInRequest(std::string &path, std::ifstream	&file);
+		std::string				conctRootUpload( std::string s );
+		std::string				getExtensionFile();
+		long long				maxBodySize();
+		bool					isUploadPass( Stage &stage );
+
+		const std::streampos	getSizeofRead() const;
 };
 
 

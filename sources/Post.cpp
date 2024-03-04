@@ -3,190 +3,246 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 14:43:02 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 19:08:54 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Post.hpp"
 
-Post::Post( Response &response ) : res( response ), size(0), dirflag(0)
+Post::Post( Response &response ) :	res( response ),
+									size( 0 ),
+									isMoved( false ),
+									sizeofRead( 0 ),
+									enter( false ),
+									uploadSize( 0 ),
+									saveOffset( 0 ),
+									contentLengthLong ( 0 ),
+									maxBody ( 0 )
 {
-
 }
 
 Post::~Post( )
 {
+}
 
+const std::streampos	Post::getSizeofRead() const
+{
+	return (sizeofRead);
 }
 
 std::string	Post::conctRootUpload(std::string s)
 {
-	mapStrVect	loc;
-	std::string	pt;
+	const mapStrVect	&loc = res.getRequest().getLocation();
+	std::string			pt;
 
-	loc = res.getRequest().getLocation();
-	pt = loc["root"].front() + s + "/";
+	if (loc.find("root") != loc.end())
+		pt  = loc.find("root")->second.front() + s + "/";
 	return (pt);
 }
 
-bool	Post::isUploadPass()
+long long	Post::maxBodySize( )
 {
-	mapStrVect	loc;
-	std::string	s;
+	const std::map<std::string, std::string>	&ser = res.getRequest().getServer();
+	std::stringstream							s;
+	long long									n;
 
-	loc = res.getRequest().getLocation();
+	s << ser.find("client_max_body_size")->second;
+	s >> n;
+	return ( n );
+}
 
-	if (loc["upload-pass"].empty())
+void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
+{
+	const std::map<std::string, std::string>	&head = res.getRequest().getHeaders();
+
+	if (!UploadFile.is_open())
 	{
-		s = res.concatenatePath();
-		res.setPath(s);
-		return (false);
+		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
+		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
+		if (maxBodySize() < contentLengthLong)
+		{
+			stage = RESHEADER;
+			res.throwNewPath("413 Request Entity Too Large", "413");
+		}
 	}
-
-	s  = conctRootUpload(loc["upload-pass"].front());
-	s += Utils::generateRundFile();
-	res.setPath(s);
-	return (true);
-}
-
-size_t	Post::maxBodySize()
-{
-	std::map<std::string, std::string>	ser;
-	std::stringstream	s;
-	size_t				n;
-
-	ser  = res.getRequest().getServer();
-	s << ser["client_max_body_size"];
-	s >> n;
-	return (n);
-}
-
-void	Post::nonChunkedTransfer()
-{
-	std::map<std::string, std::string>	ser;
-
-	std::map<std::string, std::string>			head;
-	std::stringstream	s;
-	std::ofstream		outfile;
-	size_t				n;	
-
-	ser  = res.getRequest().getServer();
-	head = res.getRequest().getHeaders(); 
-	s << head["content-length"];
-	s >> n;
-	if (maxBodySize() > n)
-		res.throwNewPath("413 Request Entity Too Large", "413");
-	outfile.open(res.getPath().c_str(), std::ios_base::app);
-	size += res.getBody().length();
-	outfile << res.getBody();
-	if (size == n)
+	UploadFile << reqBuff;
+	uploadSize += reqBuff.size();
+	if (uploadSize == contentLengthLong)
 	{
-		outfile.close();
+		stage = RESHEADER;
+		UploadFile.close();
 		res.throwNewPath("201 Created", "201");
 	}
+	reqBuff.clear();
 }
 
-void	Post::chunkedTransfer(std::string body)
+void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 {
-	std::ofstream	outfile;
-	std::string		lrn;
 	size_t			foundLen;
 	size_t			foundBuff;
-	int				len;
-	
-	outfile.open(res.getPath().c_str(), std::ios_base::app);
+	long long		hexLen;
 
-	while (body.length())
+	if (!UploadFile.is_open())
 	{
-		foundLen = body.find("\r\n");
-		if (foundLen != std::string::npos)
-			lrn = body.substr(0, foundLen);
-		else
-			break;
-
-		len = Utils::getLength(lrn);
-		size += len;
-		if (len == 0)
-		{
-			outfile.close();
-			res.throwNewPath("201 Created", "201");
-		}
-		if (maxBodySize() > size)
-			res.throwNewPath("413 Request Entity Too Large", "413");
-		if (lrn.empty())
-			break;
-		foundBuff = body.find("\r\n", len);
-		if (foundBuff != std::string::npos)
-			outfile << body.substr(foundLen + 2, len);
-		else
-			break;
-		body = body.substr(foundBuff + 2);
+		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
+		maxBody = maxBodySize();
 	}
-	res.setBody(body);
+	while (reqBuff.size())
+	{
+		foundLen = reqBuff.find("\r\n");
+		if (foundLen != std::string::npos)
+		{
+			hexLen = Utils::getLength(std::string(reqBuff, 0, foundLen));
+			if (hexLen == 0)
+			{
+				UploadFile << std::string(reqBuff, 0, reqBuff.size() - 5);
+				stage = RESHEADER;
+				UploadFile.close();
+				res.throwNewPath("201 Created", "201");
+			}
+		}
+		foundBuff = reqBuff.find("\r\n", hexLen);
+		if (foundBuff != std::string::npos)
+		{
+			size += hexLen;
+			if (maxBody < size)
+				res.throwNewPath("413 Request Entity Too Large", "413");
+			UploadFile << std::string(reqBuff, foundLen + 2, hexLen);
+			reqBuff = std::string(reqBuff, foundBuff + 2);
+		}
+		else
+			break;
+	}
 }
 
 void	Post::cgiPassCheck()
 {
-	mapStrVect	loc;
+	const mapStrVect	&loc = res.getRequest().getLocation();
 
-	loc = res.getRequest().getLocation();
-	if (loc["cgi-pass"].front().empty())
+	if (loc.find("cgi_pass")->second.front().empty())
 		res.throwNewPath("403 forbidden", "403");
 	//else exist
 }
 
-void	Post::directoryInRequest(std::string &file)
+void	Post::directoryInRequest(std::string &path, std::ifstream &file)
 {
-	mapStrVect	loc;
+	const mapStrVect	&loc = res.getRequest().getLocation();
 
-	loc = res.getRequest().getLocation();
-
-	if (file[file.length() - 1] != '/')
+	if (path[path.length() - 1] != '/')
 	{
-		dirflag = 1;
+		isMoved = true;
 		res.setPath(res.getPath() + "/");
+		file.close();
 		res.throwNewPath("301 Moved Permanently", "301");
 	}
-
-	if (loc["index"].empty())
+	if (loc.find("index")->second.empty())
+	{
+		file.close();
 		res.throwNewPath("403 forbidden", "403");
-	cgiPassCheck();
+	}
+	// else
+		//cgi
 }
 
-void	Post::unsupportedUpload()
+void	Post::unsupportedUpload( )
 {
-	std::string		s;
-	
-	s = res.getPath();
-	std::ifstream	file(s.c_str());
+	const mapStrVect	&loc = res.getRequest().getLocation();
+	std::ifstream		file(res.getPath().c_str());
+	std::string			s;
 
+	s   = res.getPath();
 	if (Utils::isDir(s.c_str()))
-		directoryInRequest(s);
+		directoryInRequest(s, file);
 	if (!Utils::isFile(s.c_str()))
+	{
+		file.close();
 		res.throwNewPath("404 not found", "404");
-	else
-		cgiPassCheck();
+	}
+	if (loc.find("cgi_pass")->second.empty())
+	{
+		file.close();
+		res.throwNewPath("403 forbidden", "403");
+	}
+		//cgi
 	file.close();
 }
 
-void	Post::requestedStatus(int stage)
+bool	Post::isUploadPass( Stage &stage )
 {
-	std::map<std::string, std::string>	header;
+	const mapStrVect	&loc = res.getRequest().getLocation();
+	struct stat			statPath;
+	std::string			status;
 
-	header = res.getRequest().getHeaders();
-	if (!isUploadPass() && stage == REQBODY)
+	if (enter) return (enter);
+
+	enter = true;
+	if (loc.find("upload_pass")->second.empty())
+	{
+		stage  = RESHEADER;
+		status = res.concatenatePath( res.getRequest().getRequestedPath() );
+		res.setPath(status);
+		return (false);
+	}
+	if (!Utils::isDir(conctRootUpload(loc.find("upload_pass")->second.front()).c_str()))
+		res.throwNewPath("404 not found", "404");
+	if (!stat(conctRootUpload(loc.find("upload_pass")->second.front()).c_str(), &statPath)
+		and !(statPath.st_mode & S_IWUSR))
+		res.throwNewPath("403 Forbidden", "403");
+	
+	status = conctRootUpload(loc.find("upload_pass")->second.front())
+		   + Utils::generateRundFile() + "." + res.getExtensionFile();
+	res.setPath( status );
+	return ( true );
+}
+
+void	Post::requestedStatus(Stage &stage, std::string &reqBuff)
+{
+	const std::map<std::string, std::string>	&header = res.getRequest().getHeaders();
+
+	if (isUploadPass( stage ) and stage == REQBODY)
 	{
 		if (header.find("content-length") != header.end())
-			nonChunkedTransfer();
-		chunkedTransfer( res.getBody() );
+			nonChunkedTransfer(stage, reqBuff);
+		else
+			chunkedTransfer( reqBuff, stage );
 	}
-	else
-	{
+	else if (stage > REQBODY)
 		unsupportedUpload();
-	}
+}
+
+void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes)
+{
+	std::string	pt;
+
+	if (res.getStatusCodeMsg() == "-1")
+		requestedStatus(stage, reqBuff);
+
+	pt         = res.getPath();
+	headerRes  = res.getRequest().getProtocolVersion()           + " " +
+			     res.getStatusCodeMsg() + CRLF                   +
+			     "Content-Type: "       + res.getContentType(pt) + CRLF +
+			     "Content-Length: "     + res.getContentLength(pt);
+
+	if (isMoved) headerRes = headerRes + CRLF + "Location: " + res.getPath();
+	headerRes = headerRes + CRLF + CRLF;
+}
+
+void	Post::responsBody(std::string &bodyRes)
+{
+	char	buff[2048];
+
+	if (!in.is_open())
+		in.open(res.getPath().c_str(), std::ios_base::binary);
+
+	in.read(buff, sizeof(buff));
+	sizeofRead  = in.gcount();
+	saveOffset += sizeofRead;
+	if (sizeofRead == 0)
+		in.close();
+	bodyRes = std::string(buff, sizeofRead);
 }
 
 // std::string	Post::httpRedirection()
@@ -199,31 +255,3 @@ void	Post::requestedStatus(int stage)
 // 	else
 // 		return (loc["302"].front());
 // }
-
-std::string	Post::responsHeader(int stage)
-{
-	std::string	s;
-	std::string	pt;
-
-	requestedStatus(stage);
-	pt = res.getPath();
-	s  = res.getRequest().getProtocolVersion() + " " +
-		res.getStatusCodeMsg() + CRLF +
-		"Content-Type: "   + res.getContentType(pt)   + CRLF +
-		"Content-Length: " + res.getContentLength(pt);
-	if (dirflag == 1)
-		s = s + CRLF + "Location: " + res.getPath();
-	s = s + CRLF + CRLF;
-	return (s);
-}
-
-std::string	Post::responsBody()
-{
-	char buffer[1024];
-
-	fd = open(res.getPath().c_str(), O_RDWR); //can hang ??
-
-	read(fd, buffer, sizeof(buffer));
-	return (buffer);
-}
-

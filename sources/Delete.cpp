@@ -3,74 +3,89 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:55:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 10:38:45 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Delete.hpp"
 
-Delete::Delete(Response &response) : res(response)
+Delete::Delete( Response &response ) :	res(response),
+										sizeofRead(0), 
+										saveOffset(0),
+										isReal(true)
 {
 }
 
-Delete::~Delete()
+Delete::~Delete( )
 {
 }
 
-void Delete::WriteAccess()
+const std::streampos&	Delete::getSizeofRead( ) const
 {
-	struct stat st;
-	std::string s;
-
-	if (st.st_mode & S_IWUSR)
-		res.throwNewPath("500 Internal Server Error", "500");
-	else
-		res.throwNewPath("403 Forbidden", "403");
+	return (sizeofRead);
 }
 
-void Delete::directoryPath(struct stat st, std::string &pt)
+void	Delete::pathOfSentPage( std::string s, std::string code )
 {
-	std::string err;
+	res.setStatusCodeMsg(s);
+	throw ( code );
+}
 
+void	Delete::directoryPath( DIR *pDir, struct stat st, std::string &pt )
+{
+	std::string	s;
 	if (pt[pt.length() - 1] != '/')
-		res.throwNewPath("409 conflict", "409");
-		
+	{
+		closedir(pDir);
+		pathOfSentPage("409 conflict", "409");
+	}
+
 	if (!(st.st_mode & S_IWUSR))
-		res.throwNewPath("403 Forbidden", "403");
-		
-	if ((st.st_mode & S_IWUSR) && std::remove(res.getPath().c_str()))
-		res.throwNewPath("500 Internal Server Error", "500");
-	else
-		res.throwNewPath("204 No Content", "204");
+	{
+		closedir(pDir);
+		pathOfSentPage("403 Forbidden", "403");
+	}
+
+	if ((st.st_mode & S_IWUSR) and std::remove(pt.c_str()))
+	{
+		closedir(pDir);
+		pathOfSentPage("500 Internal Server Error", "500");
+	}
 }
 
-void	Delete::filePath(std::string &s)
+void	Delete::filePath( std::string &s )
 {
-	std::string err;
-
+	std::string	set;
+	
 	if (!std::remove(s.c_str()))
-		res.throwNewPath("204 No Content", "204");
+	{
+		set = "204 No Content";
+		res.setStatusCodeMsg(set);
+		res.setPath(res.pathErrorPage("204"));
+	}
 }
 
-std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
+std::string	Delete::nestedDirectories( std::string s, struct stat statPath )
 {
-	DIR				*pDir;
 	struct dirent	*pDirent;
+	DIR				*pDir;
 	std::string		str;
+	std::string		set;
 
-	pDir = opendir(s.c_str());
-	str  = s;
+	if (!(pDir = opendir(s.c_str())))
+		return (s);
 
+	str = s;
 	while ((pDirent = readdir(pDir)))
 	{
+		if (!strlen(pDirent->d_name))
+			break;
 		s = pDirent->d_name;
-
-		if (s[0] == '.')
+		if (s == "." or s == "..")
 			continue;
-
 		s = str + pDirent->d_name;
 		if (!stat(s.c_str(), &statPath))
 		{
@@ -78,62 +93,112 @@ std::string	Delete::nestedDirectories(std::string s, struct stat statPath)
 			{
 				s += "/";
 				nestedDirectories(s, statPath) = s;
-				directoryPath(statPath, s);
+				directoryPath(pDir, statPath, s);
 			}
 			else if (S_ISREG(statPath.st_mode))
 				filePath(s);
 		}
 		else
-			res.throwNewPath("404 Not found", "404");
+		{
+			closedir(pDir);
+			pathOfSentPage("404 Not found", "404");
+		} 
 	}
-	return (s);
+	closedir(pDir);
+	return (str);
 }
 
-void	Delete::deleteBasePath(std::string s, struct stat statPath)
+void	Delete::deleteBasePath( std::string s, struct stat statPath )
 {
+	std::string	set;
+	
 	if (!stat(s.c_str(), &statPath))
 	{
 		if (S_ISDIR(statPath.st_mode))
-			directoryPath(statPath, s);
+		{
+			if (s[s.length() - 1] != '/')
+				pathOfSentPage("409 conflict", "409");
+
+			if (!(statPath.st_mode & S_IWUSR))
+				pathOfSentPage("403 Forbidden", "403");
+
+			if ((statPath.st_mode & S_IWUSR) and std::remove(s.c_str()))
+				pathOfSentPage("500 Internal Server Error", "500");
+			else
+				pathOfSentPage("204 No Content", "204");
+		}
 		else if (S_ISREG(statPath.st_mode))
-			filePath(s);
+		{
+			if (!std::remove(s.c_str()))
+				pathOfSentPage("204 No Content", "204");
+		}
 	}
 	else
-		res.throwNewPath("404 Not found", "404");
+		pathOfSentPage("404 Not found", "404");
 }
 
-void	Delete::statusOfRequested()
+void	Delete::statusOfRequested( )
 {
-	std::string	pt;
+	std::string	base;
 	struct stat	statPath;
-
-	pt = res.getPath();
-	nestedDirectories(pt, statPath);
-	res.setPath(pt);
-	deleteBasePath(pt, statPath);
+	
+	try
+	{
+		if (res.getStatusCodeMsg() == "-1")
+		{
+			res.setPath (res.concatenatePath( res.getRequest().getRequestedPath() ));
+			isReal = false;
+		}
+		base = res.getPath();
+		if (!stat(base.c_str(), &statPath))
+		{
+			if (S_ISDIR(statPath.st_mode))
+			{
+				if (base[base.length() - 1] != '/')
+					pathOfSentPage("409 conflict", "409");
+				if (!(statPath.st_mode & S_IWUSR))
+					pathOfSentPage("403 Forbidden", "403");
+			}
+		}
+		nestedDirectories (res.getPath(), statPath);
+		res.setPath		  (base);
+		deleteBasePath    (res.getPath(), statPath);
+	}
+	catch(std::string code)
+	{
+		if (isReal)
+			res.setPath (code);
+		else
+			res.setPath(res.pathErrorPage(code));
+	}
 }
 
-std::string	Delete::responsHeader()
+void	Delete::responsHeader(std::string &headerRes)
 {
-	std::string	s;
 	std::string	pt;
-
+	
 	statusOfRequested();
+
 	pt = res.getPath();
-	s  = res.getRequest().getProtocolVersion() + " " +
-		res.getStatusCodeMsg() + CRLF +
-		"Content-Type: "   + res.getContentType(pt)   + CRLF +
-		"Content-Length: " + res.getContentLength(pt) + CRLF + // wish content length (dleted file or something else)
-		CRLF;
-	return (s);
+	headerRes  = res.getRequest().getProtocolVersion()         + " "  +
+				 res.getStatusCodeMsg()                        + CRLF +
+		 		 "Content-Type: "   + res.getContentType(pt)   + CRLF +
+				 "Content-Length: " + res.getContentLength(pt) + CRLF +
+				 CRLF;
 }
 
-std::string	Delete::responsBody()
+void	Delete::responsBody(std::string &bodyRes)
 {
-	char buffer[1024];
+	char	buff[2048];
 
-	fd = open(res.getPath().c_str(), O_RDWR);
+	if (!in.is_open())
+		in.open(res.getPath().c_str(), std::ios_base::binary);
 
-	read(fd, buffer, sizeof(buffer));
-	return (buffer);
+	in.read(buff, sizeof(buff));
+	sizeofRead  = in.gcount();
+	saveOffset += sizeofRead;
+
+	if (sizeofRead == 0)
+		in.close();
+	bodyRes = std::string(buff, sizeofRead);
 }

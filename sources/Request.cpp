@@ -3,23 +3,46 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 11:56:58 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/02 09:04:25 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Request.hpp"
 
-Request::Request()
+Request::Request(ConfigFile& config): configFileData(config)
 {
+    
+}
+Request::Request()
+{   
 }
 
 Request::~Request()
 {
 }
 
+// const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!
+// {
+//     if (this != &copy)
+//     {
+//     	configFileData  = copy.configFileData;
+// 	    location        = copy.location;
+// 		server          = copy.server;
+// 		headers         = copy.headers;
+// 		errorPages      = copy.errorPages;
+// 		method          = copy.method;
+// 		requestedPath   = copy.requestedPath;
+// 		protocolVersion = copy.protocolVersion;
+// 		uri             = copy.uri;
+// 		autority        = copy.autority;
+// 		scheme          = copy.scheme;
+// 		queryParameters = copy.queryParameters;
+//     }
+//     return *this;
+// }
 const std::string  Request::getMethod( ) const
 {
     return ( method );
@@ -50,31 +73,56 @@ const	std::map<std::string, std::string>	Request::getHeaders() const
 	return (headers);
 }
 
+const	std::map<std::string, std::string>	Request::getErrorPages() const
+{
+    return (errorPages);
+}
 
+void    Request::fillErrorPages()
+{
+    errorPages["201"] = ERROR_201;
+    errorPages["204"] = ERROR_204;
+    errorPages["301"] = ERROR_301;
+    errorPages["401"] = ERROR_401;
+    errorPages["403"] = ERROR_403;
+    errorPages["404"] = ERROR_404;
+    errorPages["409"] = ERROR_409;
+    errorPages["413"] = ERROR_413;
+    errorPages["500"] = ERROR_500;
+    errorPages["501"] = ERROR_501;
+    errorPages["400"] = ERROR_400;
+    errorPages["414"] = ERROR_414;
+    errorPages["405"] = ERROR_405;
+}
 void   Request::parseRequest(std::string &buff, Stage &stage)
 {
     if (stage == REQLINE)
     {
+        std::cout << buff << "\n";
         parseRequestLine(buff);
         parseUri();
-        stage =  REQHEADER;
+        stage = REQHEADER;
     }
     else if (stage == REQHEADER)
     {
-        parseHeader(buff);
         if (!buff.find("\r\n"))
         {
+            if (headers.find("transfer-encoding") != headers.end()
+                and headers["transfer-encoding"].compare("chunked"))//not implemented to check mn b3d
+               throw Request::NotImplemented("501", "501 Not Implemented");//to ckeck
+            if (headers.find("transfer-encoding") == headers.end() 
+                and headers.find("content-length") == headers.end() 
+                and !method.compare("POST"))//bad req
+              throw Request::BadRequest("400", "400 Bad Request");
+            // if (headers.find("host") == headers.end())//to check mn b3ed
             matchingLocation();
-            // std::cout <<"----> location :" << std::endl;
-            // for (mapStrVect::iterator i = location.begin(); i != location.end(); i++)
-            // {
-            //     std::cout << "key |" << i->first << "| " << "value |" << i->second[0] << "|" << std::endl;
-            // }
-            
+            fillErrorPages();
+            buff = buff.substr(buff.find("\r\n") + 2);
             stage = REQBODY;
+            return ;
         }
+        parseHeader(buff);
     }
-    
 }
 
 std::string Request::decodePercentEncoded(std::string hexastr)
@@ -103,8 +151,11 @@ void    Request::decodeUri()
 void   Request::parseUri()
 {
     size_t      autorityEnd, schemeEnd;
-    
+
+    //check if the uri start with /
     decodeUri();
+    if (uri.length() > 2048)//bad req
+        throw Request::BadRequest("400", "400 Bad Request");
     // uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%");check if uri is valid
     schemeEnd = uri.find(":");
     if (schemeEnd != std::string::npos)
@@ -115,21 +166,43 @@ void   Request::parseUri()
         requestedPath = uri.substr(autorityEnd, uri.find("?", autorityEnd));
         queryParameters = uri.substr(uri.find("?", autorityEnd));
     }
-    requestedPath = uri.substr(uri.find("/"));
+    else
+        requestedPath = uri.substr(uri.find("/"));
 }
 
 void    Request::parseRequestLine(std::string    &buff)
 {
     std::vector<std::string>    splitReqLine;
     std::string                 reqLine;
-    
-    reqLine = buff.substr(0 ,buff.find("\r\n"));
-    buff = buff.substr(buff.find("\r\n") + 2);
+    size_t                      found;
+    std::string                 methodes[8] = {"GET", "POST", "DELETE", 
+                                            "PUT", "CONNECT", "OPTIONS", "TRACE", "HEAD"}; //PATCH
+    std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
+  
+//   std::cout << "-----> here " << std::endl;
+    found = buff.find("\r\n");
+    if (found == std::string::npos)//bad req to check mn b3d
+        throw Request::BadRequest("400", "400 Bad Request");
+    reqLine = buff.substr(0 ,found);
+    if (found != (reqLine.length()) or 
+        std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
+       throw Request::BadRequest("400", "400 Bad Request");
+    buff = buff.substr(found + 2);
     splitReqLine = StringOperations::split(reqLine, " ");
-    // if (splitReqLine.size() != 3)//to add
+    if ( splitReqLine.size() != 3 
+        or (std::find(methodes, methodes + 8, splitReqLine[0]) == (methodes +  8))
+        or splitReqLine[2].compare("HTTP/1.1"))//Bad request can cz SGV !!!
+        throw Request::BadRequest("400", "400 Bad Request");
     method = splitReqLine[0];
-    uri =splitReqLine[1];
+    if (std::find(methodesImp, methodesImp + 3 , method) == (methodesImp +  3))//Not implemented
+    {
+        method = "GET";
+        protocolVersion = "HTTP/1.1";
+        throw Request::NotImplemented("501", "501 Not Implemented");// 405 not allowed
+    }
+    uri = splitReqLine[1];
     protocolVersion = splitReqLine[2];
+    // std::cout << "====> the end of parse req line " << std::endl;
 }
 
 void    Request::parseHeader(std::string &buff)
@@ -138,14 +211,20 @@ void    Request::parseHeader(std::string &buff)
     size_t      found;
 
     found = buff.find("\r\n");
-    // if (found  == std::string::npos)
+    if (found == std::string::npos)//bad req to check 
+        throw Request::BadRequest("400", "400 Bad Request");
     header = buff.substr(0, found);
+    if (found != header.length())//bad req
+        throw Request::BadRequest("400", "400 Bad Request");
     buff = buff.substr(found + 2);
-    key = header.substr(0, header.find_first_of(":"));
-    for (size_t i = 0; i < key.length(); i++)
-        key[i] =  tolower(key[i]);
-    value = StringOperations::trim(header.substr(key.length() + 1));
-    headers[key] = value;
+    if (!header.empty())//update
+    { 
+        key = header.substr(0, header.find_first_of(":"));
+        key = StringOperations::trim(key);
+        std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
+        value = StringOperations::trim(header.substr(key.length() + 1));
+        headers[key] = value;
+    }
 }
 
 void    Request::SetConfigFile(ConfigFile& configFile)
@@ -168,7 +247,7 @@ void    Request::matchingLocation()
     Server  matchServer;
     size_t  longestOne, sizeMatching;
 
-    matchServer = findServer();
+    matchServer = matchingServer();
     // std::cout << "matching server : " << matchServer.getServerData().at("host")<< std::endl;
     // for (size_t i = 0; i < ; i++)
     // {
@@ -191,7 +270,7 @@ void    Request::matchingLocation()
     } 
 }
 
-Server  Request::findServer()
+Server  Request::matchingServer()
 {
     std::vector<Server> servers;
     std::pair<std::string, std::string> pair;

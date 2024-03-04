@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 11:56:58 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/01 12:21:48 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,46 +36,41 @@ class Response
 
 		std::string	statusCodeMsg;
 		std::string	path;
-		std::string	body;
-
 		std::string	headerRes;
 		std::string	bodyRes;
 
 		std::map<std::string, std::string>	mimeType;
-
+		std::map<std::string, std::string>	extentionFile;
 	public:
 
 		Response( Request &request );
 		~Response( );
+		
+		Stage				sendResponse(Stage &stage, std::string &reqBuff);
 
-		Stage	sendResponse(Stage &stage);
-
-		void	setStatusCodeMsg(std::string& codeMsg);
-		void	setPath(std::string pt);
-		void	setBody(const std::string& bdy);
-		void	setBodyRes(const std::string& bdy);
+		void				setStatusCodeMsg(std::string& codeMsg);
+		void				setPath(std::string pt);
+		void				setHeaderRes(const std::string& header);
 		
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
 		const std::string&	getPath() const;
-		const std::string&	getBody() const;
-		const int&			getfd() const;
 		const std::string&	getHeaderRes() const;
 		const std::string&	getBodyRes() const;
-		
-		
 
-		std::string		getContentType( std::string &path );
-		std::string		getContentLength( std::string &path );
+		std::string			getContentType( std::string &path );
+		std::string			getContentLength( std::string &path );
 
-		void			mapOfTypes( );
-		std::string		concatenateIndexDirectory( );
-		std::string		concatenatePath( );
-		std::string		pathErrorPage(std::string code);
+		void				mapOfTypes( );
+		void				UpdateStatusCode(std::string &s);
+		void				isRealPath(std::string &path);
+		void				throwNewPath(std::string msg, std::string code);
 
-		void			throwNewPath(std::string msg, std::string code);
+		std::string			concatenateIndexDirectory( );
+		std::string			concatenatePath( std::string p );
+		std::string			pathErrorPage(std::string code);
+		std::string			getExtensionFile();
 
-		void			prefaceMethod( );
 
 };
 

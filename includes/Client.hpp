@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/23 12:07:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/02 08:45:12 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,29 +24,31 @@ class	Client
 {
 	private:
 
-		Request		&req;
+		Request		req;
 		Response	res;
 
-		std::string	recievedReq;
 		Stage		stage;
 		std::string	reqBuff;
+		std::string	sendBuff;
 
-		int 	sockFd;
-		int		newSockFd;
-
-		void	recieveRequest();
-		void	sendResponse();
+		void		recieveRequest();
+		void		sendResponse();
 
 	public:
 
-		Client(Request& request);
-
+		Client(ConfigFile &config);
+		Client(const Client&copy);
+	
 		~Client();
 
-		const std::string&	getRecievedReq() const;
-		const Stage&		getStage() const;
-
 		void	serve();
+	
+		const Stage&		getStage() const;
+		const std::string&	getReqBuff() const;
+		const std::string&	getSendBuff() const;
+
+		void				setReqBuff(const std::string& buff);
+		void				setSendBuff(const std::string& buff);
 
 };
 

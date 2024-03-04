@@ -32,7 +32,7 @@ std::vector<std::string>    StringOperations::split(std::string s, std::string d
     std::vector<std::string>    vectRes;
     std::string                 token;
 
-     while (((posStart = s.find_first_not_of(delim, posEnd)) != std::string::npos))
+    while (((posStart = s.find_first_not_of(delim, posEnd)) != std::string::npos))
     {
         posEnd = s.find_first_of(delim, posStart);
         token = s.substr(posStart, posEnd - posStart);
