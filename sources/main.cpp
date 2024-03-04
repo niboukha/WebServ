@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:58:56 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/01 18:03:37 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 15:35:02 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,35 +18,34 @@
 
 int main(int ac, char **av, char** env)
 {
+    std::fstream configFile;
+    ConfigFile            MyConfigFile;
+    Multiplexer            multiplexer;
+        
     try
     {
         (void)env;
         if (ac != 2)
             throw InvalidArguments();
-        std::fstream                        configFile(av[1]);
-       
+        configFile.open(av[1]);
         if (!configFile.is_open())
             throw FailedToOpenFile();
-        ConfigFile            MyConfigFile;
-        // Request               req;
-        // Client                client(req);
-        Multiplexer            multiplexer(MyConfigFile);
-
         MyConfigFile.parseConfigFile(configFile);
         configFile.close();
+        multiplexer.setServers(MyConfigFile.getServers());
         multiplexer.multiplexing();
-        // req.SetConfigFile(MyConfigFile);
-        // client.serve();
         
     }
     catch(const std::exception& e)
     {
         std::cout << "iiii-> iii\n";
         std::cerr << e.what() << '\n';
+        configFile.close();
     }
     catch(const char *msg)
     {
         std::cerr << msg << '\n';
+        configFile.close();
     }
     return (0);
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:26 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 11:39:55 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/04 15:17:02 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,25 +15,31 @@
 
 #include "WebServ.hpp"
 
-class      Location;
+
 
 class Server
 {
     private:
         std::map<std::string, std::string> serverData;//to check
         std::map<std::string,  mapStrVect> locations;
+
+        int     masterSocket;
         static bool     (*functionsServer[])(std::string &);
         static bool     (*functionsLocation[])(std::vector<std::string> &);
     public:
         Server();
         ~Server();
 
+        const int&  getMasterSocket() const;
         void    setServerData(std::map<std::string, std::string>& servData);
         void    setLocations(std::map<std::string,  mapStrVect>& locs);
         const   std::map<std::string, std::string>& getServerData() const;
         const   std::map<std::string,  mapStrVect>& getLocations() const;
         bool    serverObligatoryDirectives();
-        void    addErrorPagesMissing();
+        // void    addErrorPagesMissing();
+
+        void    createAndBindSocket(fd_set& readFds);
+        int    acceptNewConnection(fd_set& readFds, fd_set& writeFds);
         
         static  bool  serverValidDirective(std::string &directive, std::string& value);//update
         static  bool  isValidHost(std::string &hostValue);//update

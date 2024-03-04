@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/02 08:45:12 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 15:08:27 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,18 +31,23 @@ class	Client
 		std::string	reqBuff;
 		std::string	sendBuff;
 
+		int			fd;
+		
 		void		recieveRequest();
 		void		sendResponse();
 
 	public:
 
-		Client(ConfigFile &config);
+		Client(std::vector<Server>& servers, int &fd);
 		Client(const Client&copy);
 	
 		~Client();
 
 		void	serve();
 	
+		const int&	getFd() const;
+		void  setFd(int& fd);
+		
 		const Stage&		getStage() const;
 		const std::string&	getReqBuff() const;
 		const std::string&	getSendBuff() const;

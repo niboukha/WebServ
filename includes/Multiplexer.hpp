@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:37:36 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/01 21:39:04 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 17:54:27 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,29 +28,16 @@ class Multiplexer
 {
     private:
             std::vector<int>    masterSockets;
-            ConfigFile          &configFile;
-            // std::map<int, Client>   clients;
+            std::vector<Server>   servers;
+
             std::vector<Request>    req;
-            std::list<std::pair<int, Client> > clients;
-            // std::vector<std::pair<int, Client> > clients;
-        //     std::string              reqBuff;
-        //     std::vector<std::string>    reqBuff;
+            std::list<Client>       clients;
+            
     public:
-        Multiplexer(ConfigFile& config);
+        Multiplexer();
         ~Multiplexer();
 
-        const std::vector<int>&  getMasterSockets() const;
-        const ConfigFile&  getConfigFile() const;
-
-        void findClient(int fd, std::list<std::pair<int, Client> >::iterator& it);
-
-        // void    setMasterSockets();
-        // void    setConfigFile();
-
-        void    createSockets();
-        void    bindSocket(int fdServer, std::string add, std::string port);
-        int    acceptNewConnection(int masterSocket);
-
+        void setServers(const std::vector<Server>& servers);
         void    multiplexing();
         
         

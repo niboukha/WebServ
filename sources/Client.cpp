@@ -6,24 +6,35 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/02 09:04:06 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 16:23:53 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Client.hpp"
 
-Client::Client(ConfigFile& config ) : req(config), res(req), stage(REQLINE)
+Client::Client(std::vector<Server>& servers, int &fd) : req(servers), res(req), stage(REQLINE)
 {
+	this->fd = fd;
+	
 }
 
 Client::~Client()
 {
 }
 
-Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage)
+Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage), fd(copy.fd)
 {
 }
 
+const int&	Client::getFd() const
+{
+	return fd;
+}
+
+void	Client::setFd(int& fd)
+{
+	this->fd = fd; 
+}
 const Stage&	Client::getStage( ) const
 {
 	return ( stage );

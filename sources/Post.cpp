@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 19:08:54 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 09:13:56 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@ Post::Post( Response &response ) :	res( response ),
 									enter( false ),
 									uploadSize( 0 ),
 									saveOffset( 0 ),
-									contentLengthLong ( 0 )
+									contentLengthLong ( 0 ),
+									a(0)
 {
 }
 

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 18:43:48 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 16:24:14 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,6 @@ void	Get::responsBody(std::string &bodyRes)
 	saveOffset += sizeofRead;
 	if (sizeofRead == 0)
 	{
-		std::cout << "gjiuifdhy\n";
 		in.close();
 	}
 	bodyRes = std::string(buff, sizeofRead);

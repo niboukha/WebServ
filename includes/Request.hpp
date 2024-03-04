@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/02 06:32:32 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 15:31:33 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@ class ConfigFile;
 class Request
 {
     private:
-		ConfigFile							configFileData;
+		// ConfigFile							configFileData;
+		std::vector<Server>					servs;
 		mapStrVect							location;
 		std::map<std::string, std::string>	server;
 		std::map<std::string, std::string>	headers;
@@ -36,9 +37,11 @@ class Request
 		
     public:
         Request();
-		Request(ConfigFile& config);
+		// Request(ConfigFile& config);
+		Request(std::vector<Server>& servers);
         ~Request();
-		const	Request&	operator=(const Request& copy);
+		// const	Request&	operator=(const Request& copy);
+		
         void   parseRequest(std::string &buff, Stage &stage);
 		
 		const	std::string getMethod( ) const;
@@ -55,7 +58,7 @@ class Request
 		std::string decodePercentEncoded(std::string hexastr);
 		void		parseRequestLine(std::string    &buff);
 		void		parseHeader(std::string& buff);
-        void		SetConfigFile(ConfigFile& configFile);
+        // void		SetConfigFile(ConfigFile& configFile);
 		void		matchingLocation();
 		Server		matchingServer();
 		size_t		longestMatchingLocation(const std::string& prefix);

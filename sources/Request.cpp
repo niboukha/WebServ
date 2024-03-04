@@ -6,16 +6,22 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/02 09:04:25 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/04 15:32:23 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Request.hpp"
 
-Request::Request(ConfigFile& config): configFileData(config)
+// Request::Request(ConfigFile& config): configFileData(config)
+// {
+    
+// }
+
+Request::Request(std::vector<Server>& servers) : servs(servers)
 {
     
 }
+
 Request::Request()
 {   
 }
@@ -223,10 +229,10 @@ void    Request::parseHeader(std::string &buff)
     }
 }
 
-void    Request::SetConfigFile(ConfigFile& configFile)
-{
-    configFileData = configFile;
-}
+// void    Request::SetConfigFile(ConfigFile& configFile)
+// {
+//     configFileData = configFile;
+// }
 
 size_t  Request::longestMatchingLocation(const std::string& prefix)
 {
@@ -268,17 +274,17 @@ void    Request::matchingLocation()
 
 Server  Request::matchingServer()
 {
-    std::vector<Server> servers;
+    // std::vector<Server> servers;
     std::pair<std::string, std::string> pair;
 
-    servers = configFileData.getServers();
+    // servers = configFileData.getServers();
     pair.first = StringOperations::split(headers["host"], ":")[0];
     pair.second = StringOperations::split(headers["host"], ":")[1];
-   for (size_t i = 0; i < servers.size(); i++)
+   for (size_t i = 0; i < servs.size(); i++)
    {
-        if (!servers[i].getServerData().at("host").compare(pair.first) 
-            and !servers[i].getServerData().at("port").compare(pair.second))//how can i known wich server
-            return servers[i];
+        if (!servs[i].getServerData().at("host").compare(pair.first) 
+            and !servs[i].getServerData().at("port").compare(pair.second))//how can i known wich server
+            return servs[i];
    }
-    return servers[0];
+    return servs[0];
 }

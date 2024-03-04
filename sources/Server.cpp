@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/26 11:39:45 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/04 15:17:37 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,47 @@ const std::map<std::string,  mapStrVect>& Server::getLocations() const
     return locations;
 }
 
+const int&  Server::getMasterSocket() const
+{
+    return masterSocket;
+}
+
+void    Server::createAndBindSocket(fd_set& readFds)
+{
+    sockaddr_in serverAdd;
+    int     opt;
+    
+    // (void)add;//to check mn b3ed 
+    masterSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (masterSocket < 0)
+        throw strerror(errno);
+    FD_SET(masterSocket, &readFds);
+    opt = 1;
+    serverAdd.sin_family = AF_INET;
+    serverAdd.sin_addr.s_addr = INADDR_ANY;
+    // serverAdd.sin_addr.s_addr = gettaddrinfo(add.c_str(), );
+    serverAdd.sin_port = htons(atoi(serverData["port"].c_str()));
+    if (setsockopt(masterSocket, SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0)
+        throw strerror(errno);
+    if (bind(masterSocket, (const sockaddr *)&serverAdd, sizeof(serverAdd)) < 0)
+        throw strerror(errno);
+    if (listen(masterSocket, 5) < 0)
+        throw strerror(errno);
+}
+
+int   Server::acceptNewConnection(fd_set& readFds, fd_set& writeFds)
+{
+    sockaddr_in clientAdd;
+    socklen_t   clientAddLen;
+    int         acceptedClient;
+
+    clientAddLen = sizeof(clientAdd);
+    if((acceptedClient  = accept(masterSocket, (struct sockaddr*)&clientAdd, &clientAddLen)) < 0)
+        throw strerror(errno);
+    FD_SET(acceptedClient, &readFds);
+    FD_SET(acceptedClient, &writeFds);
+    return acceptedClient;
+}
 //  void     Server::addErrorPagesMissing()//update
 //  {
 //     if (serverData.find("404") == serverData.end())
