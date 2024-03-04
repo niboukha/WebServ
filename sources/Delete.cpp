@@ -189,10 +189,11 @@ void	Delete::responsHeader(std::string &headerRes)
 
 void	Delete::responsBody(std::string &bodyRes)
 {
-	std::ifstream	in(res.getPath().c_str(), std::ios_base::binary);
-	char			buff[1024];
+	char	buff[2048];
 
-	in.seekg(saveOffset, std::ios::cur);	
+	if (!in.is_open())
+		in.open(res.getPath().c_str(), std::ios_base::binary);
+
 	in.read(buff, sizeof(buff));
 	sizeofRead  = in.gcount();
 	saveOffset += sizeofRead;

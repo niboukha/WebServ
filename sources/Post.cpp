@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/04 09:13:56 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/01 19:08:54 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,13 +20,12 @@ Post::Post( Response &response ) :	res( response ),
 									uploadSize( 0 ),
 									saveOffset( 0 ),
 									contentLengthLong ( 0 ),
-									a(0)
+									maxBody ( 0 )
 {
 }
 
 Post::~Post( )
 {
-
 }
 
 const std::streampos	Post::getSizeofRead() const
@@ -80,43 +79,39 @@ void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 	reqBuff.clear();
 }
 
-void	Post::chunkedTransfer(std::string body, Stage &stage)
+void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 {
-	std::ofstream	outfile;
-	std::string		lrn;
 	size_t			foundLen;
 	size_t			foundBuff;
 	long long		hexLen;
 
-	hexLen = 0;
-	if (!outfile.is_open())
-		outfile.open(res.getPath().c_str(), std::ios_base::app);
-	while (body.size())
+	if (!UploadFile.is_open())
 	{
-		foundLen = body.find("\r\n");
+		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
+		maxBody = maxBodySize();
+	}
+	while (reqBuff.size())
+	{
+		foundLen = reqBuff.find("\r\n");
 		if (foundLen != std::string::npos)
-			lrn = std::string(body, 0, foundLen);
-		else
-			break;
-
-		hexLen = Utils::getLength(lrn);
-		if (hexLen == 0)
 		{
-			outfile << std::string(body, 0, body.size() - 5);
-			stage = RESHEADER;
-			outfile.close();
-			res.throwNewPath("201 Created", "201");
+			hexLen = Utils::getLength(std::string(reqBuff, 0, foundLen));
+			if (hexLen == 0)
+			{
+				UploadFile << std::string(reqBuff, 0, reqBuff.size() - 5);
+				stage = RESHEADER;
+				UploadFile.close();
+				res.throwNewPath("201 Created", "201");
+			}
 		}
-		foundBuff = body.find("\r\n", hexLen);
+		foundBuff = reqBuff.find("\r\n", hexLen);
 		if (foundBuff != std::string::npos)
 		{
 			size += hexLen;
-			if (maxBodySize() < size)
+			if (maxBody < size)
 				res.throwNewPath("413 Request Entity Too Large", "413");
-			// std::string(body, hexLen);
-			outfile << std::string(body, foundLen + 2, hexLen);
-			body = std::string(body, foundBuff + 2);
-			res.setBody(body);
+			UploadFile << std::string(reqBuff, foundLen + 2, hexLen);
+			reqBuff = std::string(reqBuff, foundBuff + 2);
 		}
 		else
 			break;
@@ -179,15 +174,16 @@ bool	Post::isUploadPass( Stage &stage )
 {
 	const mapStrVect	&loc = res.getRequest().getLocation();
 	struct stat			statPath;
-	std::string			s;
+	std::string			status;
 
 	if (enter) return (enter);
+
 	enter = true;
-	if (loc.find("upload_pass") == loc.end())
+	if (loc.find("upload_pass")->second.empty())
 	{
-		stage = RESHEADER;
-		s     = res.concatenatePath( res.getRequest().getRequestedPath() );
-		res.setPath(s);
+		stage  = RESHEADER;
+		status = res.concatenatePath( res.getRequest().getRequestedPath() );
+		res.setPath(status);
 		return (false);
 	}
 	if (!Utils::isDir(conctRootUpload(loc.find("upload_pass")->second.front()).c_str()))
@@ -196,9 +192,9 @@ bool	Post::isUploadPass( Stage &stage )
 		and !(statPath.st_mode & S_IWUSR))
 		res.throwNewPath("403 Forbidden", "403");
 	
-	s = conctRootUpload(loc.find("upload_pass")->second.front())
-		+ Utils::generateRundFile() + "." + res.getExtensionFile();
-	res.setPath( s );
+	status = conctRootUpload(loc.find("upload_pass")->second.front())
+		   + Utils::generateRundFile() + "." + res.getExtensionFile();
+	res.setPath( status );
 	return ( true );
 }
 
@@ -211,43 +207,42 @@ void	Post::requestedStatus(Stage &stage, std::string &reqBuff)
 		if (header.find("content-length") != header.end())
 			nonChunkedTransfer(stage, reqBuff);
 		else
-			chunkedTransfer( res.getBody(), stage );
+			chunkedTransfer( reqBuff, stage );
 	}
 	else if (stage > REQBODY)
 		unsupportedUpload();
 }
 
-std::string	Post::responsHeader(Stage &stage, std::string &reqBuff)
+void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes)
 {
-	std::string	s;
 	std::string	pt;
 
 	if (res.getStatusCodeMsg() == "-1")
 		requestedStatus(stage, reqBuff);
-	pt = res.getPath();
-	s  = res.getRequest().getProtocolVersion() + " " +
-		res.getStatusCodeMsg() + CRLF +
-		"Content-Type: "       + res.getContentType(pt) + CRLF +
-		"Content-Length: "     + res.getContentLength(pt);
 
-	if (isMoved) s = s + CRLF + "Location: " + res.getPath();
-	s = s + CRLF + CRLF;
-	return (s);
+	pt         = res.getPath();
+	headerRes  = res.getRequest().getProtocolVersion()           + " " +
+			     res.getStatusCodeMsg() + CRLF                   +
+			     "Content-Type: "       + res.getContentType(pt) + CRLF +
+			     "Content-Length: "     + res.getContentLength(pt);
+
+	if (isMoved) headerRes = headerRes + CRLF + "Location: " + res.getPath();
+	headerRes = headerRes + CRLF + CRLF;
 }
 
-std::string	Post::responsBody()
+void	Post::responsBody(std::string &bodyRes)
 {
-	std::ifstream	in(res.getPath().c_str(), std::ios_base::binary);
-	char			buff[1024];
+	char	buff[2048];
 
-	in.seekg(saveOffset, std::ios::cur);
+	if (!in.is_open())
+		in.open(res.getPath().c_str(), std::ios_base::binary);
+
 	in.read(buff, sizeof(buff));
 	sizeofRead  = in.gcount();
 	saveOffset += sizeofRead;
-
 	if (sizeofRead == 0)
 		in.close();
-	return (std::string(buff, sizeofRead));
+	bodyRes = std::string(buff, sizeofRead);
 }
 
 // std::string	Post::httpRedirection()

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/04 16:24:14 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/01 18:43:48 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,26 +34,15 @@ const std::streampos&	Get::getSizeofRead() const
 	return (sizeofRead);
 }
 
-std::string	Get::stringOfDyrectories(std::vector<std::string> &vdir)
+void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 {
-	const mapStrVect	&loc = response.getRequest().getLocation();
-	std::string			generateFIle;
-	std::string			path;
-
-	generateFIle = Utils::generateRundFile();
-	std::ofstream file(generateFIle.c_str());
-
-	file << "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
-	for (size_t i = 0; i < vdir.size(); i++)
-		file << "<p><a href=\"" + vdir[i] + "\">" + vdir[i] + "</a></p>";
-	file << "\n</body>\n</html>\n";
-
-	path = loc.find("root")->second.front() + "/" + generateFIle;
-	file.close();
-	return (path);
+	directories      =  "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
+	for (size_t i    = 0; i < vdir.size(); i++)
+		directories +=  "<p><a href=\"" + vdir[i] + "\">" + vdir[i] + "</a></p>";
+	directories     +=  "\n</body>\n</html>\n";
 }
 
-std::string	Get::readListOfCurDirectory()
+void	Get::readListOfCurDirectory()
 {
 	struct dirent	*pDirent;
 	DIR				*pDir;
@@ -70,6 +59,7 @@ std::string	Get::readListOfCurDirectory()
 
 		status = "200 OK";
 		response.setStatusCodeMsg(status);
+
 		stringOfDyrectories(vDir);
 		closedir(pDir);
 	}
@@ -80,10 +70,9 @@ std::string	Get::readListOfCurDirectory()
 		response.setStatusCodeMsg(status);
 		throw(response.pathErrorPage("403"));
 	}
-	return (stringOfDyrectories(vDir));
 }
 
-std::string	Get::directoryInRequest(std::string &path, std::ifstream &file)
+void	Get::directoryInRequest(std::string &path, std::ifstream &file)
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string 		s;
@@ -91,7 +80,7 @@ std::string	Get::directoryInRequest(std::string &path, std::ifstream &file)
 	if (path[path.length() - 1] != '/')
 	{
 		isMoved     = true;
-		locationRes = "/" + response.getRequest().getRequestedPath() + "/";
+		locationRes = response.getRequest().getRequestedPath() + "/";
 		file.close();
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
@@ -102,9 +91,10 @@ std::string	Get::directoryInRequest(std::string &path, std::ifstream &file)
 			file.close();
 			response.throwNewPath("403 forbidden", "403");
 		}
-		return (readListOfCurDirectory());
+		readListOfCurDirectory();
+		return ;
 	}
-	return (response.concatenateIndexDirectory());
+	response.setPath(response.concatenateIndexDirectory());
 }
 
 void	Get::statusOfFile()
@@ -121,7 +111,7 @@ void	Get::statusOfFile()
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		path = response.getPath();
-		response.setPath(directoryInRequest(path, file));
+		directoryInRequest(path, file);
 	}
 	else if (!Utils::isFile(response.getPath().c_str()))
 	{
@@ -137,36 +127,61 @@ void	Get::statusOfFile()
 
 void	Get::responsHeader(std::string	&headerRes)
 {
-	std::string	s;
 	std::string	path;
 
 	statusOfFile();
-	path = response.getPath();
-	headerRes  = response.getRequest().getProtocolVersion() + " "  +
-		response.getStatusCodeMsg()                         + CRLF +
-		"Content-Type: "   + response.getContentType(path)  + CRLF +
-		"Content-Length: " + response.getContentLength(path);
-	if (isMoved)
-		headerRes = headerRes + CRLF + "Location: " + locationRes;
-	headerRes = headerRes + CRLF + CRLF;
+	if (directories.empty())
+	{
+		path = response.getPath();
+		headerRes  = response.getRequest().getProtocolVersion() + " "  +
+			response.getStatusCodeMsg()                         + CRLF +
+			"Content-Type: "   + response.getContentType(path)  + CRLF +
+			"Content-Length: " + response.getContentLength(path);
+		if (isMoved)
+			headerRes = headerRes + CRLF + "Location: " + locationRes;
+		headerRes = headerRes + CRLF + CRLF;
+	}
+	else
+	{
+		headerRes  = response.getRequest().getProtocolVersion() + " "  +
+			response.getStatusCodeMsg()                         + CRLF +
+			"Content-Type: "   + "text/html" 					+ CRLF +
+			"Content-Length: " + Utils::longToString(directories.size());
+		headerRes = headerRes  + CRLF + CRLF;
+	}
 }
 
 void	Get::responsBody(std::string &bodyRes)
 {
-	static std::ifstream	in;
-	
-	if (!saveOffset)
-		in.open(response.getPath().c_str(), std::ios_base::binary);
-	char			buff[2048];
-
-
-	in.seekg(saveOffset, std::ios::cur);
-	in.read(buff, sizeof(buff));
-	sizeofRead  = in.gcount();
-	saveOffset += sizeofRead;
-	if (sizeofRead == 0)
+	if (directories.empty())
 	{
-		in.close();
+		char	buff[2048];
+
+		if (!in.is_open())
+			in.open(response.getPath().c_str(), std::ios_base::binary);
+
+		in.read(buff, sizeof(buff));
+		sizeofRead  = in.gcount();
+		if (sizeofRead == 0)
+			in.close();
+		bodyRes = std::string(buff, sizeofRead);
 	}
-	bodyRes = std::string(buff, sizeofRead);
+	else
+	{
+		if (directories.size() > 2048)
+		{
+			bodyRes = std::string (directories, 0, 2048);
+			directories = std::string (directories, 2048 + 1);
+			sizeofRead = 2048;
+		}
+		else
+		{
+			bodyRes = directories;
+			sizeofRead = directories.size();
+			directories.clear();
+		}
+	}
+
+	(void)saveOffset;
+	// saveOffset += sizeofRead;
 }

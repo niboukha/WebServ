@@ -42,7 +42,6 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
         location["upload_pass"] = vect;
     if (location.find("cgi_pass") == location.end())
         location["cgi_pass"] = vect;
-    
 }
 
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
@@ -75,10 +74,10 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
     return location;
 }
 
-Server  ConfigFile::fillServer(std::fstream& configFile)
+void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 {
     std::string line, key;
-    Server      server;
+    // Server      server;
     std::map<std::string, std::string>  servData;
     std::vector<std::string>        values;
     std::map<std::string, mapStrVect>   locations;
@@ -113,11 +112,11 @@ Server  ConfigFile::fillServer(std::fstream& configFile)
     // server.addErrorPagesMissing();
     server.serverObligatoryDirectives();
     server.setLocations(locations);
-    return server;
+    // return server;
 }
 
- void    ConfigFile::parseConfigFile(std::fstream &configFile)
- {
+void    ConfigFile::parseConfigFile(std::fstream &configFile)
+{
     std::vector<Server> servers;
     Server              server;
     std::string         line;
@@ -127,15 +126,15 @@ Server  ConfigFile::fillServer(std::fstream& configFile)
         line = StringOperations::trim(line);
         if (!line.compare("server"))
         {
-            server = fillServer(configFile);
+            fillServer(configFile, server);
             servers.push_back(server);
         }
         else if (line.empty())
-			continue ; 
+            continue ; 
         else
             throw SyntaxError();   
     }
-	this->servers = servers;
+    this->servers = servers;
     // std::cout << "***** vectors of servers : ***** " << std::endl;
     // for (size_t i = 0; i < servers.size(); i++)
     // {

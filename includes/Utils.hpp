@@ -26,7 +26,7 @@ namespace Utils
 	bool						isFdOpen(int fd);
 	long long					getLength(std::string s);
 	long long					stringToLong(std::string s);
-
+	std::string					longToString(long long len);
 };
 
 #endif

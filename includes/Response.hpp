@@ -36,14 +36,11 @@ class Response
 
 		std::string	statusCodeMsg;
 		std::string	path;
-		std::string	body;
-		long long 	uploadLength;
-
 		std::string	headerRes;
 		std::string	bodyRes;
 
 		std::map<std::string, std::string>	mimeType;
-
+		std::map<std::string, std::string>	extentionFile;
 	public:
 
 		Response( Request &request );
@@ -53,17 +50,13 @@ class Response
 
 		void				setStatusCodeMsg(std::string& codeMsg);
 		void				setPath(std::string pt);
-		void				setBody(const std::string& bdy);
-		void				setUploadLength(long long  b);
 		void				setHeaderRes(const std::string& header);
-		
+
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
 		const std::string&	getPath() const;
-		const std::string&	getBody() const;
 		const std::string&	getHeaderRes() const;
 		const std::string&	getBodyRes() const;
-		const long long  &	getUploadLength() const;
 
 		std::string			getContentType( std::string &path );
 		std::string			getContentLength( std::string &path );
@@ -71,12 +64,13 @@ class Response
 		void				mapOfTypes( );
 		void				UpdateStatusCode(std::string &s);
 		void				isRealPath(std::string &path);
+		void				throwNewPath(std::string msg, std::string code);
+
 		std::string			concatenateIndexDirectory( );
 		std::string			concatenatePath( std::string p );
 		std::string			pathErrorPage(std::string code);
 		std::string			getExtensionFile();
 
-		void				throwNewPath(std::string msg, std::string code);
 
 };
 

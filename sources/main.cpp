@@ -18,8 +18,8 @@
 
 int main(int ac, char **av, char** env)
 {
-    std::fstream configFile;
-    ConfigFile            MyConfigFile;
+    std::fstream           configFile;
+    ConfigFile             MyConfigFile;
     Multiplexer            multiplexer;
         
     try

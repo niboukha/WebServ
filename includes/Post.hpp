@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/04 09:13:45 by shicham          ###   ########.fr       */
+/*   Updated: 2024/02/27 15:56:04 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,21 +30,22 @@ class	Post
 		bool			enter;
 		long long		uploadSize;
 		long long		saveOffset;
-		std::ofstream	UploadFile;
 		long long		contentLengthLong;
-		int				a;
+		std::ofstream	UploadFile;
+		std::ifstream	in;
+		long long		maxBody;
 
 	public :
 
 		Post( Response &response );
 		~Post( );
 
-		std::string				responsHeader(Stage &stage, std::string &reqBuff);
-		std::string				responsBody();
+		void					responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes);
+		void					responsBody(std::string &bodyRes);
 
 		void					requestedStatus(Stage &stage, std::string &reqBuff);
 
-		void					chunkedTransfer(std::string body, Stage &stage);
+		void					chunkedTransfer(std::string &reqBuff, Stage &stage);
 		void					nonChunkedTransfer(Stage &stage, std::string &reqBuff);
 		void					unsupportedUpload( );
 

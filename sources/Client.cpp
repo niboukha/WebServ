@@ -60,32 +60,42 @@ void	Client::setSendBuff(const std::string& buff)
 	sendBuff = buff;
 }
 
+
 void	Client::recieveRequest()
 {
 	std::string	s;
 	
 	try
 	{
-
+		req.fillErrorPages();//tmp 
+		// std::cout << "in request \n";
 		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 			req.parseRequest(reqBuff, stage);
-		
 	}
 	catch(Request::BadRequest& bReq)
 	{
+		// std::cout << "in bad request -> \n";
 
-		s = bReq.getPairCodePath().first;
+		s = bReq.getPairCodePath().second;
+
 		res.setStatusCodeMsg(s);//mochkil hna !!!
-		res.setPath(bReq.getPairCodePath().second);
-		stage = RESHEADER; 
+		// std::cout << res.pathErrorPage(bReq.getPairCodePath().first) << "\n";
+		res.setPath(res.pathErrorPage(bReq.getPairCodePath().first));
+
+		// std::cout << res.getPath() << "\n";
+		stage = REQBODY;
 	}
 	catch(Request::NotImplemented& NotImplemented)
 	{
-		s = NotImplemented.getPairCodePath().first;
+		// std::cout << "in not Implemented -> \n";
+		s = NotImplemented.getPairCodePath().second;
 		res.setStatusCodeMsg(s);
-		res.setPath(NotImplemented.getPairCodePath().second);
-		stage = RESHEADER;
+		res.setPath(res.pathErrorPage(NotImplemented.getPairCodePath().first));
+		// std::cout << "khera -> " << res.getPath() << "\n";
+		// std::cout << req.getMethod() << "\n";
+		stage = REQBODY;
 	}
+	// catch()
 }
 
 void	Client::sendResponse()
@@ -117,10 +127,7 @@ void	Client::serve()
 {
 	if (stage < REQBODY)
 		recieveRequest();
-	// if (!res.getBody().empty())
-	// 	res.setBody(res.getBody() + reqBuff);
-	// else
-	// 	res.setBody(reqBuff);
-	// reqBuff.clear();
+	// std::cout << "------> here\n";
 	sendResponse();
+
 } 

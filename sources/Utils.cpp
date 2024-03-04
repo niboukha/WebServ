@@ -98,3 +98,14 @@ long long	Utils::stringToLong(std::string s)
 	ss >> n;
 	return (n);
 }
+
+std::string	Utils::longToString(long long len)
+{
+	std::stringstream	ss;
+	std::string			s;
+	
+	ss << len;
+	ss >> s;
+	return (s);
+}
+

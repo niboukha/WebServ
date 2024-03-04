@@ -27,6 +27,7 @@ class	Delete
 		std::streampos	sizeofRead;
 		long long		saveOffset;
 		bool			isReal;
+		std::ifstream	in;
 
 	public :
 

@@ -17,8 +17,7 @@ Response::Response( Request &request ) :	req( request ),
 											post( NULL ),
 											delt( NULL ),
 											statusCodeMsg( "-1" ),
-											path( "-1" ),
-											uploadLength(0 )
+											path( "-1" )
 {
 	mapOfTypes();
 }
@@ -38,16 +37,6 @@ void	Response::setStatusCodeMsg(std::string& codeMsg)
 void	Response::setPath(std::string pt)
 {
 	path = pt;
-}
-
-void	Response::setBody(const std::string& bdy)
-{
-	body = bdy;
-}
-
-void	Response::setUploadLength(long long  b)
-{
-	uploadLength = b;
 }
 
 void	Response::setHeaderRes(const std::string& header)
@@ -70,11 +59,6 @@ const std::string&	Response::getPath() const
 	return (path);
 }
 
-const std::string&	Response::getBody() const
-{
-	return (body);
-}
-
 const std::string&	Response::getHeaderRes() const
 {
 	return (headerRes);
@@ -85,10 +69,6 @@ const std::string&	Response::getBodyRes() const
 	return (bodyRes);
 }
 
-const long long &		Response::getUploadLength() const
-{
-	return (uploadLength);
-}
 
 void	Response::UpdateStatusCode(std::string &s)
 {
@@ -132,6 +112,8 @@ void	Response::mapOfTypes( )
 			Utils::trimString(value);
 			Utils::trimString(vec[i]);
 			mimeType[vec[i]] = value;
+			if (i == 0)
+				extentionFile[value] = vec[i];
 		}
 	}
 	file.close();
@@ -139,22 +121,10 @@ void	Response::mapOfTypes( )
 
 std::string	Response::getExtensionFile( )
 {
-	const std::map<std::string, std::string>		&header = getRequest().getHeaders();;
-	std::map<std::string, std::string> ::iterator	it;
+	const std::map<std::string, std::string>	&header = getRequest().getHeaders();
 
-	for(it = mimeType.begin(); it != mimeType.end(); it++)
-	{
-		if ( header.find( "content-type" )->second == it->second )
-			return ( it->first );
-	}
-
-	// const std::map<std::string, std::string>	&header = getRequest().getHeaders();;
-	// std::string									ext;
-	
-	// ext = header.find("content-type")->second;
-	// std::cout << ext << "\n"
-	// if (mimeType.find(ext) != mimeType.end())
-	// 	return (mimeType.find(ext)->first);
+	if (extentionFile.find(header.find( "content-type" )->second) != extentionFile.end())
+		return ( extentionFile.find(header.find( "content-type" )->second)->second );
 	return ("txt");
 }
 
@@ -227,30 +197,31 @@ std::string	Response::concatenatePath( std::string p )
 	const mapStrVect	&loc = getRequest().getLocation();
 	std::string	path;
 
-	path   = loc.find("root")->second.front() + p;
+	path = loc.find("root")->second.front() + p;
 	isRealPath(path);
 	return (path);
 }
 
 std::string	Response::pathErrorPage(std::string code)
 {
+	struct stat 								statPath;
 	const std::map<std::string, std::string>	&confgError = req.getServer();
 	const std::map<std::string, std::string>	&serError 	= req.getErrorPages();
-	struct stat 								statPath;
 
-	if (!Utils::isFile(confgError.find(code)->second.c_str())
+	if (confgError.find(code) == confgError.end()
+		or (!Utils::isFile(confgError.find(code)->second.c_str())
 		or   (!stat(confgError.find(code)->second.c_str(), &statPath)
-		and !(statPath.st_mode & S_IWUSR)) )
+		and !(statPath.st_mode & S_IWUSR))) )
 			return (serError.find(code)->second);
 	return (confgError.find(code)->second);
 }
 
 void	Response::throwNewPath(std::string msg, std::string code)
 {
-	std::string	path;
+	std::string	status;
 	
-	path = msg;
-	setStatusCodeMsg(path);
+	status = msg;
+	setStatusCodeMsg(status);
 	throw pathErrorPage(code);
 }
 
@@ -279,8 +250,11 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == RESBODY)
 			{
 				get->responsBody(bodyRes);
+
 				if (get->getSizeofRead() == 0)
+				{
 					return ( stage = RESEND );
+				}
 			}
 			break;
 
@@ -312,12 +286,12 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			}
 			if (stage == RESHEADER)
 			{
-				headerRes = post->responsHeader(stage, reqBuff);
+				post->responsHeader(stage, reqBuff, headerRes);
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)
 			{
-				bodyRes = post->responsBody();
+				post->responsBody(bodyRes);
 				if (post->getSizeofRead() == 0) return ( stage = RESEND );
 			}
 			break;

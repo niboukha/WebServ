@@ -110,6 +110,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     }
     else if (stage == REQHEADER)
     {
+            // std::cout << buff << "\n";
         if (!buff.find("\r\n"))
         {
             if (headers.find("transfer-encoding") != headers.end()
@@ -181,7 +182,7 @@ void    Request::parseRequestLine(std::string    &buff)
     std::string                 reqLine;
     size_t                      found;
     std::string                 methodes[8] = {"GET", "POST", "DELETE", 
-                                            "PUT", "CONNECT", "OPTIONS", "TRACE", "HEAD"};
+                                            "PUT", "CONNECT", "OPTIONS", "TRACE", "HEAD"}; //PATCH//HEAD FIHA BLAN
     std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
   
 //   std::cout << "-----> here " << std::endl;
@@ -197,11 +198,18 @@ void    Request::parseRequestLine(std::string    &buff)
     if ( splitReqLine.size() != 3 
         or (std::find(methodes, methodes + 8, splitReqLine[0]) == (methodes +  8))
         or splitReqLine[2].compare("HTTP/1.1"))//Bad request can cz SGV !!!
+    {
+        method = "GET";
+        protocolVersion = "HTTP/1.1";
         throw Request::BadRequest("400", "400 Bad Request");
+    }
     method = splitReqLine[0];
-    if (std::find(methodesImp, methodesImp + 3, method) \
-        == (methodes +  3))//Not implemented
-       throw Request::NotImplemented("501", "501 Not Implemented");
+    if (std::find(methodesImp, methodesImp + 3 , method) == (methodesImp +  3))//Not implemented
+    {
+        method = "GET";
+        protocolVersion = "HTTP/1.1";
+        throw Request::NotImplemented("501", "501 Not Implemented");// 405 not allowed
+    }
     uri = splitReqLine[1];
     protocolVersion = splitReqLine[2];
     // std::cout << "====> the end of parse req line " << std::endl;
