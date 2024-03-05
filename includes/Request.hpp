@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/04 15:31:33 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 06:18:57 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,12 +52,16 @@ class Request
 		const	std::map<std::string, std::string>	getHeaders() const;
 		const	std::map<std::string, std::string>	getErrorPages() const;
 
+		void setMethod( std::string method);
+		void setProtocolVersion( std::string httpVersion);
+
+		void		validateRequestHeader();
 		void		fillErrorPages();
 		void		parseUri( );
-		void		decodeUri();
-		std::string decodePercentEncoded(std::string hexastr);
+		// void		decodeUri();
+		// std::string decodePercentEncoded(std::string hexastr);
 		void		parseRequestLine(std::string    &buff);
-		void		parseHeader(std::string& buff);
+		void		parseHeader(std::string& buff, size_t& found);
         // void		SetConfigFile(ConfigFile& configFile);
 		void		matchingLocation();
 		Server		matchingServer();
@@ -95,6 +99,28 @@ class Request
 				{
 				}
 				virtual ~NotImplemented() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
+				{
+				}
+				virtual const char* what() const throw() 
+				{
+					return NULL;
+    			}
+				const std::pair<std::string, std::string>& getPairCodePath() const
+				{
+					return pairCodePath;
+				}
+		};
+
+		class NotSupported : std::exception
+		{
+			private:
+					std::pair<std::string, std::string>	pairCodePath;
+			public:
+				NotSupported(const char* codeError, const char* path) : 
+					pairCodePath(codeError, path)
+				{
+				}
+				virtual ~NotSupported() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
 				{
 				}
 				virtual const char* what() const throw() 

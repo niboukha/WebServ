@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:59:44 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/22 06:43:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/05 05:28:32 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,15 @@ class MissingLocationDirectives : public std::exception
         const char* what() const throw()
         {
             return ("config file: some necessary directives missing in location block");
+        }   
+};
+
+class InvalidLocationDirective : public std::exception
+{
+    public:
+        const char* what() const throw()
+        {
+            return ("config file: invalid location directive");
         }   
 };
 

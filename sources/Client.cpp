@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/04 16:23:53 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 09:02:57 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,8 @@ void	Client::recieveRequest()
 	catch(Request::BadRequest& bReq)
 	{
 		// std::cout << "in bad request -> \n";
-
+		req.setMethod("GET");
+		req.setProtocolVersion("HTTP/1.1");
 		s = bReq.getPairCodePath().second;
 
 		res.setStatusCodeMsg(s);//mochkil hna !!!
@@ -87,6 +88,8 @@ void	Client::recieveRequest()
 	}
 	catch(Request::NotImplemented& NotImplemented)
 	{
+		req.setMethod("GET");
+		req.setProtocolVersion("HTTP/1.1");
 		// std::cout << "in not Implemented -> \n";
 		s = NotImplemented.getPairCodePath().second;
 		res.setStatusCodeMsg(s);
@@ -95,7 +98,18 @@ void	Client::recieveRequest()
 		// std::cout << req.getMethod() << "\n";
 		stage = REQBODY;
 	}
-	// catch()
+	// catch(Request::NotSupported& NotSupported)
+	// {
+	// 	req.setMethod("GET");
+	// 	req.setProtocolVersion("HTTP/1.1");
+	// 	// std::cout << "in not SuppoNotSupported -> \n";
+	// 	s = NotSupported.getPairCodePath().second;
+	// 	res.setStatusCodeMsg(s);
+	// 	res.setPath(res.pathErrorPage(NotSupported.getPairCodePath().first));
+	// 	// std::cout << "khera -> " << res.getPath() << "\n";
+	// 	// std::cout << req.getMethod() << "\n";
+	// 	stage = REQBODY;
+	// }
 }
 
 void	Client::sendResponse()

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:26 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/04 15:17:02 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 05:07:00 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ class Server
         
         static  bool  locationValidDirective(std::string &directive, std::vector<std::string> &values);
         static  bool  isValidRoot(std::vector<std::string> &rootValue);
+        static  bool    isValidReturnDirective(std::vector<std::string> &returnValue);
         // static  bool  isValidAllowMethodes(std::vector<std::string> &allowMethodesValue);
         // static  bool  isValidIndex(std::vector<std::string> &indexValue);
         static  bool  isValidAutoIndex(std::vector<std::string> &autoindexValue);

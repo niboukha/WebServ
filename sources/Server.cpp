@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/04 15:17:37 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 08:05:29 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 
 bool     (*Server::functionsServer[])(std::string &) = {&Server::isValidHost, &Server::isValidPort, 
                                                 &Server::isValidErrorPage, 
-                                                &Server::isValidClientMaxBodySize};//update
+                                                &Server::isValidClientMaxBodySize};
 
 bool     (*Server::functionsLocation[])(std::vector<std::string> &) = {&Server::isValidRoot, &Server::isValidAutoIndex, 
-                                                        &Server::isValidUploadPass};//update
+                                                        &Server::isValidUploadPass, &Server::isValidReturnDirective};//update
 Server::Server()
 {  
 }
@@ -53,17 +53,26 @@ const int&  Server::getMasterSocket() const
 
 void    Server::createAndBindSocket(fd_set& readFds)
 {
-    sockaddr_in serverAdd;
-    int     opt;
+    sockaddr_in serverAdd, *ipv4;
+    int     opt, status;
+    struct addrinfo hints, *result, *p;
+    struct in_addr addr;
+    //  struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
     
     // (void)add;//to check mn b3ed 
+    memset(&hints, 0, sizeof hints);
     masterSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (masterSocket < 0)
         throw strerror(errno);
     FD_SET(masterSocket, &readFds);
+    if ((status = getaddrinfo(serverData.find("host")->second.c_str(), NULL, &hints, &result)) != 0)
+        throw strerror(errno);
     opt = 1;
+    p = result;
+    ipv4 = (struct sockaddr_in *)p->ai_addr;
+    addr = ipv4->sin_addr;
     serverAdd.sin_family = AF_INET;
-    serverAdd.sin_addr.s_addr = INADDR_ANY;
+    serverAdd.sin_addr = addr;
     // serverAdd.sin_addr.s_addr = gettaddrinfo(add.c_str(), );
     serverAdd.sin_port = htons(atoi(serverData["port"].c_str()));
     if (setsockopt(masterSocket, SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0)
@@ -87,26 +96,7 @@ int   Server::acceptNewConnection(fd_set& readFds, fd_set& writeFds)
     FD_SET(acceptedClient, &writeFds);
     return acceptedClient;
 }
-//  void     Server::addErrorPagesMissing()//update
-//  {
-//     if (serverData.find("404") == serverData.end())
-//         serverData["404"] = "/ErrorPages/404.html";
-//     if (serverData.find("501") == serverData.end())
-//         serverData["501"] = "/ErrorPages/501.html";
-//     if (serverData.find("400") == serverData.end())
-//         serverData["400"] = "/ErrorPages/400.html";
-//     if (serverData.find("414") == serverData.end())
-//         serverData["414"] = "/ErrorPages/414.html";
-//     if (serverData.find("413") == serverData.end())
-//         serverData["413"] = "/ErrorPages/413.html";
-//     if (serverData.find("405") == serverData.end())
-//         serverData["405"] = "/ErrorPages/405.html";
-//     if (serverData.find("403") == serverData.end())
-//         serverData["403"] = "/ErrorPages/403.html";
-//     if (serverData.find("201") == serverData.end())
-//         serverData["201"] = "/ErrorPages/201.html";
-//  }
- 
+
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
 {
     std::string    directives[4] = {"host", "port", "error_page", "client_max_body_size"};
@@ -137,7 +127,7 @@ bool   Server::isValidHost(std::string &hostValue)//update
 bool Server::isValidPort(std::string &portValue)//update
 {
     std::istringstream iss(portValue);
-    int port;
+    long long port;
     char remain;
     
     if (!(iss >> port) or (iss >> remain) or port < 0 or port > 65536)
@@ -148,7 +138,7 @@ bool Server::isValidPort(std::string &portValue)//update
 bool    Server::isValidErrorPage(std::string &errorPageValue)//update
 {
     std::istringstream iss(errorPageValue);
-    int error;
+    long long error;
     char remain;
     
     if (!(iss >> error) or (iss >> remain))//to chek mn b3ed 
@@ -169,11 +159,12 @@ bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//u
 
 bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)//update
 {
-    std::string locDirectives[4] = {"root", "autoindex", "upload_pass"};
+    std::string locDirectives[4] = {"root", "autoindex" , "return"};
 
-    if (!directive.compare("index") 
+    if ((!directive.compare("index") 
         or !directive.compare("allow_methodes")
-        or !directive.compare("cgi_pass"))
+        or !directive.compare("cgi_pass")) 
+        or  !directive.compare("upload_pass"))//to check cgi pass and index
         return true;
     for(size_t i = 0; i < 3; i++)
     {
@@ -188,8 +179,10 @@ bool    Server::locationValidDirective(std::string &directive, std::vector<std::
 
 bool    Server::isValidRoot(std::vector<std::string> &rootValue)
 {
-    if (rootValue.size() > 1)//to check
+    if (rootValue.size() != 1)//to check
        throw InvalidNumberOfArguments();
+    if (rootValue[0].find("/"))
+        throw InvalidDirectiveArgument();
     return true;
 }
 
@@ -225,6 +218,19 @@ bool    Server::serverObligatoryDirectives()
     return true;
 }
 
+bool    Server::isValidReturnDirective(std::vector<std::string> &returnValue)
+{
+    std::istringstream  iss(returnValue[1]);
+    long long           returnCode;
+    char                remain;
+    
+    if (returnValue.size() != 2 
+    or !(iss >> returnCode) or (iss >> remain) 
+    or returnCode < 0 or returnValue[1].find("/") 
+    or returnValue[1].find_last_of("/") != returnValue[1].length() - 1)
+        throw InvalidDirectiveArgument();
+    return true;
+}
 bool    Server::locationObligatoryDirectives(std::map<std::string, std::string> &loc)//i didn't use it 
 {
     std::string locDirectives[4] = {"root", "index", "autoindex", "allow_methodes"};

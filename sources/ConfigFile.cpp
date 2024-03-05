@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/26 11:26:32 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/05 08:57:08 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
     std::vector<std::string>    vect;
     
     vect.push_back("");
-    if (location.find("root") == location.end())//redo lbal !!!
-        location["root"] = vect;
+    // if (location.find("root") == location.end())//redo lbal !!!
+    //     location["root"] = vect;
     if (location.find("index") == location.end())
         location["index"] = vect;
     if (location.find("autoindex") == location.end())
@@ -42,6 +42,8 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
         location["upload_pass"] = vect;
     if (location.find("cgi_pass") == location.end())
         location["cgi_pass"] = vect;
+    if (location.find("return") == location.end())//update!!!
+        location["return"] = vect;
 }
 
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
@@ -52,7 +54,7 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 
     while (std::getline(configFile, line))
     {
-		if (line.find_first_not_of("\t") == 2 and isalpha(line[2]))
+		if (line.find_first_not_of("\t") == 2 and std::isalnum(line[2]))//update
 		{
             values = StringOperations::split(line ,"\t ");
             key = values[0];
@@ -66,6 +68,8 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 		}
 		else
         {
+            (location.find("root") == location.end()) ? 
+            throw InvalidLocationDirective() : false;//update
             addDirectivesMissingInLocation(location);//update
             configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
@@ -76,23 +80,27 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 
 void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 {
-    std::string line, key;
-    // Server      server;
+    std::string line;
     std::map<std::string, std::string>  servData;
     std::vector<std::string>        values;
     std::map<std::string, mapStrVect>   locations;
     
     while (std::getline(configFile, line))
     {
-		if (!line.find("\t") and isalpha(line[1]))
+		if (!line.find("\t") and std::isalnum(line[1]))//update
 		{
 			values = StringOperations::split(line, " \t");
-			key = values[0];
 			if ((values[0].compare("error_page") and values.size() != 2) 
             or (!values[0].compare("error_page") and values.size() != 3))
 				throw InvalidNumberOfArguments();
 			if (!values[0].compare("location"))
-				locations[values[1]] = fillLocation(configFile);//sould check if the location already exists
+            {
+                (values[1].find("/") or values[1].find_last_of("/") != values[1].length() - 1) ?
+                    throw InvalidDirectiveArgument() : false;
+                // (locations.find(values[1]) != locations.end()) ?
+                //    throw DirectiveAlreadyExist(): false;	//sould check if the location already exists
+				locations[values[1]] = fillLocation(configFile);
+            }
 			else if (Server::serverValidDirective(values[0], values[1]))
 			{
 				if (!values[0].compare("error_page"))
@@ -109,10 +117,8 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 		}
     }
     server.setServerData(servData);
-    // server.addErrorPagesMissing();
     server.serverObligatoryDirectives();
     server.setLocations(locations);
-    // return server;
 }
 
 void    ConfigFile::parseConfigFile(std::fstream &configFile)
@@ -129,10 +135,10 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
             fillServer(configFile, server);
             servers.push_back(server);
         }
-        else if (line.empty())
+        else if (line.empty())//to check 
             continue ; 
         else
-            throw SyntaxError();   
+            throw SyntaxError();
     }
     this->servers = servers;
     // std::cout << "***** vectors of servers : ***** " << std::endl;
