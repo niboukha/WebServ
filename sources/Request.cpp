@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/05 09:20:42 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 21:38:38 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 Request::Request(std::vector<Server>& servers) : servs(servers)
 {
-    
+    fillErrorPages();
 }
 
 Request::Request()
@@ -96,8 +96,8 @@ void    Request::setProtocolVersion(std::string httpVersion)
 
 void    Request::validateRequestHeader()
 {
-    long long   contentLen;
-    char        *end;
+    // long long   contentLen;
+    // char        *end;
     
       if (headers.find("transfer-encoding") != headers.end()
         and headers["transfer-encoding"].compare("chunked"))//not implemented to check mn b3d
@@ -148,7 +148,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         {
             validateRequestHeader();
             matchingLocation();
-            // fillErrorPages();
+            // std::cout << 
             buff = buff.substr(pos + 2);
             stage = REQBODY;
             return ;
@@ -238,20 +238,25 @@ void    Request::parseRequestLine(std::string    &buff)
 void    Request::parseHeader(std::string &buff, size_t& found)
 {
     std::string key, header, value;
+    size_t  pos;
     
    
     header = buff.substr(0, found);
     buff = buff.substr(found + 2);
-    if (!header.empty())//update
-    { 
-        key = header.substr(0, header.find_first_of(":"));// !!!!
-        // key = StringOperations::trim(key);
+    pos = header.find_first_of(":");
+    if (pos != std::string::npos)
+   { 
+        key = header.substr(0, header.find_first_of(":"));
         if (key.find_first_of(" \t") != std::string::npos)
-             throw Request::BadRequest("400", "400 Bad Request");
+                throw Request::BadRequest("400", "400 Bad Request");
         std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
         value = StringOperations::trim(header.substr(key.length() + 1));
         headers[key] = value;
     }
+    else
+    {
+    }
+        
 }
 
 // void    Request::SetConfigFile(ConfigFile& configFile)
@@ -298,7 +303,7 @@ void    Request::matchingLocation()
         }
     }
     requestedPath = requestedPath.substr(subUri.length() - 1);
-    std::cout << "=======> requested path : " << requestedPath << std::endl;
+    // std::cout << "=======> requested path : " << requestedPath << std::endl;
 }
 
 Server  Request::matchingServer()
@@ -311,9 +316,10 @@ Server  Request::matchingServer()
     pair.second = StringOperations::split(headers["host"], ":")[1];
    for (size_t i = 0; i < servs.size(); i++)
    {
-        if (servs[i].getServerData().find("port")->second.compare(pair.second) 
-            and servs[i].getServerData().find("server_name")->second.compare(pair.first))//to check mn b3ed 
+        if (!servs[i].getServerData().find("port")->second.compare(pair.second) 
+            and !servs[i].getServerData().find("server_name")->second.compare(pair.first))
             return servs[i];
    }
+  
     return servs[0];
 }

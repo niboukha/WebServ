@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:53:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/05 09:11:29 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 22:02:36 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,26 +44,26 @@
 #include <errno.h>
 #include <sys/select.h>
 #include <list>
-#include <netdb.h>
+#include <netdb.h>//mockil f trim 
 #define _XOPEN_SOURCE 700
 #define	PORT 8080
 #define	CRLF "\r\n" //carriage return and line feed
-#define	PATH_MIME "/nfs/homes/shicham/Desktop/websou/extraFiles/mimetype.txt"
+#define	PATH_MIME "/nfs/homes/shicham/Desktop/web/extraFiles/mimetype.txt"
 #define	BUF 1024
 
-#define	ERROR_201 "/nfs/homes/shicham/Desktop/websou/ErrorPages/201.html"
-#define	ERROR_204 "/nfs/homes/shicham/Desktop/websou/ErrorPages/204.html"
-#define	ERROR_301 "/nfs/homes/shicham/Desktop/websou/ErrorPages/301.html"
-#define	ERROR_401 "/nfs/homes/shicham/Desktop/websou/ErrorPages/401.html"
-#define	ERROR_403 "/nfs/homes/shicham/Desktop/websou/ErrorPages/403.html"
-#define	ERROR_404 "/nfs/homes/shicham/Desktop/websou/ErrorPages/404.html"
-#define	ERROR_409 "/nfs/homes/shicham/Desktop/websou/ErrorPages/409.html"
-#define	ERROR_413 "/nfs/homes/shicham/Desktop/websou/ErrorPages/413.html"
-#define	ERROR_500 "/nfs/homes/shicham/Desktop/websou/ErrorPages/500.html"
-#define	ERROR_501 "/nfs/homes/shicham/Desktop/websou/ErrorPages/501.html"
-#define	ERROR_400 "/nfs/homes/shicham/Desktop/websou/ErrorPages/400.html"
-#define	ERROR_414 "/nfs/homes/shicham/Desktop/websou/ErrorPages/414.html"
-#define	ERROR_405 "/nfs/homes/shicham/Desktop/websou/ErrorPages/405.html"
+#define	ERROR_201 "/nfs/homes/shicham/Desktop/web/ErrorPages/201.html"
+#define	ERROR_204 "/nfs/homes/shicham/Desktop/web/ErrorPages/204.html"
+#define	ERROR_301 "/nfs/homes/shicham/Desktop/web/ErrorPages/301.html"
+#define	ERROR_401 "/nfs/homes/shicham/Desktop/web/ErrorPages/401.html"
+#define	ERROR_403 "/nfs/homes/shicham/Desktop/web/ErrorPages/403.html"
+#define	ERROR_404 "/nfs/homes/shicham/Desktop/web/ErrorPages/404.html"
+#define	ERROR_409 "/nfs/homes/shicham/Desktop/web/ErrorPages/409.html"
+#define	ERROR_413 "/nfs/homes/shicham/Desktop/web/ErrorPages/413.html"
+#define	ERROR_500 "/nfs/homes/shicham/Desktop/web/ErrorPages/500.html"
+#define	ERROR_501 "/nfs/homes/shicham/Desktop/web/ErrorPages/501.html"
+#define	ERROR_400 "/nfs/homes/shicham/Desktop/web/ErrorPages/400.html"
+#define	ERROR_414 "/nfs/homes/shicham/Desktop/web/ErrorPages/414.html"
+#define	ERROR_405 "/nfs/homes/shicham/Desktop/web/ErrorPages/405.html"
 
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;

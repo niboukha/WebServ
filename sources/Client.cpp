@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/05 09:02:57 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/05 20:52:17 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ void	Client::recieveRequest()
 	
 	try
 	{
-		req.fillErrorPages();//tmp 
+		// req.fillErrorPages();//tmp 
 		// std::cout << "in request \n";
 		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 			req.parseRequest(reqBuff, stage);
@@ -98,18 +98,18 @@ void	Client::recieveRequest()
 		// std::cout << req.getMethod() << "\n";
 		stage = REQBODY;
 	}
-	// catch(Request::NotSupported& NotSupported)
-	// {
-	// 	req.setMethod("GET");
-	// 	req.setProtocolVersion("HTTP/1.1");
-	// 	// std::cout << "in not SuppoNotSupported -> \n";
-	// 	s = NotSupported.getPairCodePath().second;
-	// 	res.setStatusCodeMsg(s);
-	// 	res.setPath(res.pathErrorPage(NotSupported.getPairCodePath().first));
-	// 	// std::cout << "khera -> " << res.getPath() << "\n";
-	// 	// std::cout << req.getMethod() << "\n";
-	// 	stage = REQBODY;
-	// }
+	catch(Request::NotSupported& NotSupported)
+	{
+		req.setMethod("GET");
+		req.setProtocolVersion("HTTP/1.1");
+		// std::cout << "in not SuppoNotSupported -> \n";
+		s = NotSupported.getPairCodePath().second;
+		res.setStatusCodeMsg(s);
+		res.setPath(res.pathErrorPage(NotSupported.getPairCodePath().first));
+		// std::cout << "khera -> " << res.getPath() << "\n";
+		// std::cout << req.getMethod() << "\n";
+		stage = REQBODY;
+	}
 }
 
 void	Client::sendResponse()
@@ -142,6 +142,7 @@ void	Client::serve()
 	if (stage < REQBODY)
 		recieveRequest();
 	// std::cout << "------> here\n";
-	sendResponse();
+	if (stage >= REQBODY)
+		sendResponse();
 
 } 
