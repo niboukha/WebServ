@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 09:34:30 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 10:31:33 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,16 +99,20 @@ void    Request::validateRequestHeader()
     // long long   contentLen;
     // char        *end;
     
-      if (headers.find("transfer-encoding") != headers.end()
-        and headers["transfer-encoding"].compare("chunked"))//not implemented to check mn b3d
-        throw Request::NotImplemented("501", "501 Not Implemented");//to ckeck
-    if (headers.find("transfer-encoding") == headers.end() 
+    if ((headers.find("transfer-encoding") == headers.end() 
         and headers.find("content-length") == headers.end() 
-        and !method.compare("POST"))//bad req
+        and !method.compare("POST") )
+        or (headers.find("transfer-encoding") != headers.end() 
+        and headers.find("content-length") != headers.end() 
+        and !method.compare("POST")))//bad req
         throw Request::BadRequest("400", "400 Bad Request");
     if (!method.compare("POST") and 
         headers.find("content-type") == headers.end())
         throw Request::BadRequest("400", "400 Bad Request");
+    if (headers.find("transfer-encoding") != headers.end()
+        and headers["transfer-encoding"].compare("chunked"))//not implemented to check mn b3d
+        throw Request::NotImplemented("501", "501 Not Implemented");//to ckeck
+    
     // if (headers.find("content-length") == headers.end() and method.compare("POST"))
     //      throw Request::BadRequest("400", "400 Bad Request");
     // // if (headers.find("host") == headers.end())//to check mn b3ed
@@ -148,7 +152,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         {
             validateRequestHeader();
             matchingLocation();
-            std::cout << "THE END OR PARSING" << std::endl;
+            // std::cout << "THE END OR PARSING" << std::endl;
             buff = buff.substr(pos + 2);
             stage = REQBODY;
             return ;

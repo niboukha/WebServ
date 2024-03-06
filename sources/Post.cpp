@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 09:48:31 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 10:46:51 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,30 +54,40 @@ long long	Post::maxBodySize( )
 	return ( n );
 }
 
-void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
+void    Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 {
-	const std::map<std::string, std::string>	&head = res.getRequest().getHeaders();
+    const std::map<std::string, std::string>    &head = res.getRequest().getHeaders();
 
-	if (!UploadFile.is_open())
-	{
-		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
-		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
-		if (maxBodySize() < contentLengthLong)
-		{
-			stage = RESHEADER;
-			res.throwNewPath("413 Request Entity Too Large", "413");
-		}
-	}
-	UploadFile << reqBuff;
-	uploadSize += reqBuff.size();
-	std::cout << "in non chunked >> " << reqBuff << " " << uploadSize << " " << contentLengthLong << "<<\n";
-	if (uploadSize == contentLengthLong)
-	{
-		stage = RESHEADER;
-		UploadFile.close();
-		res.throwNewPath("201 Created", "201");
-	}
-	reqBuff.clear();
+    if (!UploadFile.is_open())
+    {
+        UploadFile.open(res.getPath().c_str(), std::ios_base::app);
+        contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
+            // std::cout << maxBodySize() << "|" << head.find("content-length")->second << "\n";
+        if (maxBodySize() < contentLengthLong)
+        {
+            stage = RESHEADER;
+            res.throwNewPath("413 Request Entity Too Large", "413");
+        }
+    }
+    if (static_cast<long long>(uploadSize + reqBuff.size()) > contentLengthLong)
+    {
+		std::cout << uploadSize << " " <<  reqBuff.size() << " " << contentLengthLong << "\n";
+		std::cout << std::string (reqBuff, uploadSize - 1, contentLengthLong - uploadSize) << "\n";
+		std::cout << "---> |" << reqBuff << "| |" << reqBuff.size() << "|\n";
+        UploadFile << std::string (reqBuff, uploadSize, contentLengthLong - uploadSize);
+        stage = RESHEADER;
+        UploadFile.close();
+        res.throwNewPath("201 Created", "201");
+    }
+    UploadFile << reqBuff;
+    uploadSize += reqBuff.size();
+    if (uploadSize == contentLengthLong)
+    {
+        stage = RESHEADER;
+        UploadFile.close();
+        res.throwNewPath("201 Created", "201");
+    }
+    reqBuff.clear();
 }
 
 void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
