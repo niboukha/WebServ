@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 12:21:48 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 19:22:53 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Response
 
 		std::map<std::string, std::string>	mimeType;
 		std::map<std::string, std::string>	extentionFile;
+		std::string	test;
 	public:
 
 		Response( Request &request );

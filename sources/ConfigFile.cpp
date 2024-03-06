@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 15:52:18 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 21:25:19 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 		else
         {
             (location.find("root") == location.end()) ? 
-            throw InvalidLocationDirective() : false;//update
+            throw ("config file error : invalid location block") : false;//update
             addDirectivesMissingInLocation(location);//update
             configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
@@ -80,10 +80,11 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 
 void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 {
-    std::string line;
+    std::string                         line;
     std::map<std::string, std::string>  servData;
-    std::vector<std::string>        values;
+    std::vector<std::string>            values;
     std::map<std::string, mapStrVect>   locations;
+    std::string                          trimLine;
     
     while (std::getline(configFile, line))
     {
@@ -96,9 +97,9 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 			if (!values[0].compare("location"))
             {
                 (values[1].find("/") or values[1].find_last_of("/") != values[1].length() - 1) ?
-                    throw InvalidDirectiveArgument() : false;
-                // (locations.find(values[1]) != locations.end()) ?
-                //    throw DirectiveAlreadyExist(): false;	//sould check if the location already exists
+                    throw ("Config file error: invalid location argument ") : false;
+                (locations.find(values[1]) != locations.end()) ?
+                   throw ("Config file : duplicate location block "): false;	//sould check if the location already exists
 				locations[values[1]] = fillLocation(configFile);
             }
 			else if (Server::serverValidDirective(values[0], values[1]))
@@ -106,24 +107,28 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 				if (!values[0].compare("error_page"))
 					values.erase(values.begin());
                 (servData.find(values[0]) != servData.end()) ? \
-				throw DirectiveAlreadyExist(): false;	
-				servData[values[0]] = values[1] ;
+				throw ("Config file : duplicate directive " +  values[0] + " in server") : false;	
+				servData[values[0]] = values[1];
 			}
 		}
 		else 
 		{
+            trimLine = StringOperations::trim(line);
+            (trimLine.empty()) ? throw SyntaxError() : false;
 			configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
 		}
+        
     }
     server.setServerData(servData);
     server.serverObligatoryDirectives();
+    (locations.find("/") == locations.end()) ? \
+    throw("Config file : default location doesn't exist") : false;
     server.setLocations(locations);
 }
 
 void    ConfigFile::parseConfigFile(std::fstream &configFile)
 {
-    std::vector<Server> servers;
     Server              server;
     std::string         line;
 
@@ -140,7 +145,6 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
         else
             throw SyntaxError();
     }
-    this->servers = servers;
     // std::cout << "***** vectors of servers : ***** " << std::endl;
     // for (size_t i = 0; i < servers.size(); i++)
     // {

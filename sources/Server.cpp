@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/05 08:05:29 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 20:38:33 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -213,7 +213,7 @@ bool    Server::serverObligatoryDirectives()
     for (size_t i = 0; i < 4; i++)
     {
         if (serverData.find(serverDirectives[i]) == serverData.end())
-            throw MissingServerDirectives();   
+            throw ("config file error : invalid server block " + serverDirectives[i] + " doesn't exist");   
     }
     return true;
 }

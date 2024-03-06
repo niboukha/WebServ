@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 11:26:59 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 19:24:10 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@ Response::Response( Request &request ) :	req( request ),
 											post( NULL ),
 											delt( NULL ),
 											statusCodeMsg( "-1" ),
-											path( "-1" )
+											path( "-1" ),
+											test("-1")
 {
 	mapOfTypes();
 }
@@ -233,6 +234,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 	vect.push_back("DELETE");
 	vect.push_back("POST");
 
+	// test = "hekj";
 	int  i = 0;
 	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
 
@@ -250,7 +252,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == RESBODY)
 			{
 				get->responsBody(bodyRes);
-
+				test = bodyRes;
 				if (get->getSizeofRead() == 0)
 				{
 					return ( stage = RESEND );

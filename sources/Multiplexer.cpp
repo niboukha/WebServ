@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 18:17:51 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 21:38:04 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ void    Multiplexer::multiplexing()
                     
                 }
             }
-            for (std::list<Client>::iterator i = clients.begin(); i != clients.end(); i++)
+            for (std::list<Client>::iterator i = clients.begin(); i !=  clients.end(); i++)
             {
                 if (FD_ISSET(i->getFd(), &tmpReadFds) and i->getStage() < RESHEADER)
                 {
@@ -91,6 +91,7 @@ void    Multiplexer::multiplexing()
                             FD_CLR(i->getFd(), &writeFds);
                             close(i->getFd());
                             i = clients.erase(i);
+                            i--;
                             continue;
                         }
                         i->setSendBuff("");
@@ -103,6 +104,7 @@ void    Multiplexer::multiplexing()
                         FD_CLR(i->getFd(), &writeFds);
                         close(i->getFd());
                         i = clients.erase(i);
+                        i--;
                     }
                 
             }

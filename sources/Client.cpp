@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 18:31:13 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 19:24:43 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,13 +27,13 @@ Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage),
 }
 
 
-const Client& Client::operator=(const Client& copy)
-{
-	if (this != &copy)
-	{
+// const Client& Client::operator=(const Client& copy)
+// {
+// 	if (this != &copy)
+// 	{
 		
-	}
-}
+// 	}
+// }
 
 const int&	Client::getFd() const
 {
