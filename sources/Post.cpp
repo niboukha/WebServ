@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 19:08:54 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 09:48:31 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,7 @@ void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 	}
 	UploadFile << reqBuff;
 	uploadSize += reqBuff.size();
+	std::cout << "in non chunked >> " << reqBuff << " " << uploadSize << " " << contentLengthLong << "<<\n";
 	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;

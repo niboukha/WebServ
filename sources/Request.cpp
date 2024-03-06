@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/05 21:38:38 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 09:34:30 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,7 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         {
             validateRequestHeader();
             matchingLocation();
-            // std::cout << 
+            std::cout << "THE END OR PARSING" << std::endl;
             buff = buff.substr(pos + 2);
             stage = REQBODY;
             return ;

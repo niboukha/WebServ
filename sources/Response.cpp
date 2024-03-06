@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/05 21:36:42 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 09:38:36 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -281,6 +281,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (post == NULL) post = new Post( *this );
 			if (stage == REQBODY)
 			{
+					std::cout << "->>>>" << reqBuff << "|\n";;
 				// std::cout <<"======> here ====" << std::endl;
 				post->requestedStatus(stage, reqBuff);
 				return (stage);
@@ -293,7 +294,10 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == RESBODY)
 			{
 				post->responsBody(bodyRes);
-				if (post->getSizeofRead() == 0) return ( stage = RESEND );
+				if (post->getSizeofRead() == 0)
+				{
+					return ( stage = RESEND );
+				} 
 			}
 			break;
 		// default :

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/04 17:53:41 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/06 09:30:33 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,7 @@ void    Multiplexer::multiplexing()
                         // std::cout << "-----> " << i->getFd() << std::endl;
                         // std::cout << "===> send buff : " << i->getSendBuff().c_str() << "||" <<std::endl;
                         s = send(i->getFd(), i->getSendBuff().c_str(), i->getSendBuff().size(), 0);
+                        std::cout << "=====> " << i->getSendBuff().c_str() << std::endl;
                         if (s == -1)
                         {
                             perror ("send : ");
