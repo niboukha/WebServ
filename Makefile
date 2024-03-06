@@ -1,28 +1,29 @@
-NAME = WebServ
-
-RM = rm -f
+CXX = c++
 
 CXXFLAGS = -std=c++98 -Wall -Wextra -Werror -fsanitize=address -g3
 
-CXX = c++
+NAME = webserv
 
-SRCS =   main.cpp  ConfigFile.cpp Server.cpp  \
-		StringOperations.cpp Request.cpp Client.cpp
+SRC = ./sources/Delete.cpp ./sources/Post.cpp ./sources/Request.cpp ./sources/Response.cpp ./sources/Server.cpp ./sources/main.cpp\
+	./sources/Get.cpp ./sources/Utils.cpp ./sources/Client.cpp ./sources/ConfigFile.cpp ./sources/StringOperations.cpp\
+	./sources/Multiplexer.cpp
 
-OBJS = $(SRCS:.cpp=.o)
+OBJ = $(SRC:%.cpp=%.o)
 
 all : $(NAME)
 
-$(NAME) : $(OBJS)
-		$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
+$(NAME): $(OBJ)
+	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
 
 %.o : %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) -c $<
 
 clean :
-	$(RM) $(OBJS)
+	rm -rf $(OBJ)
 
 fclean : clean
-	$(RM) $(NAME)
+	rm -rf $(NAME)
 
 re : fclean all
+
+.PHONY: all clean fclean re
