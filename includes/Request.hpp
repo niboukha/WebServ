@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 12:39:25 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 21:46:19 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ class ConfigFile;
 class Request
 {
     private:
-		// ConfigFile							configFileData;
 		std::vector<Server>					servs;
 		mapStrVect							location;
 		std::map<std::string, std::string>	server;
@@ -31,14 +30,12 @@ class Request
 		std::string							requestedPath;
 		std::string							protocolVersion;
 		std::string							uri;
-		std::string							autority;
-		std::string							scheme;
+		// std::string							autority;
+		// std::string							scheme;
 		std::string							queryParameters;
-		std::string							errorCode;
 		
     public:
         Request();
-		// Request(ConfigFile& config);
 		Request(std::vector<Server>& servers);
         ~Request();
 		// const	Request&	operator=(const Request& copy);
@@ -59,80 +56,15 @@ class Request
 		void   validateRequestHeader();
 		void		fillErrorPages();
 		void		parseUri( );
-		// void		decodeUri();
-		// std::string decodePercentEncoded(std::string hexastr);
+		void		decodeUri();
+		std::string decodePercentEncoded(std::string hexastr);
 		void		parseRequestLine(std::string    &buff);
 		void		parseHeader(std::string& buff, size_t& found);
-        // void		SetConfigFile(ConfigFile& configFile);
+     
 		void		matchingLocation();
-		Server		matchingServer();
+		Server&		matchingServer();
 		size_t		longestMatchingLocation(const std::string& prefix);
 
-		class BadRequest : std::exception
-		{
-			private:
-					std::pair<std::string, std::string>	pairCodePath;
-			public:
-				BadRequest(const char* codeError, const char* path) : 
-					pairCodePath(codeError, path)
-				{
-				}
-				virtual ~BadRequest() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
-				{
-				}
-				virtual const char* what() const throw() 
-				{
-					return NULL;
-    			}
-				const std::pair<std::string, std::string>& getPairCodePath() const
-				{
-					return pairCodePath;
-				}
-		};
-
-		class NotImplemented : std::exception
-		{
-			private:
-					std::pair<std::string, std::string>	pairCodePath;
-			public:
-				NotImplemented(const char* codeError, const char* path) : 
-					pairCodePath(codeError, path)
-				{
-				}
-				virtual ~NotImplemented() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
-				{
-				}
-				virtual const char* what() const throw() 
-				{
-					return NULL;
-    			}
-				const std::pair<std::string, std::string>& getPairCodePath() const
-				{
-					return pairCodePath;
-				}
-		};
-
-		class NotSupported : std::exception
-		{
-			private:
-					std::pair<std::string, std::string>	pairCodePath;
-			public:
-				NotSupported(const char* codeError, const char* path) : 
-					pairCodePath(codeError, path)
-				{
-				}
-				virtual ~NotSupported() _GLIBCXX_TXN_SAFE_DYN _GLIBCXX_NOTHROW
-				{
-				}
-				virtual const char* what() const throw() 
-				{
-					return NULL;
-    			}
-				const std::pair<std::string, std::string>& getPairCodePath() const
-				{
-					return pairCodePath;
-				}
-		};
 		
 };
 

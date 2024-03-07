@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   StringOperations.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 09:39:21 by shicham           #+#    #+#             */
-/*   Updated: 2024/02/23 11:58:46 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/07 15:04:22 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,9 @@ std::string StringOperations::trim(const std::string& str, const std::string REM
 {
     size_t first = str.find_first_not_of(REMOVE);
     size_t last = str.find_last_not_of(REMOVE);
-    if (first == last)
+    if (first == last and first != std::string::npos)
+        return (str);
+    else if (first == std::string::npos)
         return ("");
     return str.substr(first, (last - first + 1));
 }

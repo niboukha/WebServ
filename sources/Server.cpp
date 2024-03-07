@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 20:38:33 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 22:05:15 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ bool     (*Server::functionsServer[])(std::string &) = {&Server::isValidHost, &S
                                                 &Server::isValidClientMaxBodySize};
 
 bool     (*Server::functionsLocation[])(std::vector<std::string> &) = {&Server::isValidRoot, &Server::isValidAutoIndex, 
-                                                        &Server::isValidUploadPass, &Server::isValidReturnDirective};//update
+                                                        &Server::isValidReturnDirective, &Server::isValidUploadPass};//update
 Server::Server()
 {  
 }
@@ -159,14 +159,13 @@ bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//u
 
 bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)//update
 {
-    std::string locDirectives[4] = {"root", "autoindex" , "return"};
+    std::string locDirectives[4] = {"root", "autoindex" , "return", "upload_pass"};
 
     if ((!directive.compare("index") 
         or !directive.compare("allow_methodes")
-        or !directive.compare("cgi_pass")) 
-        or  !directive.compare("upload_pass"))//to check cgi pass and index
+        or !directive.compare("cgi_pass")))//to check cgi pass and index
         return true;
-    for(size_t i = 0; i < 3; i++)
+    for(size_t i = 0; i < 4; i++)
     {
         if (!locDirectives[i].compare(directive))
         {
@@ -181,7 +180,8 @@ bool    Server::isValidRoot(std::vector<std::string> &rootValue)
 {
     if (rootValue.size() != 1)//to check
        throw InvalidNumberOfArguments();
-    if (rootValue[0].find("/"))
+    if (rootValue[0].find_first_of("/") or rootValue[0].find_last_of("/") != 
+        (rootValue[0].length() - 1))
         throw InvalidDirectiveArgument();
     return true;
 }
@@ -201,8 +201,11 @@ bool    Server::isValidAutoIndex(std::vector<std::string> &autoindexValue)
 
 bool        Server::isValidUploadPass(std::vector<std::string> &uploadValue)
 {
-     if (uploadValue.size() > 1)
+    if (uploadValue.size() > 1)
         throw InvalidNumberOfArguments();
+    else if (uploadValue[0].find_first_of("/") or uploadValue[0].find_last_of("/") != 
+        (uploadValue[0].length() - 1))
+            throw ("config file : invalid upload pass directive a character / missing");
     return true ;
 }
 
@@ -213,7 +216,7 @@ bool    Server::serverObligatoryDirectives()
     for (size_t i = 0; i < 4; i++)
     {
         if (serverData.find(serverDirectives[i]) == serverData.end())
-            throw ("config file error : invalid server block " + serverDirectives[i] + " doesn't exist");   
+            throw ("config file error : invalid server block " + serverDirectives[i] + " required");   
     }
     return true;
 }
@@ -223,11 +226,12 @@ bool    Server::isValidReturnDirective(std::vector<std::string> &returnValue)
     std::istringstream  iss(returnValue[1]);
     long long           returnCode;
     char                remain;
-    
+
     if (returnValue.size() != 2 
     or !(iss >> returnCode) or (iss >> remain) 
-    or returnCode < 0 or returnValue[1].find("/") 
-    or returnValue[1].find_last_of("/") != returnValue[1].length() - 1)
+    or returnValue[1].find("/") 
+    or (returnValue[1].find_last_of("/") != returnValue[1].length() - 1)
+    or returnCode != 301)
         throw InvalidDirectiveArgument();
     return true;
 }

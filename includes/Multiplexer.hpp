@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:37:36 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/04 17:54:27 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 15:53:04 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,9 @@ class Multiplexer
 
         void setServers(const std::vector<Server>& servers);
         void    multiplexing();
+
+        void    readReq(Client& cl);
+        void    sendRes(Client& cl);
         
         
         

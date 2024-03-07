@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/07 11:57:14 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 16:00:20 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,46 @@ void    Multiplexer::setServers(const std::vector<Server>& servers)
     this->servers = servers;
 }
 
+void     Multiplexer::readReq(Client& cl)
+{
+    char buff[2048];
+    int r;
+
+    r = read(cl.getFd(), buff, 2048);
+    if (r <= 0)
+    {
+        perror("holla : ");
+        exit(1);
+    }
+    if (r > 0)
+    {
+        cl.setReqBuff(cl.getReqBuff() + std::string(buff, r));
+        cl.serve();
+    }
+}
+
+void    Multiplexer::sendRes(Client& cl)
+{
+    int s;
+
+    cl.serve();
+    if (cl.getSendBuff().size() > 0 and cl.getStage() < RESEND)
+    {
+        s = send(cl.getFd(), cl.getSendBuff().c_str(), cl.getSendBuff().size(), 0);
+        if (s == -1)
+        {
+            perror ("send : ");
+            cl.setStage(RESEND);
+        }
+        cl.setSendBuff("");
+    }
+}
+
+
 void    Multiplexer::multiplexing()
 {
     fd_set  readFds, writeFds, tmpReadFds, tmpWriteFds;
-    int     readyFds, maxFds, acceptedClient, r, s;
-    char    buff[2048];
+    int     readyFds, maxFds, acceptedClient ;
 
     FD_ZERO(&readFds);
     FD_ZERO(&writeFds);
@@ -50,46 +85,15 @@ void    Multiplexer::multiplexing()
                 {
                     acceptedClient = servers[i].acceptNewConnection(readFds, writeFds);
                     (acceptedClient > maxFds and acceptedClient <= 1024) ? maxFds = acceptedClient: false;
-                    clients.push_back(Client(servers, acceptedClient));;
-                    
+                    clients.push_back(Client(servers, acceptedClient));
                 }
             }
             for (std::list<Client>::iterator i = clients.begin(); i !=  clients.end(); i++)
             {
                 if (FD_ISSET(i->getFd(), &tmpReadFds) and i->getStage() < RESHEADER)
-                {
-                    r = read(i->getFd(), buff, 2048);
-                     if (r <= 0)
-                    {
-                        perror("holla : ");
-                        exit(1);
-                    }
-                    if (r > 0)
-                    {
-                        i->setReqBuff(i->getReqBuff() + std::string(buff, r));
-                        i->serve();
-                    }
-                }
+                    readReq(*i);
                 if (FD_ISSET(i->getFd(), &tmpWriteFds) and i->getStage() >= RESHEADER)
-                {
-                    i->serve();
-                    if ( i->getSendBuff().size() > 0 and i->getStage() < RESEND)
-                    {
-                        s = send(i->getFd(), i->getSendBuff().c_str(), i->getSendBuff().size(), 0);
-                        if (s == -1)
-                        {
-                            perror ("send : ");
-                            FD_CLR(i->getFd(), &readFds);
-                            FD_CLR(i->getFd(), &writeFds);
-                            close(i->getFd());
-                            i = clients.erase(i);
-                            i--;
-                            continue;
-                            // i->setStage(RESEND);
-                        }
-                        i->setSendBuff("");
-                    }
-                }
+                    sendRes(*i);
                 if (i->getStage() == RESEND)
                 {
                     FD_CLR(i->getFd(),&readFds);
@@ -97,8 +101,7 @@ void    Multiplexer::multiplexing()
                     close(i->getFd());
                     i = clients.erase(i);
                     i--;
-                }
-                
+                } 
             }
         }
     }

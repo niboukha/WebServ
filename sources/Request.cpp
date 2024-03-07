@@ -6,16 +6,12 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/07 14:55:20 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 22:21:59 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Request.hpp"
 
-// Request::Request(ConfigFile& config): configFileData(config)
-// {
-    
-// }
 
 Request::Request(std::vector<Server>& servers) : servs(servers)
 {
@@ -101,7 +97,7 @@ void    Request::validateRequestHeader()
     char        *end;
     
     if (headers.find("host") ==  headers.end())
-        throw Request::BadRequest("400", "400 Bad Request");
+        throw std::make_pair("400", "400 Bad Request");
         
     std::map<std::string, std::string>::iterator transferEncIt = headers.find("transfer-encoding"), 
                                                 contentLenIt = headers.find("content-length"),
@@ -110,29 +106,29 @@ void    Request::validateRequestHeader()
                                                 
     if (contentLenIt != headers.end())
     {
-        (contentLenIt->second.empty()) ? throw Request::BadRequest("400", "400 Bad Request") : false;
+        (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
         contentLen = strtoll(headers["content-length"].c_str(), &end, 10);
-        (contentLen < 0 or *end) ?  throw Request::BadRequest("400", "400 Bad Request") : false;
+        (contentLen < 0 or *end) ?  throw std::make_pair("400", "400 Bad Request") : false;
     }
     if (transferEncIt != headers.end())
     {
-        (transferEncIt->second.empty()) ? throw Request::BadRequest("400", "400 Bad Request") : false;
-        (transferEncIt->second.compare("chunked")) ?  throw Request::NotImplemented("501", "501 Not Implemented") : false;
+        (transferEncIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        (transferEncIt->second.compare("chunked")) ?  throw std::make_pair("501", "501 Not Implemented") : false;
     }
     if (contentTypeIt != headers.end() )
     {
-        (contentTypeIt->second.empty()) ? throw Request::BadRequest("400", "400 Bad Request") : false;
-        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw Request::NotImplemented("501", "501 Not Implemented") : false;
+        (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
     }
     isMethodPost = method.compare("POST");
     if ((!isMethodPost and transferEncIt == headers.end() 
         and contentLenIt == headers.end())
         or (!isMethodPost and contentLenIt != headers.end() 
         and transferEncIt != headers.end()))//bad req
-        throw Request::BadRequest("400", "400 Bad Request");
+        throw std::make_pair("400", "400 Bad Request");
     if (!isMethodPost and
         (contentTypeIt == headers.end()))
-       throw Request::BadRequest("400", "400 Bad Request");
+       throw std::make_pair("400", "400 Bad Request");
 } 
 
 void    Request::fillErrorPages()
@@ -176,49 +172,46 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     }
 }
 
-// std::string Request::decodePercentEncoded(std::string hexastr)
-// {
-//     int decimalValue;
-//     std::string toString;
+std::string Request::decodePercentEncoded(std::string hexastr)
+{
+    int decimalValue;
+    std::string toString;
     
-//     std::istringstream(hexastr) >> std::hex >> decimalValue;
-//     toString.append(1, decimalValue);
-//     return toString;
-// }
+    std::istringstream(hexastr) >> std::hex >> decimalValue;
+    toString.append(1, decimalValue);
+    return toString;
+}
 
-// void    Request::decodeUri()
-// {
-//     // std::cout << "=======> decode uri : " << std::endl;
-//     for (size_t i = 0; i < uri.size(); i++)
-//     {
-//         if ((i != uri.size() - 3) and 
-//         ((uri[i] == '%' and isdigit(uri[i + 1]) and isupper(uri[i + 2]))
-//         or (uri[i] == '%' and isdigit(uri[i + 1]) and isdigit(uri[i + 2]))))
-//             uri.replace(i, 3, decodePercentEncoded(uri.substr(i + 1, 2)));
-//     }
-//     // std::cout << "=========> the end of decoding uri : " << std::endl;
-// }
+void    Request::decodeUri()
+{
+    char    decodeChar;
+
+    for (size_t i = 0; i < uri.size(); i++)
+    {
+        if((uri[i] == '%' and i != uri.length() - 2) and 
+        ((isdigit(uri[i + 1]) and isupper(uri[i + 2]))
+        or (isdigit(uri[i + 1]) and isdigit(uri[i + 2]))))
+        {
+            decodeChar = static_cast<char>(strtol(uri.substr(i + 1, 2).c_str(), NULL, 16));
+            uri.replace(i, 3, 1, decodeChar);
+            i += 3;
+        }
+    }
+}
 
 void   Request::parseUri()
 {
-    size_t      autorityEnd, schemeEnd;
+    size_t      queryDelim;
 
-    //check if the uri start with /
-    // decodeUri();
+    decodeUri();
     if (uri.length() > 2048)//bad req
-        throw Request::BadRequest("400", "400 Bad Request");
-    // uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%");check if uri is valid
-    schemeEnd = uri.find(":");
-    if (schemeEnd != std::string::npos)
-    {   
-        scheme = uri.substr(0, schemeEnd);
-        autorityEnd = uri.find("/", schemeEnd + 2);
-        autority = uri.substr(schemeEnd, autorityEnd);
-        requestedPath = uri.substr(autorityEnd, uri.find("?", autorityEnd));
-        queryParameters = uri.substr(uri.find("?", autorityEnd));
-    }
-    else
-        requestedPath = uri.substr(uri.find("/"));
+        throw std::make_pair("414", "414 Request-URI too long");//to large 
+    if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
+        throw std::make_pair("400", "400 Bad Request");
+    requestedPath = uri.substr(uri.find("/"));
+    queryDelim = uri.find("?");
+    if (queryDelim != std::string::npos)
+        queryParameters = uri.substr(queryDelim);
 }
 
 void    Request::parseRequestLine(std::string    &buff)
@@ -234,21 +227,21 @@ void    Request::parseRequestLine(std::string    &buff)
     found = buff.find("\r\n");
     reqLine = buff.substr(0 ,found);
     if (std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
-        throw Request::BadRequest("400", "400 Bad Request");
+        throw std::make_pair("400", "400 Bad Request");
     buff = buff.substr(found + 2);
     splitReqLine = StringOperations::split(reqLine, " ");
     if ( splitReqLine.size() != 3 
         or (std::find(methodes, methodes + 9, splitReqLine[0]) \
         == (methodes +  9)))//Bad request can cz SGV !!!
-        throw Request::BadRequest("400", "400 Bad Request");
+        throw std::make_pair("400", "400 Bad Request");
     if (std::find(methodesImp, methodesImp + 3 , splitReqLine[0]) == (methodesImp +  3))//Not implemented
-        throw Request::NotImplemented("501", "501 Not Implemented");
+        throw std::make_pair("501", "501 Not Implemented");
     if (splitReqLine[1].find("/"))
-        throw Request::BadRequest("400", "400 Bad Request");
+        throw std::make_pair("400", "400 Bad Request");
     if (splitReqLine[2].compare(0, 5,"HTTP/"))
-        throw Request::BadRequest("400", "400 Bad Request");
+        throw std::make_pair("400", "400 Bad Request");
     if (!splitReqLine[2].compare(0, 5,"HTTP/")  and splitReqLine[2].compare(5, 3, "1.1"))
-        throw Request::NotSupported("505", "505 not supported");
+        throw std::make_pair("505", "505 not supported");
     uri = splitReqLine[1];
     method = splitReqLine[0];
     protocolVersion = splitReqLine[2];
@@ -267,25 +260,20 @@ void    Request::parseHeader(std::string &buff, size_t& found)
    { 
         key = header.substr(0, header.find_first_of(":"));
         if (key.find_first_of(" \t") != std::string::npos )
-            throw Request::BadRequest("400", "400 Bad Request");
+            throw std::make_pair("400", "400 Bad Request");
         std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
         value = StringOperations::trim(header.substr(key.length() + 1));//to check trim !!!!!
         if (!key.compare("host") and value.empty())
-            throw Request::BadRequest("400", "400 Bad Request");
+            throw std::make_pair("400", "400 Bad Request");
         if ((!key.compare("host") or !key.compare("content-length") 
             or !key.compare("transfer-encoding")) and headers.find(key) != headers.end())
-               throw Request::BadRequest("400", "400 Bad Request");
+               throw std::make_pair("400", "400 Bad Request");
         if (!key.compare("content-type") and headers.find(key) != headers.end()) 
             headers[key] = headers[key] + ";" + value;
         else
             headers[key] = value;//check if key exist
     }   
 }
-
-// void    Request::SetConfigFile(ConfigFile& configFile)
-// {
-//     configFileData = configFile;
-// }
 
 size_t  Request::longestMatchingLocation(const std::string& prefix)
 {
@@ -299,23 +287,22 @@ size_t  Request::longestMatchingLocation(const std::string& prefix)
 
 void    Request::matchingLocation()
 {
-    Server  matchServer;
+    Server& matchingServ = matchingServer();
     size_t  longestOne, sizeMatching;
     std::string subUri;
-
-    matchServer = matchingServer();
+    
     // std::cout << "matching server : " << matchServer.getServerData().at("host")<< std::endl;
     // for (size_t i = 0; i < ; i++)
     // {
     //     /* code */
     // }
     
-    server = matchServer.getServerData();
+    server = matchingServ.getServerData();
     // std::cout << "server copy : " << server.at("host") << std::endl;
     longestOne = 0;
     for (std::map<std::string, mapStrVect>::const_iterator 
-        i = matchServer.getLocations().begin();
-        i != matchServer.getLocations().end(); i++)
+        i = matchingServ.getLocations().begin();
+        i != matchingServ.getLocations().end(); i++)
     {
         sizeMatching = longestMatchingLocation((i->first));
         if (longestOne < sizeMatching)
@@ -325,11 +312,14 @@ void    Request::matchingLocation()
             longestOne = sizeMatching;
         }
     }
-    requestedPath = requestedPath.substr(subUri.length() - 1);
+    // std::cout << "====> subUri " << subUri  << "  |  " << requestedPath  << "  | "<< requestedPath.substr(0, subUri.compare(subUri)) << std::endl;
+    // if (location.find("return") != location.end() and !location["return"].empty())
+    //     throw std::make_pair(location["return"][0].c_str(), (location["return"][0] + "Move Permantly").c_str());
+    requestedPath = requestedPath.substr(0, subUri.compare(subUri))
     // std::cout << "=======> requested path : " << requestedPath << std::endl;
 }
 
-Server  Request::matchingServer()
+Server&  Request::matchingServer()
 {
     std::pair<std::string, std::string> pair;
 

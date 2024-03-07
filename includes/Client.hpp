@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 19:24:46 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 15:35:17 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,8 @@ class	Client
 
 		void				setReqBuff(const std::string& buff);
 		void				setSendBuff(const std::string& buff);
+
+		void				setStage(const Stage& st);
 
 };
 

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 21:25:19 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 21:17:11 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 		else
         {
             (location.find("root") == location.end()) ? 
-            throw ("config file error : invalid location block") : false;//update
+            throw ("config file  : invalid location block root directive required") : false;//update
             addDirectivesMissingInLocation(location);//update
             configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
@@ -97,7 +97,7 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 			if (!values[0].compare("location"))
             {
                 (values[1].find("/") or values[1].find_last_of("/") != values[1].length() - 1) ?
-                    throw ("Config file error: invalid location argument ") : false;
+                    throw ("Config file : invalid location argument ") : false;
                 (locations.find(values[1]) != locations.end()) ?
                    throw ("Config file : duplicate location block "): false;	//sould check if the location already exists
 				locations[values[1]] = fillLocation(configFile);
@@ -123,7 +123,7 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     server.setServerData(servData);
     server.serverObligatoryDirectives();
     (locations.find("/") == locations.end()) ? \
-    throw("Config file : default location doesn't exist") : false;
+    throw("Config file : invalid location block default location required") : false;
     server.setLocations(locations);
 }
 
