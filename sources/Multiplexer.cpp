@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 21:38:04 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 11:57:14 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,14 +46,11 @@ void    Multiplexer::multiplexing()
         {
             for (size_t i = 0; i < servers.size(); i++)
             {
-                // std::cout << "------> here " << FD_ISSET(servers[i].getMasterSocket(), &tmpReadFds) << std::endl;
                 if (FD_ISSET(servers[i].getMasterSocket(), &tmpReadFds))
                 {
                     acceptedClient = servers[i].acceptNewConnection(readFds, writeFds);
-                    // std::cout << "===> " << acceptedClient << " | " << FD_ISSET(acceptedClient, &readFds) << " | " << FD_ISSET(acceptedClient, &writeFds) << std::endl;
                     (acceptedClient > maxFds and acceptedClient <= 1024) ? maxFds = acceptedClient: false;
-                    clients.push_back(Client(servers, acceptedClient));
-                    // std::cout << ">>>>>>> here" << clients.begin()->getFd() << std::endl;
+                    clients.push_back(Client(servers, acceptedClient));;
                     
                 }
             }
@@ -61,8 +58,6 @@ void    Multiplexer::multiplexing()
             {
                 if (FD_ISSET(i->getFd(), &tmpReadFds) and i->getStage() < RESHEADER)
                 {
-                        // std::cout << "====-> " << i->getFd() << std::endl;
-
                     r = read(i->getFd(), buff, 2048);
                      if (r <= 0)
                     {
@@ -80,10 +75,7 @@ void    Multiplexer::multiplexing()
                     i->serve();
                     if ( i->getSendBuff().size() > 0 and i->getStage() < RESEND)
                     {
-                        // std::cout << "-----> " << i->getFd() << std::endl;
-                        // std::cout << "===> send buff : " << i->getSendBuff().c_str() << "||" <<std::endl;
                         s = send(i->getFd(), i->getSendBuff().c_str(), i->getSendBuff().size(), 0);
-                        // std::cout << "=====> " << i->getSendBuff().c_str() << std::endl;
                         if (s == -1)
                         {
                             perror ("send : ");
@@ -93,19 +85,19 @@ void    Multiplexer::multiplexing()
                             i = clients.erase(i);
                             i--;
                             continue;
+                            // i->setStage(RESEND);
                         }
                         i->setSendBuff("");
                     }
                 }
-                    if (i->getStage() == RESEND)
-                    {
-                        // std::cout << "========> here the end ========= " << std::endl;
-                        FD_CLR(i->getFd(),&readFds);
-                        FD_CLR(i->getFd(), &writeFds);
-                        close(i->getFd());
-                        i = clients.erase(i);
-                        i--;
-                    }
+                if (i->getStage() == RESEND)
+                {
+                    FD_CLR(i->getFd(),&readFds);
+                    FD_CLR(i->getFd(), &writeFds);
+                    close(i->getFd());
+                    i = clients.erase(i);
+                    i--;
+                }
                 
             }
         }

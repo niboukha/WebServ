@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/06 22:10:04 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/07 14:55:20 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,28 +102,37 @@ void    Request::validateRequestHeader()
     
     if (headers.find("host") ==  headers.end())
         throw Request::BadRequest("400", "400 Bad Request");
-    std::map<std::string, std::string>::iterator i = headers.begin();
-    for ( ; i != headers.end(); i++)
+        
+    std::map<std::string, std::string>::iterator transferEncIt = headers.find("transfer-encoding"), 
+                                                contentLenIt = headers.find("content-length"),
+                                                contentTypeIt = headers.find("content-type");
+    int                                         isMethodPost;
+                                                
+    if (contentLenIt != headers.end())
     {
-        if (!i->first.compare("transfer-encoding")
-            and i->second.compare("chunked"))
-            throw Request::NotImplemented("501", "501 Not Implemented");//to ckeck
-        else if (!i->first.compare("content-length"))
-        {
-            contentLen = strtoll(headers["content-length"].c_str(), &end, 10);
-            (contentLen < 0 or *end) ?  throw Request::BadRequest("400", "400 Bad Request") : false;
-        }
+        (contentLenIt->second.empty()) ? throw Request::BadRequest("400", "400 Bad Request") : false;
+        contentLen = strtoll(headers["content-length"].c_str(), &end, 10);
+        (contentLen < 0 or *end) ?  throw Request::BadRequest("400", "400 Bad Request") : false;
     }
-    if ((headers.find("transfer-encoding") == headers.end() 
-        and headers.find("content-length") == headers.end() 
-        and !method.compare("POST") )
-        or (headers.find("transfer-encoding") != headers.end() 
-        and headers.find("content-length") != headers.end() 
-        and !method.compare("POST")))//bad req
+    if (transferEncIt != headers.end())
+    {
+        (transferEncIt->second.empty()) ? throw Request::BadRequest("400", "400 Bad Request") : false;
+        (transferEncIt->second.compare("chunked")) ?  throw Request::NotImplemented("501", "501 Not Implemented") : false;
+    }
+    if (contentTypeIt != headers.end() )
+    {
+        (contentTypeIt->second.empty()) ? throw Request::BadRequest("400", "400 Bad Request") : false;
+        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw Request::NotImplemented("501", "501 Not Implemented") : false;
+    }
+    isMethodPost = method.compare("POST");
+    if ((!isMethodPost and transferEncIt == headers.end() 
+        and contentLenIt == headers.end())
+        or (!isMethodPost and contentLenIt != headers.end() 
+        and transferEncIt != headers.end()))//bad req
         throw Request::BadRequest("400", "400 Bad Request");
-    if (!method.compare("POST") and 
-        headers.find("content-type") == headers.end())
-        throw Request::BadRequest("400", "400 Bad Request");
+    if (!isMethodPost and
+        (contentTypeIt == headers.end()))
+       throw Request::BadRequest("400", "400 Bad Request");
 } 
 
 void    Request::fillErrorPages()
@@ -256,14 +265,20 @@ void    Request::parseHeader(std::string &buff, size_t& found)
     pos = header.find_first_of(":");
     if (pos != std::string::npos)
    { 
-        key = header.substr(header.find_first_not_of(" \t"), header.find_first_of(":"));
+        key = header.substr(0, header.find_first_of(":"));
         if (key.find_first_of(" \t") != std::string::npos )
             throw Request::BadRequest("400", "400 Bad Request");
         std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
         value = StringOperations::trim(header.substr(key.length() + 1));//to check trim !!!!!
         if (!key.compare("host") and value.empty())
             throw Request::BadRequest("400", "400 Bad Request");
-        headers[key] = value;
+        if ((!key.compare("host") or !key.compare("content-length") 
+            or !key.compare("transfer-encoding")) and headers.find(key) != headers.end())
+               throw Request::BadRequest("400", "400 Bad Request");
+        if (!key.compare("content-type") and headers.find(key) != headers.end()) 
+            headers[key] = headers[key] + ";" + value;
+        else
+            headers[key] = value;//check if key exist
     }   
 }
 
