@@ -1,0 +1,72 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.hpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
+/*   Updated: 2024/03/08 09:55:18 by niboukha         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef REQUEST_HPP 
+#define REQUEST_HPP
+
+#include "../Utils/WebServ.hpp"
+#include "../ConfigFile/ConfigFile.hpp"
+
+class ConfigFile;
+
+class Request
+{
+    private:
+		std::vector<Server>					servs;
+		mapStrVect							location;
+		std::map<std::string, std::string>	server;
+		std::map<std::string, std::string>	headers;
+		std::map<std::string, std::string>	errorPages;
+		std::string							method;
+		std::string							requestedPath;
+		std::string							protocolVersion;
+		std::string							uri;
+		// std::string							autority;
+		// std::string							scheme;
+		std::string							queryParameters;
+		
+    public:
+        Request();
+		Request(std::vector<Server>& servers);
+        ~Request();
+		// const	Request&	operator=(const Request& copy);
+		
+        void   parseRequest(std::string &buff, Stage &stage);
+		
+		const	std::string getMethod( ) const;
+		const	mapStrVect  getLocation() const;
+		const	std::string getRequestedPath( ) const;
+		const	std::string getProtocolVersion( ) const;
+		const	std::map<std::string, std::string>	getServer( ) const;
+		const	std::map<std::string, std::string>	getHeaders() const;
+		const	std::map<std::string, std::string>	getErrorPages() const;
+
+		void setMethod( std::string method);
+		void setProtocolVersion( std::string httpVersion);
+
+		void   validateRequestHeader();
+		void		fillErrorPages();
+		void		parseUri( );
+		void		decodeUri();
+		std::string decodePercentEncoded(std::string hexastr);
+		void		parseRequestLine(std::string    &buff);
+		void		parseHeader(std::string& buff, size_t& found);
+     
+		void		matchingLocation();
+		Server&		matchingServer();
+		size_t		longestMatchingLocation(const std::string& prefix);
+
+		
+};
+
+
+#endif
