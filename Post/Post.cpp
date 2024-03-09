@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 21:54:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 16:24:09 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,6 @@ void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 	{
 		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
-			// std::cout << maxBodySize() << "|" << head.find("content-length")->second << "\n";
 		if (maxBodySize() < contentLengthLong)
 		{
 			stage = RESHEADER;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 09:57:11 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 19:50:36 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,6 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
     std::vector<std::string>    vect;
     
     vect.push_back("");
-    // if (location.find("root") == location.end())//redo lbal !!!
-    //     location["root"] = vect;
     if (location.find("index") == location.end())
         location["index"] = vect;
     if (location.find("autoindex") == location.end())
@@ -46,11 +44,29 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
         location["return"] = vect;
 }
 
+
+void    ConfigFile::decodeLocationPrefix(std::string& location)
+{
+    char    decodeChar;
+
+    for (size_t i = 0; i < location.size(); i++)
+    {
+        if((location[i] == '%' and i != location.length() - 2) and 
+        ((isdigit(location[i + 1]) and isupper(location[i + 2]))
+        or (isdigit(location[i + 1]) and isdigit(location[i + 2]))))
+        {
+            decodeChar = static_cast<char>(strtol(location.substr(i + 1, 2).c_str(), NULL, 16));
+            location.replace(i, 3, 1, decodeChar);
+            i += 3;
+        }
+    }
+}
+
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
-    mapStrVect location;
-    std::string          key, line;
-    std::vector<std::string>          values;
+    mapStrVect                      location;
+    std::string                     key, line;
+    std::vector<std::string>         values;
 
     while (std::getline(configFile, line))
     {
@@ -63,6 +79,9 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
             {
                 (location.find(key) != location.end()) ? 
 				throw DirectiveAlreadyExist() : false;
+                (location.find("upload_pass") != location.end() \
+                and location.find("cgi_pass") != location.end()) ?
+                throw("config file : just one of the directives required upload_pass/cgi_pass") : false;
                 location[key] = values;
             }
 		}
@@ -100,6 +119,7 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
                     throw ("Config file : invalid location argument ") : false;
                 (locations.find(values[1]) != locations.end()) ?
                    throw ("Config file : duplicate location block "): false;	//sould check if the location already exists
+                decodeLocationPrefix(values[1]);
 				locations[values[1]] = fillLocation(configFile);
             }
 			else if (Server::serverValidDirective(values[0], values[1]))
@@ -107,14 +127,14 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 				if (!values[0].compare("error_page"))
 					values.erase(values.begin());
                 (servData.find(values[0]) != servData.end()) ? \
-				throw ("Config file : duplicate directive " +  values[0] + " in server") : false;	
+				throw ("Config file : duplicate directive " +  values[0] + " in server block ") : false;	
 				servData[values[0]] = values[1];
 			}
 		}
 		else 
 		{
-            trimLine = StringOperations::trim(line);
-            (trimLine.empty()) ? throw SyntaxError() : false;
+            // trimLine = StringOperations::trim(line);
+            // (trimLine.empty()) ? throw SyntaxError() : false;
 			configFile.seekg(-(line.length() + 1), std::ios_base::cur);
             break;
 		}
@@ -123,7 +143,7 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     server.setServerData(servData);
     server.serverObligatoryDirectives();
     (locations.find("/") == locations.end()) ? \
-    throw("Config file : invalid location block default location required") : false;
+    throw("Config file : invalid location block ,default location required") : false;
     server.setLocations(locations);
 }
 
@@ -138,13 +158,29 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
         if (!line.compare("server"))
         {
             fillServer(configFile, server);
+            const std::map<std::string, std::string>& mapDataServ = server.getServerData();
+            std::string                                host, port, servName;
+            
+            host = mapDataServ.find("host")->second;
+            port = mapDataServ.find("port")->second;
+            servName = mapDataServ.find("server_name")->second;
+            for (size_t j = 0; j < servers.size(); j++)
+            {
+                const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();
+                
+                if (!mapDataS.find("host")->second.compare(host) 
+                    and !mapDataS.find("port")->second.compare(port)
+                    and !mapDataS.find("server_name")->second.compare(servName))
+                throw ("Config file : duplicate server block");
+            }
             servers.push_back(server);
         }
         else if (line.empty())//to check 
             continue ; 
         else
             throw SyntaxError();
-    }
+    }        
+}
     // std::cout << "***** vectors of servers : ***** " << std::endl;
     // for (size_t i = 0; i < servers.size(); i++)
     // {
@@ -175,5 +211,4 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
         
     // }
     
- }
  

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 10:15:00 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 18:48:35 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,7 @@ void    Request::validateRequestHeader()
     }
     if (contentTypeIt != headers.end() )
     {
+        std::cout << "here content type " << std::endl;
         (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
         (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
     }
@@ -146,6 +147,7 @@ void    Request::fillErrorPages()
     errorPages["414"] = ERROR_414;
     errorPages["405"] = ERROR_405;
 }
+
 void   Request::parseRequest(std::string &buff, Stage &stage)
 {
     if (stage == REQLINE)
@@ -171,16 +173,6 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
     }
 }
 
-std::string Request::decodePercentEncoded(std::string hexastr)
-{
-    int decimalValue;
-    std::string toString;
-    
-    std::istringstream(hexastr) >> std::hex >> decimalValue;
-    toString.append(1, decimalValue);
-    return toString;
-}
-
 void    Request::decodeUri()
 {
     char    decodeChar;
@@ -198,19 +190,24 @@ void    Request::decodeUri()
     }
 }
 
-void   Request::parseUri()
+void   Request::parseUri()//to check 
 {
     size_t      queryDelim;
 
     decodeUri();
     if (uri.length() > 2048)//bad req
         throw std::make_pair("414", "414 Request-URI too long");//to large 
-    if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
+    if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl\
+        mnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         throw std::make_pair("400", "400 Bad Request");
-    requestedPath = uri.substr(uri.find("/"));
     queryDelim = uri.find("?");
     if (queryDelim != std::string::npos)
+    {
         queryParameters = uri.substr(queryDelim);
+        requestedPath = uri.substr(uri.find("/"), queryDelim);
+        return ;
+    }
+    requestedPath = uri.substr(uri.find("/"));
 }
 
 void    Request::parseRequestLine(std::string    &buff)
@@ -219,10 +216,10 @@ void    Request::parseRequestLine(std::string    &buff)
     std::string                 reqLine;
     size_t                      found;
     std::string                 methodes[9] = {"GET", "POST", "DELETE", 
-                                            "PUT", "CONNECT", "OPTIONS", "TRACE", "HEAD", "PATCH"}; //PATCH//HEAD FIHA BLAN
+                                                "PUT", "CONNECT", "OPTIONS", "TRACE", 
+                                                "HEAD", "PATCH"}; //PATCH//HEAD FIHA BLAN
     std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
   
-//   std::cout << "-----> here " << std::endl;
     found = buff.find("\r\n");
     reqLine = buff.substr(0 ,found);
     if (std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
@@ -267,7 +264,7 @@ void    Request::parseHeader(std::string &buff, size_t& found)
         if ((!key.compare("host") or !key.compare("content-length") 
             or !key.compare("transfer-encoding")) and headers.find(key) != headers.end())
                throw std::make_pair("400", "400 Bad Request");
-        if (!key.compare("content-type") and headers.find(key) != headers.end()) 
+        if (!key.compare("content-type") and headers.find(key) != headers.end())
             headers[key] = headers[key] + ";" + value;
         else
             headers[key] = value;//check if key exist
@@ -290,14 +287,7 @@ void    Request::matchingLocation()
     size_t  longestOne, sizeMatching;
     std::string subUri;
     
-    // std::cout << "matching server : " << matchServer.getServerData().at("host")<< std::endl;
-    // for (size_t i = 0; i < ; i++)
-    // {
-    //     /* code */
-    // }
-    
     server = matchingServ.getServerData();
-    // std::cout << "server copy : " << server.at("host") << std::endl;
     longestOne = 0;
     for (std::map<std::string, mapStrVect>::const_iterator 
         i = matchingServ.getLocations().begin();
@@ -311,9 +301,6 @@ void    Request::matchingLocation()
             longestOne = sizeMatching;
         }
     }
-    // std::cout << "====> subUri " << requestedPath.find_last_not_of(subUri)  << "  |  " << requestedPath  << "  | "<< requestedPath.substr(0, subUri.find_last_not_of(requestedPath)) << std::endl;
-    // if (location.find("return") != location.end() and !location["return"].empty())
-    //     throw std::make_pair(location["return"][0].c_str(), (location["return"][0] + "Move Permantly").c_str());
     if (location["return"].empty())//to check mn b3ed !!!
         throw std::make_pair((location["return"][0]).c_str(),\
         (location["return"][0] + "Move Permantly").c_str());
@@ -322,18 +309,13 @@ void    Request::matchingLocation()
 
 Server&  Request::matchingServer()
 {
-    std::pair<std::string, std::string> pair;
+    std::string serverName;
 
-    if (headers.find("host") == headers.end())
-        return servs[0];
-    pair.first = StringOperations::split(headers["host"], ":")[0];
-    pair.second = StringOperations::split(headers["host"], ":")[1];
-   for (size_t i = 0; i < servs.size(); i++)
-   {
-        if (!servs[i].getServerData().find("port")->second.compare(pair.second) 
-            and !servs[i].getServerData().find("server_name")->second.compare(pair.first))
+    serverName = headers.find("host")->second;
+    for (size_t i = 0; i < servs.size(); i++)
+    {
+        if (!servs[i].getServerData().find("server_name")->second.compare("host"))
             return servs[i];
-   }
-  
+    }
     return servs[0];
 }

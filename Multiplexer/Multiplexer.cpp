@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexer.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 09:55:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 19:56:55 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,24 +54,50 @@ void    Multiplexer::sendRes(Client& cl)
         s = send(cl.getFd(), cl.getSendBuff().c_str(), cl.getSendBuff().size(), 0);
         if (s == -1)
         {
-            perror ("send : ");
+            perror ("send : ");//!!!
             cl.setStage(RESEND);
         }
         cl.setSendBuff("");
     }
 }
 
+void Multiplexer::clear(fd_set& read, fd_set& write, Client& client)
+{
+    FD_CLR(client.getFd(),&read);
+    FD_CLR(client.getFd(), &write);
+    close(client.getFd());
+}
+
+void    Multiplexer::reqServers(Server& serv, std::vector<Server>& servs)
+{
+    std::string host, port;
+
+    host = serv.getServerData().find("host")->second;
+    port = serv.getServerData().find("port")->second;
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        if (!host.compare(servers[i].getServerData().find("host")->second)
+            and !port.compare(servers[i].getServerData().find("port")->second))
+            servs.push_back(servers[i]);
+    } 
+}
 
 void    Multiplexer::multiplexing()
 {
     fd_set  readFds, writeFds, tmpReadFds, tmpWriteFds;
     int     readyFds, maxFds, acceptedClient ;
-
+    std::vector<Server> servs;
+    struct timeval tv;
+    
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
     FD_ZERO(&readFds);
     FD_ZERO(&writeFds);
     for (size_t i = 0; i < servers.size(); i++)
        servers[i].createAndBindSocket(readFds);
     maxFds =  servers[servers.size() - 1].getMasterSocket();
+    signal(SIGPIPE, SIG_IGN);
+    std::cout << GREEN << "Server running..." << RESET << std::endl;
     while (1)
     {
         tmpReadFds = readFds;
@@ -84,8 +110,9 @@ void    Multiplexer::multiplexing()
                 if (FD_ISSET(servers[i].getMasterSocket(), &tmpReadFds))
                 {
                     acceptedClient = servers[i].acceptNewConnection(readFds, writeFds);
+                    reqServers(servers[i], servs);
                     (acceptedClient > maxFds and acceptedClient <= 1024) ? maxFds = acceptedClient: false;
-                    clients.push_back(Client(servers, acceptedClient));
+                    clients.push_back(Client(servs, acceptedClient));
                 }
             }
             for (std::list<Client>::iterator i = clients.begin(); i !=  clients.end(); i++)
@@ -96,14 +123,13 @@ void    Multiplexer::multiplexing()
                     sendRes(*i);
                 if (i->getStage() == RESEND)
                 {
-                    FD_CLR(i->getFd(),&readFds);
-                    FD_CLR(i->getFd(), &writeFds);
-                    close(i->getFd());
+                    clear(readFds, writeFds, *i);
                     i = clients.erase(i);
                     i--;
                 } 
             }
         }
     }
+    
 }
 

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/04 15:17:37 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/09 19:39:33 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,23 +53,42 @@ const int&  Server::getMasterSocket() const
 
 void    Server::createAndBindSocket(fd_set& readFds)
 {
-    sockaddr_in serverAdd;
+    struct addrinfo hints;
+    struct addrinfo *rslt;
     int     opt;
     
-    // (void)add;//to check mn b3ed 
-    masterSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (masterSocket < 0)
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;
+    hints.ai_addrlen = sizeof(sockaddr_in);
+    hints.ai_canonname = NULL;
+    hints.ai_next = NULL;
+    hints.ai_addr = NULL;
+    if(getaddrinfo(getServerData().find("host")->second.c_str(), \
+    getServerData().find("port")->second.c_str(), &hints, &rslt) < 0)
         throw strerror(errno);
+    for (struct addrinfo * rp = rslt; rp != NULL; rp = rp->ai_next)
+    {
+        masterSocket = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (masterSocket < 0)
+            continue;
+        opt = 1;
+        if (setsockopt(masterSocket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0)
+        {
+            freeaddrinfo(rslt);
+            throw strerror(errno);
+        }
+        if (bind(masterSocket, rp->ai_addr, rp->ai_addrlen) < 0)
+        {
+            freeaddrinfo(rslt);
+            throw strerror(errno);
+        }
+        break;
+       
+    }
     FD_SET(masterSocket, &readFds);
-    opt = 1;
-    serverAdd.sin_family = AF_INET;
-    serverAdd.sin_addr.s_addr = INADDR_ANY;
-    // serverAdd.sin_addr.s_addr = gettaddrinfo(add.c_str(), );
-    serverAdd.sin_port = htons(atoi(serverData["port"].c_str()));
-    if (setsockopt(masterSocket, SOL_SOCKET,SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) < 0)
-        throw strerror(errno);
-    if (bind(masterSocket, (const sockaddr *)&serverAdd, sizeof(serverAdd)) < 0)
-        throw strerror(errno);
+    freeaddrinfo(rslt);
     if (listen(masterSocket, SOMAXCONN) < 0)
         throw strerror(errno);
 }
@@ -87,25 +106,6 @@ int   Server::acceptNewConnection(fd_set& readFds, fd_set& writeFds)
     FD_SET(acceptedClient, &writeFds);
     return acceptedClient;
 }
-//  void     Server::addErrorPagesMissing()//update
-//  {
-//     if (serverData.find("404") == serverData.end())
-//         serverData["404"] = "/ErrorPages/404.html";
-//     if (serverData.find("501") == serverData.end())
-//         serverData["501"] = "/ErrorPages/501.html";
-//     if (serverData.find("400") == serverData.end())
-//         serverData["400"] = "/ErrorPages/400.html";
-//     if (serverData.find("414") == serverData.end())
-//         serverData["414"] = "/ErrorPages/414.html";
-//     if (serverData.find("413") == serverData.end())
-//         serverData["413"] = "/ErrorPages/413.html";
-//     if (serverData.find("405") == serverData.end())
-//         serverData["405"] = "/ErrorPages/405.html";
-//     if (serverData.find("403") == serverData.end())
-//         serverData["403"] = "/ErrorPages/403.html";
-//     if (serverData.find("201") == serverData.end())
-//         serverData["201"] = "/ErrorPages/201.html";
-//  }
  
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
 {
@@ -220,7 +220,7 @@ bool    Server::serverObligatoryDirectives()
     for (size_t i = 0; i < 4; i++)
     {
         if (serverData.find(serverDirectives[i]) == serverData.end())
-            throw MissingServerDirectives();   
+            throw ("config File : directive " + serverDirectives[i] +" required in server block");   
     }
     return true;
 }

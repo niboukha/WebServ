@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:27:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 09:57:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/08 20:53:37 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class ConfigFile
 {
     private:
             std::vector<Server> servers;
+            static void   decodeLocationPrefix(std::string& location);
     public:
         ConfigFile();
         ~ConfigFile();

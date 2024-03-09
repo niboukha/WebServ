@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexer.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:37:36 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 09:56:03 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/08 16:52:58 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ class Multiplexer
 
         void    readReq(Client& cl);
         void    sendRes(Client& cl);
+        void    clear(fd_set& tmpR, fd_set& tmpW, Client& client);
+        void    reqServers(Server& serv, std::vector<Server>& servs);
         
         
         
