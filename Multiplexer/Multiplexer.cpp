@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Multiplexer.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 19:56:55 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/10 18:15:46 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,6 +123,7 @@ void    Multiplexer::multiplexing()
                     sendRes(*i);
                 if (i->getStage() == RESEND)
                 {
+                    // exit(1);
                     clear(readFds, writeFds, *i);
                     i = clients.erase(i);
                     i--;

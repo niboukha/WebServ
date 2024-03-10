@@ -48,7 +48,7 @@ if username:
     print("<p><a href=''>Refresh</a></p>")
 else:
     print("<form action='/cgi-bin/cookie_example.py' method='post'>")
-    print("Enter your username: <input type='text' name='username'><br>")
+    print("Enter your ue: <input type='text' name='username'><br>")
     print("<input type='submit' value='Submit'>")
     print("</form>")
 print("</body></html>")

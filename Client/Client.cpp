@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/08 09:56:35 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 14:42:52 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,6 @@ Client::~Client()
 Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage), fd(copy.fd)
 {
 }
-
-
-// const Client& Client::operator=(const Client& copy)
-// {
-// 	if (this != &copy)
-// 	{
-		
-// 	}
-// }
 
 const int&	Client::getFd() const
 {
@@ -123,6 +114,7 @@ void	Client::sendResponse()
 	catch (std::string path)
 	{
 		res.setPath(path);
+		std::cout << "catch Client-----> " << path << "\n";
 		stage = RESHEADER;
 	}
 }

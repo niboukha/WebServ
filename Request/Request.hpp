@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 19:25:29 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/09 21:24:15 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ class Request
 		const		mapStrVect  getLocation() const;
 		const		std::string getRequestedPath( ) const;
 		const		std::string getProtocolVersion( ) const;
+		const		std::string getQueryParameters( ) const;
 		const		std::map<std::string, std::string>	getServer( ) const;
 		const		std::map<std::string, std::string>	getHeaders() const;
 		const		std::map<std::string, std::string>	getErrorPages() const;

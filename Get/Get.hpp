@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 11:36:50 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 15:01:34 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,15 +15,19 @@
 
 #include "../Utils/WebServ.hpp"
 #include "../Utils/Utils.hpp"
-#include "../Response/Response.hpp"
+// #include "../Response/Response.hpp"
+#include "../Cgi/Cgi.hpp"
 
-class Response;
+// class Response;
+class Cgi;
 
 class	Get
 {
 	private :
 	
 		Response					&response;
+		Cgi 						cgi;
+
 		std::vector<std::string>	vDir;
 		
 		std::string					fillAutoIndexFile;
@@ -32,6 +36,7 @@ class	Get
 		bool						isMoved;
 		std::ifstream				in;
 		std::string					directories;
+		CgiStage					cgiStage;
 		
 		class	DirectoryFailed : public std::exception
 		{
@@ -44,8 +49,8 @@ class	Get
 		Get(Response &res);
 		~Get();
 
-		void					statusOfFile();
-		void					responsHeader(std::string	&headerRes);
+		void					statusOfFile( Stage& stage );
+		void					responsHeader(std::string	&headerRes, Stage& stage);
 		void					responsBody(std::string &bodyRes);
 
 		const std::streampos&	getSizeofRead() const;
@@ -54,6 +59,10 @@ class	Get
 		void					readListOfCurDirectory();
 		void					stringOfDyrectories(std::vector<std::string> &vdir);		
 		void					pathPermission();
+		bool					cgiPassCheckment();
+		void					parseFileCgi(std::string	&headerRes);
+
+
 };
 
 #endif

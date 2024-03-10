@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 18:48:35 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/10 14:40:37 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,11 @@ const std::string   Request::getProtocolVersion( ) const
     return ( protocolVersion );
 }
 
+const std::string   Request::getQueryParameters( ) const
+{
+    return (queryParameters);
+}
+
 const	std::map<std::string, std::string>	Request::getServer( ) const
 {
 	return (server);
@@ -116,7 +121,6 @@ void    Request::validateRequestHeader()
     }
     if (contentTypeIt != headers.end() )
     {
-        std::cout << "here content type " << std::endl;
         (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
         (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
     }

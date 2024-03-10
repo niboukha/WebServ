@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 15:56:04 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 21:27:52 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,17 @@
 #include "../Utils/WebServ.hpp"
 #include "../Utils/Utils.hpp"
 #include "../Response/Response.hpp"
-class Response;
+// #include "../Cgi/Cgi.hpp"
+
+// class Response;
+class Cgi;
 
 class	Post
 {
 	private :
 
 		Response		&res;
+		Cgi 			cgi;
 
 		long long		size;
 		bool			isMoved;
@@ -46,10 +50,10 @@ class	Post
 
 		void					chunkedTransfer(std::string &reqBuff, Stage &stage);
 		void					nonChunkedTransfer(Stage &stage, std::string &reqBuff);
-		void					unsupportedUpload( );
+		void					unsupportedUpload( std::string &reqBuff, Stage &stage );
 
-		void					cgiPassCheck();
-		void					directoryInRequest(std::string &path, std::ifstream	&file);
+		void					cgiPassCheckment( std::string &reqBuff, Stage &stage );
+		void					directoryInRequest(std::string &reqBuff, std::string &path, std::ifstream	&file, Stage &stage);
 		std::string				conctRootUpload( std::string s );
 		std::string				getExtensionFile();
 		long long				maxBodySize();

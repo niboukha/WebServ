@@ -6,17 +6,21 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 21:47:11 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 18:17:49 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Get.hpp"
+// #include "Get.hpp"
+#include "../Response/Response.hpp"
 
 Get::Get(Response &res)	:	response  (res),
+							cgi       (res),
 							sizeofRead(0),
-							isMoved   (false)
+							isMoved   ( false ),
+							cgiStage  ( INITCGI )
 							
 {
+	// cgi.fillEnvirement();
 }
 
 Get::~Get()
@@ -105,11 +109,26 @@ void	Get::pathPermission()
 			response.throwNewPath("403 Forbidden", "403");
 }
 
-void	Get::statusOfFile()
+bool	Get::cgiPassCheckment()
 {
-	std::string	path;
-	std::string	status;
-	
+	const mapStrVect	&loc = response.getRequest().getLocation();
+
+	if(!loc.find("cgi_pass")->second.empty())
+	{
+		if ((loc.find("cgi_pass")->second.front() != ".py" 
+			and loc.find("cgi_pass")->second.front() != ".php"))
+			response.throwNewPath("403 forbidden", "403"); //check
+		return (true);
+	}
+	return (false);
+}
+
+void	Get::statusOfFile(Stage& stage)
+{
+	std::string			path;
+	std::string			status;
+	std::string			s;
+
 	if (response.getStatusCodeMsg() == "-1")
 	{
 		path = response.concatenatePath( response.getRequest().getRequestedPath() );
@@ -128,44 +147,73 @@ void	Get::statusOfFile()
 		response.throwNewPath("404 not found", "404");
 	}
 	pathPermission();
-	// check if location has a cgi
-	status = "200 ok";
-	response.UpdateStatusCode(status);
+	std::cout << "stage-----< " << response.getPath() << " " << cgiStage << "\n"; 
+	if (cgiPassCheckment() && cgiStage == INITCGI)
+	{
+		cgiStage = WAITCGI;
+		std::cout << "execute CGI\n";
+		cgi.executeCgi(s, stage, cgiStage);
+	}
+	else
+	{		
+		status = "200 ok";
+		response.UpdateStatusCode(status);
+	}
 	file.close();
 }
 
-void	Get::responsHeader(std::string	&headerRes)
+void	Get::responsHeader(std::string	&headerRes, Stage& stage)
 {
-	std::string	path;
-
-	statusOfFile();
-	if (directories.empty())
-	{
-		path       = response.getPath();
-		headerRes  = response.getRequest().getProtocolVersion() + " "  +
-			response.getStatusCodeMsg()                         + CRLF +
-			"Content-Type: "   + response.getContentType(path)  + CRLF +
-			"Content-Length: " + response.getContentLength(path);
-		if (isMoved)
-			headerRes = headerRes + CRLF + "Location: " + locationRes;
-		headerRes     = headerRes + CRLF + CRLF;
-	}
+	if (cgiStage == WAITCGI)
+		cgi.waitCgi(stage, cgi.getPid(), cgiStage);
 	else
 	{
-		headerRes  = response.getRequest().getProtocolVersion() + " "  +
-			response.getStatusCodeMsg()                         + CRLF +
-			"Content-Type: "   + "text/html" 					+ CRLF +
-			"Content-Length: " + Utils::longToString(directories.size());
-		headerRes = headerRes  + CRLF + CRLF;
+		std::string	path;
+
+		statusOfFile(stage);
+		if (cgiStage != EXECUTECGI)
+			return ;
+		
+		if (cgiStage == EXECUTECGI)
+		{
+			headerRes  = response.getRequest().getProtocolVersion() + " "  +
+				response.getStatusCodeMsg()                         + CRLF;
+			stage = RESBODY;
+			std::cout << "header response ->>> " << headerRes << "\n";
+			return ;
+		}
+		
+		if (directories.empty())
+		{
+			path       = response.getPath();
+			headerRes  = response.getRequest().getProtocolVersion() + " "  +
+				response.getStatusCodeMsg()                         + CRLF +
+				"Content-Type: "   + response.getContentType(path)  + CRLF +
+				"Content-Length: " + response.getContentLength(path);
+			if (isMoved)
+				headerRes = headerRes + CRLF + "Location: " + locationRes;
+			headerRes     = headerRes + CRLF + CRLF;
+			stage = RESBODY;
+		}
+		else
+		{
+			headerRes  = response.getRequest().getProtocolVersion() + " "  +
+				response.getStatusCodeMsg()                         + CRLF +
+				"Content-Type: "   + "text/html" 					+ CRLF +
+				"Content-Length: " + Utils::longToString(directories.size());
+			headerRes = headerRes  + CRLF + CRLF;
+			stage = RESBODY;
+		}
 	}
 }
 
 void	Get::responsBody(std::string &bodyRes)
 {
+	std::cout << response.getPath() << "\n";
+	std::cout << " body >> " << bodyRes << "||\n";
 	if (directories.empty())
 	{
 		char	buff[2048];
-
 		if (!in.is_open())
 			in.open(response.getPath().c_str(), std::ios_base::binary);
 

@@ -45,28 +45,29 @@
 #include <sys/select.h>
 #include <list>
 #include <netdb.h>
-
+#include <sys/wait.h>
 #define RESET   "\033[0m"
 #define GREEN   "\033[32m"
 #define _XOPEN_SOURCE 700
 #define	PORT 8080
 #define	CRLF "\r\n" //carriage return and line feed
-#define	PATH_MIME "/nfs/homes/shicham/Desktop/webup/extraFiles/mimetype.txt"
+#define	PATH_CGI "/nfs/homes/niboukha/Desktop/webserv/upload/"
+#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/extraFiles/mimetype.txt"
 #define	BUF 1024
 
-#define	ERROR_201 "/nfs/homes/shicham/Desktop/webup/ErrorPages/201.html"
-#define	ERROR_204 "/nfs/homes/shicham/Desktop/webup/ErrorPages/204.html"
-#define	ERROR_301 "/nfs/homes/shicham/Desktop/webup/ErrorPages/301.html"
-#define	ERROR_401 "/nfs/homes/shicham/Desktop/webup/ErrorPages/401.html"
-#define	ERROR_403 "/nfs/homes/shicham/Desktop/webup/ErrorPages/403.html"
-#define	ERROR_404 "/nfs/homes/shicham/Desktop/webup/ErrorPages/404.html"
-#define	ERROR_409 "/nfs/homes/shicham/Desktop/webup/ErrorPages/409.html"
-#define	ERROR_413 "/nfs/homes/shicham/Desktop/webup/ErrorPages/413.html"
-#define	ERROR_500 "/nfs/homes/shicham/Desktop/webup/ErrorPages/500.html"
-#define	ERROR_501 "/nfs/homes/shicham/Desktop/webup/ErrorPages/501.html"
-#define	ERROR_400 "/nfs/homes/shicham/Desktop/webup/ErrorPages/400.html"
-#define	ERROR_414 "/nfs/homes/shicham/Desktop/webup/ErrorPages/414.html"
-#define	ERROR_405 "/nfs/homes/shicham/Desktop/webup/ErrorPages/405.html"
+#define	ERROR_201 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/201.html"
+#define	ERROR_204 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/204.html"
+#define	ERROR_301 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/301.html"
+#define	ERROR_401 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/401.html"
+#define	ERROR_403 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/403.html"
+#define	ERROR_404 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/404.html"
+#define	ERROR_409 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/409.html"
+#define	ERROR_413 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/413.html"
+#define	ERROR_500 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/500.html"
+#define	ERROR_501 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/501.html"
+#define	ERROR_400 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/400.html"
+#define	ERROR_414 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/414.html"
+#define	ERROR_405 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/405.html"
 
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;
@@ -79,6 +80,13 @@ enum	Stage
 	RESHEADER,
 	RESBODY,
 	RESEND
+};
+
+enum	CgiStage
+{
+	INITCGI,
+	WAITCGI,
+	EXECUTECGI
 };
 
 #include "Exceptions.hpp"

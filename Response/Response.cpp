@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/08 09:47:33 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 21:31:00 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,8 +196,10 @@ std::string	Response::concatenatePath( std::string p )
 {
 	const mapStrVect	&loc = getRequest().getLocation();
 	std::string	path;
-
-	path = loc.find("root")->second.front() + p;
+	
+	// std::cout << loc.find("root")->second.front() << "\n";
+	// std::cout << p << "\n";
+	path = loc.find("root")->second.front() + p.substr(1);
 	isRealPath(path);
 	return (path);
 }
@@ -243,11 +245,12 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == REQBODY)	return (stage = RESHEADER);
 			if (stage == RESHEADER)
 			{
-				get->responsHeader(headerRes);
-				return ( stage = RESBODY );
+				get->responsHeader(headerRes, stage);
+				return ( stage );
 			}
 			if (stage == RESBODY)
 			{
+			// std::cout << "heeeader -> " << stage << "\n";
 				get->responsBody(bodyRes);
 
 				if (get->getSizeofRead() == 0)

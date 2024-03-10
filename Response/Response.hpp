@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/08 09:58:40 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/09 21:30:42 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Response
 
 		std::map<std::string, std::string>	mimeType;
 		std::map<std::string, std::string>	extentionFile;
+
 	public:
 
 		Response( Request &request );
