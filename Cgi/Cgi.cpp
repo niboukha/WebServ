@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 11:57:58 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 18:22:34 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 20:37:36 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ Cgi::Cgi(Response &res) :	response(res),
 							inputFile (NULL),
 							outputFile (NULL)
 {
-	fillEnvirement ( );
+
 }
 
 Cgi::~Cgi()
@@ -50,25 +50,25 @@ void	Cgi::linkReqEnv()
 		requestEnv["CONTENT_LENGTH"]   = header.find("content-length")->second;
 	if (header.find("cookie")         != header.end())
 		requestEnv["HTTP_COOKIE"]      = header.find("cookie")->second;
-	// if (header.find("user-agent")     != header.end())
-		// requestEnv["HTTP_USER_AGENT"]  = header.find("user-agent")->second;
+	if (header.find("user-agent")     != header.end())
+		requestEnv["HTTP_USER_AGENT"]  = header.find("user-agent")->second;
 	if (!response.getRequest().getMethod().empty())
 		requestEnv["REQUEST_METHOD"]   = response.getRequest().getMethod();
 	if (!response.getRequest().getQueryParameters().empty())
 		requestEnv["QUERY_STRING"]     = response.getRequest().getQueryParameters();
 	
-	// requestEnv["SERVER_PROTOCOL"]      = "HTTP/1.1";
-	// requestEnv["GATEWAY_INTERFACE"]    = "CGI/1.1";
+	requestEnv["SERVER_PROTOCOL"]      = "HTTP/1.1";
+	requestEnv["GATEWAY_INTERFACE"]    = "CGI/1.1";
 
 	
 	requestEnv["REDIRECT_STATUS"]	   = "200";//for now
-	// requestEnv["REMOTE_ADDR"]		   = "10.14.9.1"; //for now
-	// requestEnv["SERVER_PORT"]          = "8080"; //for now
+	requestEnv["REMOTE_ADDR"]		   = "10.14.9.1"; //for now
+	requestEnv["SERVER_PORT"]          = "8080"; //for now
 
 	
-	// requestEnv["PATH_INFO"]            = response.getPath();
+	requestEnv["PATH_INFO"]            = response.getPath();
 	requestEnv["SCRIPT_FILENAME"]      = response.getPath();
-	// requestEnv["SCRIPT_NAME"]          = response.getPath();
+	requestEnv["SCRIPT_NAME"]          = response.getPath();
 
 }
 
@@ -106,11 +106,12 @@ long long	Cgi::maxBodySize( )
 	return ( n );
 }
 
-void	Cgi::cgiBinary(Stage &stage)
+void	Cgi::cgiBinary(Stage &stage, CgiStage &cgiStage)
 {
 	const std::string	&pt   = response.getPath();
 	size_t				found = pt.find_last_of(".");
 
+	std::cout << "pathhhh -> " << pt << "\n";
 	if (found != std::string::npos)
 	{
 		if (pt.substr(found) == ".py")
@@ -120,38 +121,31 @@ void	Cgi::cgiBinary(Stage &stage)
 		}
 		else if (pt.substr(found) == ".php")
 		{
-			cgiBin = "/usr/bin/php";
+			cgiBin = "/usr/bin/php-cgi";
 			inter  = (char*)"php-cgi";
 		}
 	}
 	if (cgiBin.empty())
 	{
-		stage = RESHEADER;
+		cgiStage = ERRORCGI;
+		stage    = RESHEADER;
 		response.throwNewPath("403 forbiden", "403");//chechik
 	}
 }
 
-void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff)
+void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 {
 	const std::map<std::string, std::string>	&head = response.getRequest().getHeaders();
 
 	if (!inputFile)
 	{
 		pathInput = pathInput + PATH_CGI + Utils::generateRundFile();
-
-		std::cout << "infile name path ==> " << pathInput << "\n";
-		
 		inputFile = fopen(pathInput.c_str(), "wr");
-		if (inputFile == NULL)
-		{
-			perror("fopen");
-			exit(1);
-		}
-		// fclose (inputFile);
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
 		if (maxBodySize() < contentLengthLong)
 		{
-			stage = RESHEADER;
+			cgiStage = ERRORCGI;
+			stage    = RESHEADER;
 			response.throwNewPath("413 Request Entity Too Large", "413");
 		}
 	}
@@ -175,49 +169,19 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff)
 	reqBuff.clear();
 }
 
-// void		Cgi::readaOutfile()
-// {
-// 	outputFile = fopen(pathOutput.c_str(), "r"); //upload if post'
-// 	if (outputFile == NULL)
-// 	{
-// 		perror("freopen");
-// 		exit(1);
-// 	}
-// 	char	buff[2048];
-// 	size_t	b;
-
-// 	// if (feof(outputFile))
-// 		// fseek(outputFile, 0, SEEK_SET);
-
-// 	b = fread (buff, sizeof(char), sizeof(buff), outputFile);
-	
-// 	buff[b] = '\0';
-	
-// 	std::cout << "bytes readed => " << b << "\n";
-// 	std::string	buffer;
-
-// 	buffer = buff;
-
-// 	std::cout << "buffer -> " << buffer << "\n";	
-// 	std::cout << "buff   => " << buff << "\n";	
-// 	fclose (outputFile);
-// }
-
-
 void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 {
 	int			status;
 	int			exitStatus;
 	std::string statusCode;
-	// sleep(2);
+	
 	cgiStage = WAITCGI;
 	if (waitpid(pid, &status, 0) != 0 && WIFEXITED(status))
 	{
 		exitStatus = WEXITSTATUS(status);
-		std::cout << "EXIST STATUS ==> " << exitStatus << "\n";
 		if (exitStatus == 500)
 		{
-			cgiStage = EXECUTECGI;
+			cgiStage = ERRORCGI;
 			stage    = RESHEADER;
 			response.throwNewPath("500 Internal Server Error", "500"); //checkkkkkkkk
 		}
@@ -231,40 +195,23 @@ void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 
 void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 {
+	fillEnvirement ( );
 	if (stage < RESHEADER)
-		uploadBody(stage, reqBuff);
-	cgiBinary(stage);
+		uploadBody(stage, reqBuff, cgiStage);
+	cgiBinary(stage, cgiStage);
 
 	if (!outputFile)
 	{
 		pathOutput = pathOutput + PATH_CGI + Utils::generateRundFile();
-
-		std::cout << "infile name path ==> " << pathOutput << "\n";
-		
-		outputFile = fopen(pathOutput.c_str(), "wrb");
-		if (outputFile == NULL)
-		{
-			perror("fopen");
-			exit(1);
-		}
-		// fclose (inputFile);
+		outputFile = fopen(pathOutput.c_str(), "wr");
+		// fclose (outputFile);
 	}
 	char *arr[] = {inter, (char *)response.getPath().c_str(), NULL};
 	pid = fork();
 	if (pid == 0)
 	{
-		inputFile = freopen(pathInput.c_str(), "w+" , stdin);
-		if (inputFile != NULL)
-		{
-			std::cerr << "for upload case of post in child \n";
-		}
-
-		outputFile = freopen(pathOutput.c_str(), "w+", stdout); //upload if post
-		if (outputFile == NULL)
-		{
-			perror("freopen : IN child : ");
-			exit(1);
-		}
+		inputFile = freopen(pathInput.c_str(), "wr" , stdin);
+		outputFile = freopen(pathOutput.c_str(), "wr", stdout);
 		execve(cgiBin.c_str(), arr, env);
 		std::cerr << "===> execve faild\n";
 	}
@@ -272,6 +219,4 @@ void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 		fclose(inputFile);
 	fclose(outputFile);
 	waitCgi(stage, pid, cgiStage);
-	std::cout << cgiStage << "\n";
-	// exit(1);
 }

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 18:17:49 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 20:50:27 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,10 @@ void	Get::readListOfCurDirectory()
 	}
 	catch (const std::exception &e)
 	{
-		status  = "403 ";
-		status += e.what();
+		status   = "403 ";
+		status  += e.what();
 		response.setStatusCodeMsg(status);
+		cgiStage = ERRORCGI;
 		throw(response.pathErrorPage("403"));
 	}
 }
@@ -85,6 +86,7 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file)
 		isMoved     = true;
 		locationRes = response.getRequest().getRequestedPath() + "/";
 		file.close();
+		cgiStage = ERRORCGI;
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
 	if (loc.find("index")->second.empty())
@@ -92,6 +94,7 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file)
 		if (loc.find("autoindex")->second.front().empty() or loc.find("autoindex")->second.front() == "off")
 		{
 			file.close();
+			cgiStage = ERRORCGI;
 			response.throwNewPath("403 forbidden", "403");
 		}
 		readListOfCurDirectory();
@@ -106,7 +109,10 @@ void	Get::pathPermission()
 
 	if (!stat(response.getPath().c_str(), &statPath))
 		if (!(statPath.st_mode & S_IWUSR))
+		{
+			cgiStage = ERRORCGI;
 			response.throwNewPath("403 Forbidden", "403");
+		}
 }
 
 bool	Get::cgiPassCheckment()
@@ -116,8 +122,11 @@ bool	Get::cgiPassCheckment()
 	if(!loc.find("cgi_pass")->second.empty())
 	{
 		if ((loc.find("cgi_pass")->second.front() != ".py" 
-			and loc.find("cgi_pass")->second.front() != ".php"))
+			and loc.find("cgi_pass")->second.front() != ".php") and cgiStage != ERRORCGI)
+		{
+			cgiStage = ERRORCGI;
 			response.throwNewPath("403 forbidden", "403"); //check
+		}
 		return (true);
 	}
 	return (false);
@@ -144,19 +153,18 @@ void	Get::statusOfFile(Stage& stage)
 	else if (!Utils::isFile(response.getPath().c_str()))
 	{
 		file.close();
+		cgiStage = ERRORCGI;
 		response.throwNewPath("404 not found", "404");
 	}
 	pathPermission();
-	std::cout << "stage-----< " << response.getPath() << " " << cgiStage << "\n"; 
 	if (cgiPassCheckment() && cgiStage == INITCGI)
 	{
 		cgiStage = WAITCGI;
-		std::cout << "execute CGI\n";
 		cgi.executeCgi(s, stage, cgiStage);
 	}
 	else
-	{		
-		status = "200 ok";
+	{
+		status   = "200 ok";
 		response.UpdateStatusCode(status);
 	}
 	file.close();
@@ -171,15 +179,11 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage)
 		std::string	path;
 
 		statusOfFile(stage);
-		if (cgiStage != EXECUTECGI)
-			return ;
-		
 		if (cgiStage == EXECUTECGI)
 		{
 			headerRes  = response.getRequest().getProtocolVersion() + " "  +
 				response.getStatusCodeMsg()                         + CRLF;
 			stage = RESBODY;
-			std::cout << "header response ->>> " << headerRes << "\n";
 			return ;
 		}
 		
@@ -209,8 +213,6 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage)
 
 void	Get::responsBody(std::string &bodyRes)
 {
-	std::cout << response.getPath() << "\n";
-	std::cout << " body >> " << bodyRes << "||\n";
 	if (directories.empty())
 	{
 		char	buff[2048];

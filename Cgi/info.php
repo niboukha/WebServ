@@ -44,16 +44,12 @@
 <body>
 
 <?php
-
-
-header('Content-type: text/html');
-header("Location: http://$host$uri/$extra");
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Get user input
-    $name = isset($_POST['name']) ? htmlspecialchars($_POST['name']) : '';
-    $email = isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '';
-    $phone = isset($_POST['phone']) ? htmlspecialchars($_POST['phone']) : '';
+    $name = isset($_GET['name']) ? htmlspecialchars($_GET['name']) : '';
+    $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : '';
+    $phone = isset($_GET['phone']) ? htmlspecialchars($_GET['phone']) : '';
 
     // Display user info in a card
     echo '<div class="card">';
@@ -66,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!-- HTML form for user input -->
-<form method="post" action="">
+<form method="GET" action="">
     <label for="name">Name:</label>
     <input type="text" id="name" name="name" required>
 

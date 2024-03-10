@@ -86,7 +86,8 @@ enum	CgiStage
 {
 	INITCGI,
 	WAITCGI,
-	EXECUTECGI
+	EXECUTECGI,
+	ERRORCGI
 };
 
 #include "Exceptions.hpp"

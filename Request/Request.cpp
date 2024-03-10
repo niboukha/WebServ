@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/10 14:40:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 18:56:24 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,7 +207,7 @@ void   Request::parseUri()//to check
     queryDelim = uri.find("?");
     if (queryDelim != std::string::npos)
     {
-        queryParameters = uri.substr(queryDelim);
+        queryParameters = uri.substr(queryDelim + 1);
         requestedPath = uri.substr(uri.find("/"), queryDelim);
         return ;
     }
