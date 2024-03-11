@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 20:50:27 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 19:02:19 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,7 @@
 Get::Get(Response &res)	:	response  (res),
 							cgi       (res),
 							sizeofRead(0),
-							isMoved   ( false ),
-							cgiStage  ( INITCGI )
+							isMoved   ( false )
 							
 {
 	// cgi.fillEnvirement();
@@ -45,7 +44,7 @@ void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 	directories     +=  "\n</body>\n</html>\n";
 }
 
-void	Get::readListOfCurDirectory()
+void	Get::readListOfCurDirectory( CgiStage &cgiStage)
 {
 	struct dirent	*pDirent;
 	DIR				*pDir;
@@ -76,7 +75,7 @@ void	Get::readListOfCurDirectory()
 	}
 }
 
-void	Get::directoryInRequest(std::string &path, std::ifstream &file)
+void	Get::directoryInRequest(std::string &path, std::ifstream &file, CgiStage &cgiStage)
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string 		s;
@@ -85,11 +84,11 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file)
 	{
 		isMoved     = true;
 		locationRes = response.getRequest().getRequestedPath() + "/";
+		cgiStage    = ERRORCGI;
 		file.close();
-		cgiStage = ERRORCGI;
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
-	if (loc.find("index")->second.empty())
+	if (loc.find("index")->second.front().empty())
 	{
 		if (loc.find("autoindex")->second.front().empty() or loc.find("autoindex")->second.front() == "off")
 		{
@@ -97,13 +96,13 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file)
 			cgiStage = ERRORCGI;
 			response.throwNewPath("403 forbidden", "403");
 		}
-		readListOfCurDirectory();
+		readListOfCurDirectory(cgiStage);
 		return ;
 	}
 	response.setPath(response.concatenateIndexDirectory());
 }
 
-void	Get::pathPermission()
+void	Get::pathPermission( CgiStage &cgiStage )
 {
 	struct stat statPath;
 
@@ -115,11 +114,11 @@ void	Get::pathPermission()
 		}
 }
 
-bool	Get::cgiPassCheckment()
+bool	Get::cgiPassCheckment( CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
-
-	if(!loc.find("cgi_pass")->second.empty())
+	
+	if(loc.find("cgi_pass") != loc.end() && !loc.find("cgi_pass")->second.front().empty())
 	{
 		if ((loc.find("cgi_pass")->second.front() != ".py" 
 			and loc.find("cgi_pass")->second.front() != ".php") and cgiStage != ERRORCGI)
@@ -132,7 +131,7 @@ bool	Get::cgiPassCheckment()
 	return (false);
 }
 
-void	Get::statusOfFile(Stage& stage)
+void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 {
 	std::string			path;
 	std::string			status;
@@ -146,9 +145,9 @@ void	Get::statusOfFile(Stage& stage)
 	std::ifstream file(response.getPath().c_str());
 	if (Utils::isDir(response.getPath().c_str()))
 	{
-		pathPermission();
+		pathPermission(cgiStage);
 		path = response.getPath();
-		directoryInRequest(path, file);
+		directoryInRequest(path, file, cgiStage);
 	}
 	else if (!Utils::isFile(response.getPath().c_str()))
 	{
@@ -156,8 +155,8 @@ void	Get::statusOfFile(Stage& stage)
 		cgiStage = ERRORCGI;
 		response.throwNewPath("404 not found", "404");
 	}
-	pathPermission();
-	if (cgiPassCheckment() && cgiStage == INITCGI)
+	pathPermission(cgiStage);
+	if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI)
 	{
 		cgiStage = WAITCGI;
 		cgi.executeCgi(s, stage, cgiStage);
@@ -170,15 +169,15 @@ void	Get::statusOfFile(Stage& stage)
 	file.close();
 }
 
-void	Get::responsHeader(std::string	&headerRes, Stage& stage)
+void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage)
 {
 	if (cgiStage == WAITCGI)
 		cgi.waitCgi(stage, cgi.getPid(), cgiStage);
 	else
 	{
-		std::string	path;
+		std::string			path;
 
-		statusOfFile(stage);
+		statusOfFile(stage, cgiStage);
 		if (cgiStage == EXECUTECGI)
 		{
 			headerRes  = response.getRequest().getProtocolVersion() + " "  +

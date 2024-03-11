@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 19:39:33 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/11 19:10:07 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,8 +173,18 @@ bool    Server::locationValidDirective(std::string &directive, std::vector<std::
 
     if (!directive.compare("index") 
         or !directive.compare("allow_methodes")
-        or !directive.compare("cgi_pass"))
+        or !directive.compare("cgi_pass")
+        or !directive.compare("return"))
+    {
+        std::vector <std::string> vect;
+        
+        vect.push_back("");
+        if (!directive.compare("index") and !values.size())             values = vect;//update 
+        if (!directive.compare("allow_methodes") and !values.size())    values = vect;//update
+        if (!directive.compare("cgi_pass") and !values.size())          values = vect;//update 
+         if (!directive.compare("return") and !values.size())           values = vect;;//update
         return true;
+    }
     for(size_t i = 0; i < 3; i++)
     {
         if (!locDirectives[i].compare(directive))
@@ -196,7 +206,10 @@ bool    Server::isValidRoot(std::vector<std::string> &rootValue)
 bool    Server::isValidAutoIndex(std::vector<std::string> &autoindexValue)
 {
     if (!autoindexValue.size())
+    {
+        autoindexValue.push_back("");
         return true;
+    }
     else if (autoindexValue.size() > 1)
         throw InvalidNumberOfArguments();
     else if (autoindexValue.size() == 1 

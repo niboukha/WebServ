@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/09 21:31:00 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 10:13:56 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@ Response::Response( Request &request ) :	req( request ),
 											post( NULL ),
 											delt( NULL ),
 											statusCodeMsg( "-1" ),
-											path( "-1" )
+											path( "-1" ),
+											cgiStage ( INITCGI )
 {
 	mapOfTypes();
 }
@@ -237,7 +238,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 
 	int  i = 0;
 	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
-
+	
 	switch(i)
 	{
 		case 0:
@@ -245,12 +246,11 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == REQBODY)	return (stage = RESHEADER);
 			if (stage == RESHEADER)
 			{
-				get->responsHeader(headerRes, stage);
+				get->responsHeader(headerRes, stage, cgiStage);
 				return ( stage );
 			}
 			if (stage == RESBODY)
 			{
-			// std::cout << "heeeader -> " << stage << "\n";
 				get->responsBody(bodyRes);
 
 				if (get->getSizeofRead() == 0)
@@ -281,12 +281,12 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (post  == NULL) post = new Post( *this );
 			if (stage == REQBODY)
 			{
-				post->requestedStatus(stage, reqBuff);
+				post->requestedStatus(stage, reqBuff, cgiStage);
 				return (stage);
 			}
 			if (stage == RESHEADER)
 			{
-				post->responsHeader(stage, reqBuff, headerRes);
+				post->responsHeader(stage, reqBuff, headerRes, cgiStage);
 				return ( stage = RESBODY );
 			}
 			if (stage == RESBODY)

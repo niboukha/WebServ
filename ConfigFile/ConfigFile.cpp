@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 19:50:36 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/11 11:59:56 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,14 +79,14 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
             {
                 (location.find(key) != location.end()) ? 
 				throw DirectiveAlreadyExist() : false;
-                (location.find("upload_pass") != location.end() \
-                and location.find("cgi_pass") != location.end()) ?
-                throw("config file : just one of the directives required upload_pass/cgi_pass") : false;
                 location[key] = values;
             }
 		}
 		else
         {
+            (location.find("upload_pass") != location.end() \
+            and location.find("cgi_pass") != location.end() and values.front().empty()) ?
+            throw("config file : just one of the directives required upload_pass/cgi_pass") : false;
             (location.find("root") == location.end()) ? 
             throw ("config file  : invalid location block root directive required") : false;//update
             addDirectivesMissingInLocation(location);//update
@@ -121,6 +121,7 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
                    throw ("Config file : duplicate location block "): false;	//sould check if the location already exists
                 decodeLocationPrefix(values[1]);
 				locations[values[1]] = fillLocation(configFile);
+
             }
 			else if (Server::serverValidDirective(values[0], values[1]))
 			{

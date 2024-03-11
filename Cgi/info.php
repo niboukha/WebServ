@@ -46,7 +46,7 @@
 <?php
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Get user input
+    // GET user input
     $name = isset($_GET['name']) ? htmlspecialchars($_GET['name']) : '';
     $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : '';
     $phone = isset($_GET['phone']) ? htmlspecialchars($_GET['phone']) : '';

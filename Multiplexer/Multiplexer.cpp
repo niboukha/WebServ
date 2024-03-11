@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/10 18:15:46 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 09:57:34 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ void    Multiplexer::multiplexing()
        servers[i].createAndBindSocket(readFds);
     maxFds =  servers[servers.size() - 1].getMasterSocket();
     signal(SIGPIPE, SIG_IGN);
-    std::cout << GREEN << "Server running..." << RESET << std::endl;
+    std::cout << GREEN << "Server is running..." << RESET << std::endl;
     while (1)
     {
         tmpReadFds = readFds;

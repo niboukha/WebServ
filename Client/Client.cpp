@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 14:42:52 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 18:44:07 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,23 +72,17 @@ void	Client::recieveRequest()
 	
 	try
 	{
-		// req.fillErrorPages();//tmp 
-		// std::cout << "in request \n";
 		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 			req.parseRequest(reqBuff, stage);
 	}
 	catch(std::pair<char const*, char const*>& bReq)
 	{
-		// std::cout << "in bad request -> \n";
 		req.setMethod("GET");
 		req.setProtocolVersion("HTTP/1.1");
+
 		s = bReq.second;
-
-		res.setStatusCodeMsg(s);//mochkil hna !!!
-		// std::cout << res.pathErrorPage(bReq.first) << "\n";
+		res.setStatusCodeMsg(s);
 		res.setPath(res.pathErrorPage(bReq.first));
-
-		// std::cout << res.getPath() << "\n";
 		stage = REQBODY;
 	}
 }
@@ -114,7 +108,6 @@ void	Client::sendResponse()
 	catch (std::string path)
 	{
 		res.setPath(path);
-		std::cout << "catch Client-----> " << path << "\n";
 		stage = RESHEADER;
 	}
 }
@@ -123,7 +116,6 @@ void	Client::serve()
 {
 	if (stage < REQBODY)
 		recieveRequest();
-	// std::cout << "------> here\n";
 	if (stage >= REQBODY)
 		sendResponse();
 

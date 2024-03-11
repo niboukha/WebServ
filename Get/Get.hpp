@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 15:01:34 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 21:16:32 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,6 @@ class	Get
 		bool						isMoved;
 		std::ifstream				in;
 		std::string					directories;
-		CgiStage					cgiStage;
 		
 		class	DirectoryFailed : public std::exception
 		{
@@ -49,17 +48,17 @@ class	Get
 		Get(Response &res);
 		~Get();
 
-		void					statusOfFile( Stage& stage );
-		void					responsHeader(std::string	&headerRes, Stage& stage);
+		void					statusOfFile( Stage& stage, CgiStage &cgiStage );
+		void					responsHeader(std::string	&headerRes, Stage& stage, CgiStage &cgiStage);
 		void					responsBody(std::string &bodyRes);
 
 		const std::streampos&	getSizeofRead() const;
 		
-		void					directoryInRequest(std::string &path, std::ifstream &file);
-		void					readListOfCurDirectory();
+		void					directoryInRequest(std::string &path, std::ifstream &file, CgiStage &cgiStage);
+		void					readListOfCurDirectory( CgiStage &cgiStage );
 		void					stringOfDyrectories(std::vector<std::string> &vdir);		
-		void					pathPermission();
-		bool					cgiPassCheckment();
+		void					pathPermission( CgiStage &cgiStage);
+		bool					cgiPassCheckment( CgiStage &cgiStage );
 		void					parseFileCgi(std::string	&headerRes);
 
 

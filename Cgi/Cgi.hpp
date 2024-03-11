@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 19:38:41 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 20:11:09 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 21:04:41 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ class	Cgi
 		void		fillEnvirement( );
 		long long	maxBodySize( );
 		void		cgiBinary(Stage &stage, CgiStage &cgiStage);
-		void		readaOutfile();
 		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage);
 
 		int&		getPid();

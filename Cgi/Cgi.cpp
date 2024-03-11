@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 11:57:58 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 20:37:36 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 13:53:42 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ Cgi::Cgi(Response &res) :	response(res),
 Cgi::~Cgi()
 {
 	delete [] env; //leaks
+	if (pid != -1)
+		kill(pid, SIGTERM);
 }
 
 int&	Cgi::getPid()
@@ -111,7 +113,6 @@ void	Cgi::cgiBinary(Stage &stage, CgiStage &cgiStage)
 	const std::string	&pt   = response.getPath();
 	size_t				found = pt.find_last_of(".");
 
-	std::cout << "pathhhh -> " << pt << "\n";
 	if (found != std::string::npos)
 	{
 		if (pt.substr(found) == ".py")
@@ -139,7 +140,7 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 
 	if (!inputFile)
 	{
-		pathInput = pathInput + PATH_CGI + Utils::generateRundFile();
+		pathInput = pathInput + PATH_CGI + "input" + Utils::generateRundFile();
 		inputFile = fopen(pathInput.c_str(), "wr");
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
 		if (maxBodySize() < contentLengthLong)
@@ -163,7 +164,7 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;
-		pathInput.clear();
+		// pathInput.clear();
 		fclose(inputFile);
 	}
 	reqBuff.clear();
@@ -186,7 +187,7 @@ void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 			response.throwNewPath("500 Internal Server Error", "500"); //checkkkkkkkk
 		}
 		cgiStage = EXECUTECGI;
-		stage = RESHEADER;
+		stage    = RESHEADER;
 		statusCode = "200 ok";
 		response.setStatusCodeMsg(statusCode);
 		throw (pathOutput);
@@ -202,21 +203,19 @@ void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 
 	if (!outputFile)
 	{
-		pathOutput = pathOutput + PATH_CGI + Utils::generateRundFile();
-		outputFile = fopen(pathOutput.c_str(), "wr");
-		// fclose (outputFile);
+		pathOutput = pathOutput + PATH_CGI + "output" + Utils::generateRundFile();
+		outputFile = fopen(pathOutput.c_str(), "w");
 	}
 	char *arr[] = {inter, (char *)response.getPath().c_str(), NULL};
 	pid = fork();
 	if (pid == 0)
 	{
-		inputFile = freopen(pathInput.c_str(), "wr" , stdin);
-		outputFile = freopen(pathOutput.c_str(), "wr", stdout);
+		inputFile = freopen(pathInput.c_str(), "r" , stdin);
+		outputFile = freopen(pathOutput.c_str(), "w", stdout);
 		execve(cgiBin.c_str(), arr, env);
-		std::cerr << "===> execve faild\n";
 	}
-	if (inputFile != NULL)
-		fclose(inputFile);
-	fclose(outputFile);
+	// if (inputFile != NULL)
+	// 	fclose(inputFile);
+	// fclose(outputFile);
 	waitCgi(stage, pid, cgiStage);
 }

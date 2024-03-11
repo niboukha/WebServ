@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/10 18:56:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 20:18:12 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ void    Request::validateRequestHeader()
                                                 contentLenIt = headers.find("content-length"),
                                                 contentTypeIt = headers.find("content-type");
     int                                         isMethodPost;
-                                                
+                                      
     if (contentLenIt != headers.end())
     {
         (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
@@ -305,9 +305,12 @@ void    Request::matchingLocation()
             longestOne = sizeMatching;
         }
     }
-    if (location["return"].empty())//to check mn b3ed !!!
-        throw std::make_pair((location["return"][0]).c_str(),\
-        (location["return"][0] + "Move Permantly").c_str());
+    if (!location["return"].front().empty())//to check mn b3ed !!!
+    {
+        std::cout <<"=====> " << location["return"][0] << std::endl;
+        throw std::make_pair(((location["return"][0]).c_str()),
+            ("301 Moved Permanently"));
+    }
     requestedPath = requestedPath.substr(0, subUri.find_last_not_of(requestedPath));
 }
 
