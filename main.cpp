@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:58:56 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 10:00:41 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/12 08:44:37 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,6 @@ int main(int ac, char **av, char** env)
     }
     catch(const std::exception& e)
     {
-        std::cout << "iiii-> iii\n";
         std::cerr << e.what() << '\n';
         configFile.close();
     }

@@ -6,19 +6,20 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/11 10:13:56 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:54:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response( Request &request ) :	req( request ),
-											get( NULL ),
-											post( NULL ),
-											delt( NULL ),
+Response::Response( Request &request ) :	req		 	 ( request ),
+											get		 	 ( NULL ),
+											post		 ( NULL ),
+											delt		 ( NULL ),
 											statusCodeMsg( "-1" ),
-											path( "-1" ),
-											cgiStage ( INITCGI )
+											path		 ( "-1" ),
+											cgiStage	 ( INITCGI ),
+											isMoved		 ( false )
 {
 	mapOfTypes();
 }
@@ -43,6 +44,16 @@ void	Response::setPath(std::string pt)
 void	Response::setHeaderRes(const std::string& header)
 {
 	headerRes = header;
+}
+
+void	Response::setLocationRes(const std::string& locRes)
+{
+	locationRes = locRes;
+}
+
+void	Response::setIsMoved(const bool& move)
+{
+	isMoved = move;
 }
 
 const Request&	Response::getRequest() const
@@ -70,6 +81,15 @@ const std::string&	Response::getBodyRes() const
 	return (bodyRes);
 }
 
+const std::string&	Response::getLocationRes() const
+{
+	return (locationRes);
+}
+
+const bool&		Response::getIsMoved() const
+{
+	return (isMoved);
+}
 
 void	Response::UpdateStatusCode(std::string &s)
 {
@@ -135,11 +155,11 @@ std::string		Response::getContentType( std::string &path )
 	std::string	ret;
 	size_t 		found;
 
-	found = path.find_last_of( "." );
+	found	   = path.find_last_of( "." );
 	if (found != std::string::npos)
 	{
-		s   = path.substr(found + 1);
-		ret = mimeType[s];
+		s      = path.substr(found + 1);
+		ret    = mimeType[s];
 	}
 	return ( ret );
 }
@@ -149,7 +169,6 @@ std::string	Response::concatenateIndexDirectory( )
 	mapStrVect  loc;
 	
 	loc = getRequest().getLocation();
-
 	for (size_t  i = 0; i < loc["index"].size(); i++)
 	{
 		std::ifstream	myFile(loc["index"][i].c_str());
@@ -197,10 +216,8 @@ std::string	Response::concatenatePath( std::string p )
 {
 	const mapStrVect	&loc = getRequest().getLocation();
 	std::string	path;
-	
-	// std::cout << loc.find("root")->second.front() << "\n";
-	// std::cout << p << "\n";
-	path = loc.find("root")->second.front() + p.substr(1);
+
+	path = loc.find("root")->second.front() + p;
 	isRealPath(path);
 	return (path);
 }
@@ -231,14 +248,13 @@ void	Response::throwNewPath(std::string msg, std::string code)
 Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 {
 	std::vector<std::string>	vect;
-
+	int							i;
 	vect.push_back("GET");
 	vect.push_back("DELETE");
 	vect.push_back("POST");
 
-	int  i = 0;
+	i = 0;
 	for (; i < 3; i++) { if (!vect[i].compare(req.getMethod())) break; }
-	
 	switch(i)
 	{
 		case 0:
@@ -261,8 +277,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 		case 1:
 
 			if (delt  == NULL) delt = new Delete( *this );
-			if (stage == REQBODY)
-				stage = RESHEADER;
+			if (stage == REQBODY)	return (stage = RESHEADER);
 			if (stage == RESHEADER)
 			{
 				delt->responsHeader(headerRes);
@@ -271,6 +286,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == RESBODY)
 			{
 				delt->responsBody(bodyRes);
+		
 				if (delt->getSizeofRead() == 0)
 					return ( stage = RESEND );
 			}

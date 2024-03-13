@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 21:18:28 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:46:40 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,10 @@ class	Post
 		void					cgiPassCheckment( std::string &reqBuff, Stage &stage, CgiStage &cgiStage );
 		void					directoryInRequest(std::string &reqBuff, std::string &path, std::ifstream	&file, Stage &stage, CgiStage &cgiStage);
 		std::string				conctRootUpload( std::string s );
-		std::string				getExtensionFile( CgiStage &cgiStage );
 		long long				maxBodySize();
-		bool					isUploadPass( Stage &stage );
+		bool					isUploadPass( );
 
 		const std::streampos	getSizeofRead() const;
 };
-
 
 #endif

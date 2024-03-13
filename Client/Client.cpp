@@ -6,23 +6,25 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/11 18:44:07 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 14:00:08 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Client/Client.hpp"
 
-Client::Client(std::vector<Server>& servers, int &fd) : req(servers), res(req), stage(REQLINE)
+Client::Client(std::vector<Server>& servers, int &fdCopy) : req(servers), res(req), 
+															stage(REQLINE), fd(fdCopy)
+															, lastRead(time(0))
 {
-	this->fd = fd;
-	
 }
 
 Client::~Client()
 {
 }
 
-Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage), fd(copy.fd)
+Client::Client(const Client& copy) : req(copy.req), res(req),
+									 stage(copy.stage), fd(copy.fd),
+									 lastRead(copy.lastRead)
 {
 }
 
@@ -49,6 +51,16 @@ const std::string& Client::getReqBuff() const
 const std::string&	Client::getSendBuff() const
 {
 	return sendBuff;
+}
+
+const time_t&		Client::getLastRead() const
+{
+	return lastRead;
+}
+
+void			Client::setLastRead(time_t& time)
+{
+	lastRead = time;
 }
 
 void	Client::setReqBuff(const std::string& buff)

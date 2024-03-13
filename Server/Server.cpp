@@ -6,18 +6,14 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/11 19:10:07 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 14:13:36 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Server/Server.hpp"
 
-bool     (*Server::functionsServer[])(std::string &) = {&Server::isValidHost, &Server::isValidPort, 
-                                                &Server::isValidErrorPage, 
-                                                &Server::isValidClientMaxBodySize};//update
-
 bool     (*Server::functionsLocation[])(std::vector<std::string> &) = {&Server::isValidRoot, &Server::isValidAutoIndex, 
-                                                        &Server::isValidUploadPass};//update
+                                                        &Server::isValidUploadPass, &Server::isValidCgiPass, &Server::isValidReturn};//update
 Server::Server()
 {  
 }
@@ -109,83 +105,46 @@ int   Server::acceptNewConnection(fd_set& readFds, fd_set& writeFds)
  
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
 {
-    std::string    directives[4] = {"host", "port", "error_page", "client_max_body_size"};
+    std::string    directives[4] = {"host", "port", "error_page", "server_name"};
 
-    if (!directive.compare("server_name"))
-        return true;
+    if (!directive.compare("client_max_body_size"))
+        return (isValidClientMaxBodySize(value));
     for(size_t i = 0; i < 4; i++)
     {
         if (!directives[i].compare(directive))
-        {
-            functionsServer[i](value);
             return true;
-        }
     }
     throw UnknownServerDirective();
-}
-
-bool   Server::isValidHost(std::string &hostValue)//update
-{
-    struct in_addr addr;
-    
-    if (!hostValue.compare("localhost") 
-    or inet_aton(hostValue.c_str(), &addr))//to avoid
-        return true;
-    throw InvalidDirectiveArgument();
-}
-
-bool Server::isValidPort(std::string &portValue)//update
-{
-    std::istringstream iss(portValue);
-    int port;
-    char remain;
-    
-    if (!(iss >> port) or (iss >> remain) or port < 0 or port > 65536)
-        throw InvalidDirectiveArgument();
-    return true;
-}
-
-bool    Server::isValidErrorPage(std::string &errorPageValue)//update
-{
-    std::istringstream iss(errorPageValue);
-    int error;
-    char remain;
-    
-    if (!(iss >> error) or (iss >> remain))//to chek mn b3ed 
-        throw InvalidDirectiveArgument();
-    return true;
 }
 
 bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//update
 {
     std::istringstream  iss(ClientMaxBodySizeValue);
     long long           ClientMaxBodySize;
+    std::string            strLongLong;
     char                remain;
+    std::ostringstream oss;
  
     if (!(iss >> ClientMaxBodySize) or (iss >> remain) or (ClientMaxBodySize < 0))
+        throw InvalidDirectiveArgument();
+    oss << ClientMaxBodySize;
+    strLongLong = oss.str();
+    if (strLongLong.compare(ClientMaxBodySizeValue))
         throw InvalidDirectiveArgument();
     return true;
 }
 
+
+
 bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)//update
 {
-    std::string locDirectives[3] = {"root", "autoindex", "upload_pass"};
+    std::string locDirectives[5] = {"root", "autoindex", "upload_pass", 
+                                     "cgi_pass", "return"};
 
     if (!directive.compare("index") 
-        or !directive.compare("allow_methodes")
-        or !directive.compare("cgi_pass")
-        or !directive.compare("return"))
-    {
-        std::vector <std::string> vect;
-        
-        vect.push_back("");
-        if (!directive.compare("index") and !values.size())             values = vect;//update 
-        if (!directive.compare("allow_methodes") and !values.size())    values = vect;//update
-        if (!directive.compare("cgi_pass") and !values.size())          values = vect;//update 
-         if (!directive.compare("return") and !values.size())           values = vect;;//update
+        or !directive.compare("allow_methodes"))
         return true;
-    }
-    for(size_t i = 0; i < 3; i++)
+    for(size_t i = 0; i < 5; i++)
     {
         if (!locDirectives[i].compare(directive))
         {
@@ -198,19 +157,17 @@ bool    Server::locationValidDirective(std::string &directive, std::vector<std::
 
 bool    Server::isValidRoot(std::vector<std::string> &rootValue)
 {
-    if (rootValue.size() > 1)//to check
-       throw InvalidNumberOfArguments();
+    if (rootValue.size() != 1) 
+        throw InvalidNumberOfArguments();
+    else if (rootValue[0].find("/") 
+        or (rootValue[0].find_last_of("/") != rootValue[0].length() - 1))
+        throw("config file : invalid root directive");
     return true;
 }
 
 bool    Server::isValidAutoIndex(std::vector<std::string> &autoindexValue)
 {
-    if (!autoindexValue.size())
-    {
-        autoindexValue.push_back("");
-        return true;
-    }
-    else if (autoindexValue.size() > 1)
+     if (autoindexValue.size() != 1)
         throw InvalidNumberOfArguments();
     else if (autoindexValue.size() == 1 
         and (!autoindexValue[0].compare("on") 
@@ -221,9 +178,25 @@ bool    Server::isValidAutoIndex(std::vector<std::string> &autoindexValue)
 
 bool        Server::isValidUploadPass(std::vector<std::string> &uploadValue)
 {
-     if (uploadValue.size() > 1)
-        throw InvalidNumberOfArguments();
+     if (uploadValue.size() != 1 )
+        throw InvalidDirectiveArgument();
+      else if(uploadValue[0].find_first_of("/"))
+        throw ("config file : invalid upload_pass directive");
     return true ;
+}
+
+bool    Server::isValidCgiPass(std::vector<std::string> &cgiValue)
+{
+    if (cgiValue.size() != 1 )
+       throw InvalidNumberOfArguments();
+    return true;
+}
+
+bool  Server::isValidReturn(std::vector<std::string> &returnValue)
+{
+    if (returnValue.size() != 2 or returnValue[0].compare("301"))
+          throw InvalidDirectiveArgument();
+    return true;
 }
 
 bool    Server::serverObligatoryDirectives()
@@ -238,14 +211,3 @@ bool    Server::serverObligatoryDirectives()
     return true;
 }
 
-bool    Server::locationObligatoryDirectives(std::map<std::string, std::string> &loc)//i didn't use it 
-{
-    std::string locDirectives[4] = {"root", "index", "autoindex", "allow_methodes"};
-
-     for (size_t i = 0; i < 4; i++)
-    {
-        if (loc.find(locDirectives[i]) == loc.end())
-            throw MissingLocationDirectives();   
-    }
-    return true;
-}

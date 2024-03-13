@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 21:05:57 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:49:59 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@ class Response
 		std::string	headerRes;
 		std::string	bodyRes;
 		CgiStage	cgiStage;
-		
+		std::string	locationRes;
+		bool		isMoved;
 
 		std::map<std::string, std::string>	mimeType;
 		std::map<std::string, std::string>	extentionFile;
@@ -54,12 +55,16 @@ class Response
 		void				setStatusCodeMsg(std::string& codeMsg);
 		void				setPath(std::string pt);
 		void				setHeaderRes(const std::string& header);
+		void				setLocationRes(const std::string& header);
+		void				setIsMoved(const bool& move);
 
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
 		const std::string&	getPath() const;
 		const std::string&	getHeaderRes() const;
 		const std::string&	getBodyRes() const;
+		const std::string&	getLocationRes() const;
+		const bool&			getIsMoved() const;
 
 		std::string			getContentType( std::string &path );
 		std::string			getContentLength( std::string &path );
