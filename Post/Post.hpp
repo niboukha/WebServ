@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 15:56:04 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/10 21:18:28 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,15 @@
 #include "../Utils/WebServ.hpp"
 #include "../Utils/Utils.hpp"
 #include "../Response/Response.hpp"
-class Response;
+
+class Cgi;
 
 class	Post
 {
 	private :
 
 		Response		&res;
+		Cgi 			cgi;
 
 		long long		size;
 		bool			isMoved;
@@ -39,19 +41,19 @@ class	Post
 		Post( Response &response );
 		~Post( );
 
-		void					responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes);
+		void					responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes, CgiStage &cgiStage);
 		void					responsBody(std::string &bodyRes);
 
-		void					requestedStatus(Stage &stage, std::string &reqBuff);
+		void					requestedStatus(Stage &stage, std::string &reqBuff, CgiStage &cgiStage);
 
 		void					chunkedTransfer(std::string &reqBuff, Stage &stage);
 		void					nonChunkedTransfer(Stage &stage, std::string &reqBuff);
-		void					unsupportedUpload( );
+		void					unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiStage );
 
-		void					cgiPassCheck();
-		void					directoryInRequest(std::string &path, std::ifstream	&file);
+		void					cgiPassCheckment( std::string &reqBuff, Stage &stage, CgiStage &cgiStage );
+		void					directoryInRequest(std::string &reqBuff, std::string &path, std::ifstream	&file, Stage &stage, CgiStage &cgiStage);
 		std::string				conctRootUpload( std::string s );
-		std::string				getExtensionFile();
+		std::string				getExtensionFile( CgiStage &cgiStage );
 		long long				maxBodySize();
 		bool					isUploadPass( Stage &stage );
 

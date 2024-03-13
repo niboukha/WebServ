@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 08:36:54 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/11 20:18:12 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,11 @@ const std::string   Request::getProtocolVersion( ) const
     return ( protocolVersion );
 }
 
+const std::string   Request::getQueryParameters( ) const
+{
+    return (queryParameters);
+}
+
 const	std::map<std::string, std::string>	Request::getServer( ) const
 {
 	return (server);
@@ -102,7 +107,7 @@ void    Request::validateRequestHeader()
                                                 contentLenIt = headers.find("content-length"),
                                                 contentTypeIt = headers.find("content-type");
     int                                         isMethodPost;
-                                                
+                                      
     if (contentLenIt != headers.end())
     {
         (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
@@ -202,7 +207,7 @@ void   Request::parseUri()//to check
     queryDelim = uri.find("?");
     if (queryDelim != std::string::npos)
     {
-        queryParameters = uri.substr(queryDelim);
+        queryParameters = uri.substr(queryDelim + 1);
         requestedPath = uri.substr(uri.find("/"), queryDelim);
         return ;
     }
@@ -263,7 +268,7 @@ void    Request::parseHeader(std::string &buff, size_t& found)
         if ((!key.compare("host") or !key.compare("content-length") 
             or !key.compare("transfer-encoding")) and headers.find(key) != headers.end())
                throw std::make_pair("400", "400 Bad Request");
-        if (!key.compare("content-type") and headers.find(key) != headers.end()) 
+        if (!key.compare("content-type") and headers.find(key) != headers.end())
             headers[key] = headers[key] + ";" + value;
         else
             headers[key] = value;//check if key exist
@@ -300,9 +305,12 @@ void    Request::matchingLocation()
             longestOne = sizeMatching;
         }
     }
-    if (location["return"].empty())//to check mn b3ed !!!
-        throw std::make_pair((location["return"][0]).c_str(),\
-        (location["return"][0] + "Move Permantly").c_str());
+    if (!location["return"].front().empty())//to check mn b3ed !!!
+    {
+        std::cout <<"=====> " << location["return"][0] << std::endl;
+        throw std::make_pair(((location["return"][0]).c_str()),
+            ("301 Moved Permanently"));
+    }
     requestedPath = requestedPath.substr(0, subUri.find_last_not_of(requestedPath));
 }
 

@@ -3,37 +3,30 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/08 09:56:35 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:57:57 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Client/Client.hpp"
 
-Client::Client(std::vector<Server>& servers, int &fd) : req(servers), res(req), stage(REQLINE)
+Client::Client(std::vector<Server>& servers, int &fdCopy) : req(servers), res(req), 
+															stage(REQLINE), fd(fdCopy)
+															, lastRead(time(0))
 {
-	this->fd = fd;
-	
 }
 
 Client::~Client()
 {
 }
 
-Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage), fd(copy.fd)
+Client::Client(const Client& copy) : req(copy.req), res(req),
+									 stage(copy.stage), fd(copy.fd),
+									 lastRead(copy.lastRead)
 {
 }
-
-
-// const Client& Client::operator=(const Client& copy)
-// {
-// 	if (this != &copy)
-// 	{
-		
-// 	}
-// }
 
 const int&	Client::getFd() const
 {
@@ -60,6 +53,16 @@ const std::string&	Client::getSendBuff() const
 	return sendBuff;
 }
 
+const time_t&		Client::getLastRead() const
+{
+	return lastRead;
+}
+
+void			Client::setLastRead(time_t& time)
+{
+	lastRead = time;
+}
+
 void	Client::setReqBuff(const std::string& buff)
 {
 	reqBuff = buff;
@@ -81,23 +84,17 @@ void	Client::recieveRequest()
 	
 	try
 	{
-		// req.fillErrorPages();//tmp 
-		// std::cout << "in request \n";
 		while (stage != REQBODY and reqBuff.find("\r\n") != std::string::npos)
 			req.parseRequest(reqBuff, stage);
 	}
 	catch(std::pair<char const*, char const*>& bReq)
 	{
-		// std::cout << "in bad request -> \n";
 		req.setMethod("GET");
 		req.setProtocolVersion("HTTP/1.1");
+
 		s = bReq.second;
-
-		res.setStatusCodeMsg(s);//mochkil hna !!!
-		// std::cout << res.pathErrorPage(bReq.first) << "\n";
+		res.setStatusCodeMsg(s);
 		res.setPath(res.pathErrorPage(bReq.first));
-
-		// std::cout << res.getPath() << "\n";
 		stage = REQBODY;
 	}
 }
@@ -131,7 +128,6 @@ void	Client::serve()
 {
 	if (stage < REQBODY)
 		recieveRequest();
-	// std::cout << "------> here\n";
 	if (stage >= REQBODY)
 		sendResponse();
 

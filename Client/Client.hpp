@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/08 09:56:46 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:49:32 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,12 +33,13 @@ class	Client
 
 		int			fd;
 		
+		time_t		lastRead;
 		void		recieveRequest();
 		void		sendResponse();
 
 	public:
 
-		Client(std::vector<Server>& servers, int &fd);
+		Client(std::vector<Server>& servers, int &fdCopy);
 		Client(const Client&copy);
 	
 		~Client();
@@ -52,11 +53,12 @@ class	Client
 		const Stage&		getStage() const;
 		const std::string&	getReqBuff() const;
 		const std::string&	getSendBuff() const;
+		const time_t&		getLastRead() const;
 
 		void				setReqBuff(const std::string& buff);
 		void				setSendBuff(const std::string& buff);
-
 		void				setStage(const Stage& st);
+		void				setLastRead(time_t& time);
 
 };
 

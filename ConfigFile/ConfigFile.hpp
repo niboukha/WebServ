@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:27:55 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 20:53:37 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/13 09:11:02 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class ConfigFile
         ~ConfigFile();
         const std::vector<Server>& getServers() const;
         void   parseConfigFile(std::fstream &configFile);
+        
         static  void fillServer(std::fstream& configFile, Server& server);
         
         static  mapStrVect  fillLocation(std::fstream& configFile);

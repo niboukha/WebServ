@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 20:53:13 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/13 10:17:14 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,6 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
     std::vector<std::string>    vect;
     
     vect.push_back("");
-    // if (location.find("root") == location.end())//redo lbal !!!
-    //     location["root"] = vect;
     if (location.find("index") == location.end())
         location["index"] = vect;
     if (location.find("autoindex") == location.end())
@@ -66,46 +64,60 @@ void    ConfigFile::decodeLocationPrefix(std::string& location)
 
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
-    mapStrVect location;
-    std::string          key, line;
-    std::vector<std::string>          values;
+    mapStrVect                                   location;
+    std::string                                 key, line, trimLine;
+    std::vector<std::string>                    values;
+    mapStrVect ::iterator                       cgi, upload, root;   
 
     while (std::getline(configFile, line))
     {
 		if (line.find_first_not_of("\t") == 2 and std::isalnum(line[2]))//update
 		{
             values = StringOperations::split(line ,"\t ");
+            if (values.size() == 1)
+                throw ("Config file : " +  values[0] + " empty directire");
             key = values[0];
 			values.erase(values.begin());
 			if (Server::locationValidDirective(key, values))
             {
                 (location.find(key) != location.end()) ? 
 				throw DirectiveAlreadyExist() : false;
-                (location.find("upload_pass") != location.end() \
-                and location.find("cgi_pass") != location.end()) ?
-                throw("config file : just one of the directives required upload_pass/cgi_pass") : false;
                 location[key] = values;
             }
+            continue;
 		}
-		else
-        {
-            (location.find("root") == location.end()) ? 
-            throw ("config file  : invalid location block root directive required") : false;//update
-            addDirectivesMissingInLocation(location);//update
-            configFile.seekg(-(line.length() + 1), std::ios_base::cur);
-            break;
-        }
+        trimLine = StringOperations::trim(line);
+        (trimLine.empty()) ? throw ("Config file: empty line in location block") : false;
+        configFile.seekg(-(line.length() + 1), std::ios_base::cur);
+        break;
     }
+    
+   (location.empty()) ?  throw("config file : location block empty") : false;
+        
+    cgi = location.find("cgi_pass");
+    upload = location.find("upload_pass");
+    root = location.find("root");
+    
+    (root == location.end() ) ? 
+    throw ("config file  : invalid location block root directive required") : false;//update
+    
+    (upload != location.end() \
+    and cgi != location.end()) ?
+    throw("config file : just one of the directives required upload_pass/cgi_pass") : false;//update
+    
+    addDirectivesMissingInLocation(location);//update
+    
     return location;
 }
 
+
 void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 {
-    std::string                         line;
+    std::string                         line, trimLine;
     std::map<std::string, std::string>  servData;
     std::vector<std::string>            values;
     std::map<std::string, mapStrVect>   locations;
-    std::string                          trimLine;
+   
     
     while (std::getline(configFile, line))
     {
@@ -123,29 +135,28 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
                    throw ("Config file : duplicate location block "): false;	//sould check if the location already exists
                 decodeLocationPrefix(values[1]);
 				locations[values[1]] = fillLocation(configFile);
+
             }
 			else if (Server::serverValidDirective(values[0], values[1]))
 			{
 				if (!values[0].compare("error_page"))
 					values.erase(values.begin());
                 (servData.find(values[0]) != servData.end()) ? \
-				throw ("Config file : duplicate directive " +  values[0] + " in server") : false;	
+				throw ("Config file : duplicate directive " +  values[0] + " in server block ") : false;	
 				servData[values[0]] = values[1];
 			}
+            continue;
 		}
-		else 
-		{
-            trimLine = StringOperations::trim(line);
-            (trimLine.empty()) ? throw SyntaxError() : false;
-			configFile.seekg(-(line.length() + 1), std::ios_base::cur);
-            break;
-		}
+        trimLine = StringOperations::trim(line);
+        (trimLine.empty()) ? throw ("Config file: empty line in server block") : false;
+        configFile.seekg(-(line.length() + 1), std::ios_base::cur);
+        break;
         
     }
     server.setServerData(servData);
     server.serverObligatoryDirectives();
     (locations.find("/") == locations.end()) ? \
-    throw("Config file : invalid location block default location required") : false;
+    throw("Config file : default location required") : false;
     server.setLocations(locations);
 }
 
@@ -157,6 +168,7 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
     while (std::getline(configFile, line))
     {
         line = StringOperations::trim(line);
+        // std::cout << "---------> line " << "|"<< line  << "|"<< std::endl;
         if (!line.compare("server"))
         {
             fillServer(configFile, server);

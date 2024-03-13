@@ -6,13 +6,14 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/06 21:54:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/11 11:00:35 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Post.hpp"
 
 Post::Post( Response &response ) :	res( response ),
+									cgi(res),
 									size( 0 ),
 									isMoved( false ),
 									sizeofRead( 0 ),
@@ -60,8 +61,8 @@ void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 	if (!UploadFile.is_open())
 	{
 		UploadFile.open(res.getPath().c_str(), std::ios_base::app);
+		
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
-			// std::cout << maxBodySize() << "|" << head.find("content-length")->second << "\n";
 		if (maxBodySize() < contentLengthLong)
 		{
 			stage = RESHEADER;
@@ -125,16 +126,25 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 	}
 }
 
-void	Post::cgiPassCheck()
+void	Post::cgiPassCheckment( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = res.getRequest().getLocation();
 
-	if (loc.find("cgi_pass")->second.front().empty())
-		res.throwNewPath("403 forbidden", "403");
-	//else exist
+	if ((loc.find("cgi_pass")->second.front().empty()
+		or (loc.find("cgi_pass")->second.front() != ".py" 
+		and loc.find("cgi_pass")->second.front() != ".php")) and cgiStage != ERRORCGI)
+		{
+			cgiStage = ERRORCGI;
+			res.throwNewPath("403 forbidden", "403");
+		}
+	else if (cgiStage == INITCGI)
+	{
+		cgiStage = WAITCGI;
+		cgi.executeCgi(reqBuff, stage, cgiStage );
+	}
 }
 
-void	Post::directoryInRequest(std::string &path, std::ifstream &file)
+void	Post::directoryInRequest(std::string &reqBuff, std::string &path, std::ifstream &file, Stage &stage, CgiStage &cgiStage)
 {
 	const mapStrVect	&loc = res.getRequest().getLocation();
 
@@ -143,42 +153,41 @@ void	Post::directoryInRequest(std::string &path, std::ifstream &file)
 		isMoved = true;
 		res.setPath(res.getPath() + "/");
 		file.close();
+		cgiStage = ERRORCGI;
 		res.throwNewPath("301 Moved Permanently", "301");
 	}
 	if (loc.find("index")->second.empty())
 	{
 		file.close();
+		cgiStage = ERRORCGI;
 		res.throwNewPath("403 forbidden", "403");
 	}
-	// else
-		//cgi
+	else
+		cgiPassCheckment(reqBuff, stage, cgiStage );
 }
 
-void	Post::unsupportedUpload( )
+void	Post::unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 {
-	const mapStrVect	&loc = res.getRequest().getLocation();
 	std::ifstream		file(res.getPath().c_str());
 	std::string			s;
 
 	s   = res.getPath();
 	if (Utils::isDir(s.c_str()))
-		directoryInRequest(s, file);
+		directoryInRequest(reqBuff, s, file, stage, cgiStage);
 	if (!Utils::isFile(s.c_str()))
 	{
 		file.close();
+		cgiStage = ERRORCGI;
 		res.throwNewPath("404 not found", "404");
 	}
-	if (loc.find("cgi_pass")->second.empty())
-	{
-		file.close();
-		res.throwNewPath("403 forbidden", "403");
-	}
-		//cgi
+	else
+		cgiPassCheckment(reqBuff, stage, cgiStage );
 	file.close();
 }
 
 bool	Post::isUploadPass( Stage &stage )
 {
+	(void)stage;
 	const mapStrVect	&loc = res.getRequest().getLocation();
 	struct stat			statPath;
 	std::string			status;
@@ -186,9 +195,8 @@ bool	Post::isUploadPass( Stage &stage )
 	if (enter) return (enter);
 
 	enter = true;
-	if (loc.find("upload_pass")->second.empty())
+	if (loc.find("upload_pass")->second.front().empty())
 	{
-		stage  = RESHEADER;
 		status = res.concatenatePath( res.getRequest().getRequestedPath() );
 		res.setPath(status);
 		return (false);
@@ -205,7 +213,7 @@ bool	Post::isUploadPass( Stage &stage )
 	return ( true );
 }
 
-void	Post::requestedStatus(Stage &stage, std::string &reqBuff)
+void	Post::requestedStatus(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 {
 	const std::map<std::string, std::string>	&header = res.getRequest().getHeaders();
 
@@ -216,25 +224,38 @@ void	Post::requestedStatus(Stage &stage, std::string &reqBuff)
 		else
 			chunkedTransfer( reqBuff, stage );
 	}
-	else if (stage > REQBODY)
-		unsupportedUpload();
+	else if (stage >= REQBODY)
+		unsupportedUpload( reqBuff, stage, cgiStage );
 }
 
-void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes)
+void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes, CgiStage &cgiStage)
 {
-	std::string	pt;
+	if (cgiStage == WAITCGI)
+		cgi.waitCgi(stage, cgi.getPid(), cgiStage);
+	else
+	{
+		std::string	pt;
 
-	if (res.getStatusCodeMsg() == "-1")
-		requestedStatus(stage, reqBuff);
+		if (res.getStatusCodeMsg() == "-1")
+			requestedStatus(stage, reqBuff, cgiStage);
 
-	pt         = res.getPath();
-	headerRes  = res.getRequest().getProtocolVersion()           + " " +
-			     res.getStatusCodeMsg() + CRLF                   +
-			     "Content-Type: "       + res.getContentType(pt) + CRLF +
-			     "Content-Length: "     + res.getContentLength(pt);
+		if (cgiStage == EXECUTECGI)
+		{
+			headerRes  = res.getRequest().getProtocolVersion() + " "  +
+				res.getStatusCodeMsg()                         + CRLF;
+			stage = RESBODY;
+			return ;
+		}
 
-	if (isMoved) headerRes = headerRes + CRLF + "Location: " + res.getPath();
-	headerRes = headerRes + CRLF + CRLF;
+		pt         = res.getPath();
+		headerRes  = res.getRequest().getProtocolVersion()          +  " " +
+					res.getStatusCodeMsg() + CRLF                   +
+					"Content-Type: "       + res.getContentType(pt) + CRLF +
+					"Content-Length: "     + res.getContentLength(pt);
+
+		if (isMoved) headerRes = headerRes + CRLF + "Location: " + res.getPath();
+		headerRes = headerRes + CRLF + CRLF;		
+	}
 }
 
 void	Post::responsBody(std::string &bodyRes)
