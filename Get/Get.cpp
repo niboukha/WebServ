@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/12 15:04:40 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:33:39 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ Get::Get(Response &res)	:	response  (res),
 							sizeofRead(0)
 							
 {
-	// cgi.fillEnvirement();
 }
 
 Get::~Get()
@@ -66,10 +65,10 @@ void	Get::readListOfCurDirectory( CgiStage &cgiStage)
 	}
 	catch (const std::exception &e)
 	{
+		cgiStage = ERRORCGI;
 		status   = "403 ";
 		status  += e.what();
 		response.setStatusCodeMsg(status);
-		cgiStage = ERRORCGI;
 		throw(response.pathErrorPage("403"));
 	}
 }
@@ -142,7 +141,6 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		response.setPath(path);
 	}
 	std::ifstream file(response.getPath().c_str());
-	std::cout << response.getPath() <<"\n";
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pathPermission(cgiStage);
@@ -180,9 +178,9 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 		statusOfFile(stage, cgiStage);
 		if (cgiStage == EXECUTECGI)
 		{
-			headerRes  = response.getRequest().getProtocolVersion() + " "  +
-				response.getStatusCodeMsg()                         + CRLF;
-			stage = RESBODY;
+			stage	  = RESBODY;
+			headerRes = response.getRequest().getProtocolVersion() + " "  +
+				response.getStatusCodeMsg()                        + CRLF;
 			return ;
 		}
 		
@@ -228,14 +226,14 @@ void	Get::responsBody(std::string &bodyRes)
 	{
 		if (directories.size() > 2048)
 		{
-			bodyRes = std::string (directories, 0, 2048);
+			bodyRes		= std::string (directories, 0, 2048);
 			directories = std::string (directories, 2048 + 1);
-			sizeofRead = 2048;
+			sizeofRead	= 2048;
 		}
 		else
 		{
-			bodyRes = directories;
-			sizeofRead = directories.size();
+			bodyRes		= directories;
+			sizeofRead	= directories.size();
 			directories.clear();
 		}
 	}

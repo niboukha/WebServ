@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/11 21:13:31 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:49:59 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,9 +41,6 @@ class Response
 		CgiStage	cgiStage;
 		std::string	locationRes;
 		bool		isMoved;
-
-
-		
 
 		std::map<std::string, std::string>	mimeType;
 		std::map<std::string, std::string>	extentionFile;

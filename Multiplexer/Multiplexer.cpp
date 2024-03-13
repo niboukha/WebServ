@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/12 15:35:50 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 09:21:34 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,6 @@ void    Multiplexer::sendRes(Client& cl)
     if (cl.getSendBuff().size() > 0 and cl.getStage() < RESEND)
     {
         s = send(cl.getFd(), cl.getSendBuff().c_str(), cl.getSendBuff().size(), 0);
-        std::cout << cl.getSendBuff().size() << " " << s << "\n";
         if (s == -1)
         {
             perror ("send : ");//!!!

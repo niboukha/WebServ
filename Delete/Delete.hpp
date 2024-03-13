@@ -25,8 +25,8 @@ class	Delete
 		Response		&res;
 		
 		std::streampos	sizeofRead;
-		bool			isReal;
 		std::ifstream	in;
+		bool			isReal;
 
 	public :
 

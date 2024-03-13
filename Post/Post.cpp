@@ -6,21 +6,21 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/12 15:51:57 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:48:10 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Post.hpp"
 
-Post::Post( Response &response ) :	res( response ),
-									cgi(res),
-									size( 0 ),
-									isMoved( false ),
-									sizeofRead( 0 ),
-									enter( false ),
-									uploadSize( 0 ),
+Post::Post( Response &response ) :	res       		  ( response ),
+									cgi       		  ( res ),
+									size      		  ( 0 ),
+									isMoved   		  ( false ),
+									sizeofRead		  ( 0 ),
+									enter     		  ( false ),
+									uploadSize		  ( 0 ),
 									contentLengthLong ( 0 ),
-									maxBody ( 0 )
+									maxBody   		  ( 0 )
 {
 }
 
@@ -38,7 +38,7 @@ std::string	Post::conctRootUpload(std::string s)
 	const mapStrVect	&loc = res.getRequest().getLocation();
 	std::string			pt;
 
-	pt  = loc.find("root")->second.front() + s + "/";
+	pt = loc.find("root")->second.front() + s + "/";
 	return (pt);
 }
 
@@ -53,7 +53,7 @@ long long	Post::maxBodySize( )
 	return ( n );
 }
 
-void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
+void	Post::nonChunkedTransfer( Stage &stage, std::string &reqBuff )
 {
 	const std::map<std::string, std::string>	&head = res.getRequest().getHeaders();
 
@@ -72,7 +72,7 @@ void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 	{
 		UploadFile << std::string (reqBuff, 0, contentLengthLong - uploadSize);
 		stage = RESHEADER;
-		UploadFile.close();
+		// UploadFile.close();
 		res.throwNewPath("201 Created", "201");
 	}
 	UploadFile << reqBuff;
@@ -80,7 +80,7 @@ void	Post::nonChunkedTransfer(Stage &stage, std::string &reqBuff)
 	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;
-		UploadFile.close();
+		// UploadFile.close();
 		res.throwNewPath("201 Created", "201");
 	}
 	reqBuff.clear();
@@ -105,9 +105,9 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 			hexLen = Utils::getLength(std::string(reqBuff, 0, foundLen));
 			if (hexLen == 0)
 			{
-				UploadFile << std::string(reqBuff, 0, reqBuff.size() - 5);
+				// UploadFile << std::string(reqBuff, foundLen + 2, reqBuff.size() - 5);//to checkkkk
 				stage = RESHEADER;
-				UploadFile.close();
+				// UploadFile.close();
 				res.throwNewPath("201 Created", "201");
 			}
 		}
@@ -172,7 +172,7 @@ void	Post::unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiS
 	std::ifstream		file(res.getPath().c_str());
 	std::string			s;
 
-	s   = res.getPath();
+	s = res.getPath();
 	if (Utils::isDir(s.c_str()))
 		directoryInRequest(reqBuff, s, file, stage, cgiStage);
 	if (!Utils::isFile(s.c_str()))
@@ -186,9 +186,8 @@ void	Post::unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiS
 	file.close();
 }
 
-bool	Post::isUploadPass( Stage &stage )
+bool	Post::isUploadPass( )
 {
-	(void)stage;
 	const mapStrVect	&loc = res.getRequest().getLocation();
 	struct stat			statPath;
 	std::string			status;
@@ -218,10 +217,10 @@ void	Post::requestedStatus(Stage &stage, std::string &reqBuff, CgiStage &cgiStag
 {
 	const std::map<std::string, std::string>	&header = res.getRequest().getHeaders();
 
-	if (isUploadPass( stage ) and stage == REQBODY)
+	if (isUploadPass( ) and stage == REQBODY)
 	{
 		if (header.find("content-length") != header.end())
-			nonChunkedTransfer(stage, reqBuff);
+			nonChunkedTransfer( stage, reqBuff );
 		else
 			chunkedTransfer( reqBuff, stage );
 	}

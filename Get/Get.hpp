@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/11 21:09:10 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 11:34:03 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,8 @@
 
 #include "../Utils/WebServ.hpp"
 #include "../Utils/Utils.hpp"
-// #include "../Response/Response.hpp"
 #include "../Cgi/Cgi.hpp"
 
-// class Response;
 class Cgi;
 
 class	Get
@@ -27,9 +25,8 @@ class	Get
 	
 		Response					&response;
 		Cgi 						cgi;
-
-		std::vector<std::string>	vDir;
 		
+		std::vector<std::string>	vDir;
 		std::string					fillAutoIndexFile;
 		std::streampos				sizeofRead;
 		std::ifstream				in;
