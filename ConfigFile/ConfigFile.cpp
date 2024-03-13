@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/12 09:47:15 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 16:05:37 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
         location["upload_pass"] = vect;
     if (location.find("cgi_pass") == location.end())
         location["cgi_pass"] = vect;
-    if (location.find("return") == location.end())
+    if (location.find("return") == location.end())//update!!!
         location["return"] = vect;
 }
 
@@ -64,15 +64,18 @@ void    ConfigFile::decodeLocationPrefix(std::string& location)
 
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
-    mapStrVect                      location;
-    std::string                     key, line;
-    std::vector<std::string>         values;
+    mapStrVect                                   location;
+    std::string                                 key, line, trimLine;
+    std::vector<std::string>                    values;
+    mapStrVect ::iterator                       cgi, upload, root;   
 
     while (std::getline(configFile, line))
     {
 		if (line.find_first_not_of("\t") == 2 and std::isalnum(line[2]))//update
 		{
             values = StringOperations::split(line ,"\t ");
+            if (values.size() == 1)
+                throw ("Config file : " +  values[0] + " empty directire");
             key = values[0];
 			values.erase(values.begin());
 			if (Server::locationValidDirective(key, values))
@@ -81,29 +84,42 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 				throw DirectiveAlreadyExist() : false;
                 location[key] = values;
             }
+            continue;
 		}
-		else
-        {
-            configFile.seekg(-(line.length() + 1), std::ios_base::cur);
-            break;
-        }
+        trimLine = StringOperations::trim(line);
+        (trimLine.empty()) ? throw ("Config file: empty line in location block") : false;
+        configFile.seekg(-(line.length() + 1), std::ios_base::cur);
+        break;
     }
-    (location.find("upload_pass") != location.end() \
-    and location.find("cgi_pass") != location.end() and values.front().empty()) ?
-    throw("config file : just one of the directives required upload_pass/cgi_pass") : false;
-    (location.find("root") == location.end()) ? 
+    
+   (location.empty()) ?  throw("config file : location block empty") : false;
+        
+    cgi = location.find("cgi_pass");
+    upload = location.find("upload_pass");
+    root = location.find("root");
+    
+    (root == location.end() ) ? 
     throw ("config file  : invalid location block root directive required") : false;//update
+    
+    (upload != location.end() \
+    and cgi != location.end()) ?
+    throw("config file : just one of the directives required upload_pass/cgi_pass") : false;//update
+    
     addDirectivesMissingInLocation(location);//update
+    
+    // if (location.find("cgi_pass") == location.end())
+    //     std::cout << "=============> here " << std::endl;
     return location;
 }
 
+
 void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 {
-    std::string                         line;
+    std::string                         line, trimLine;
     std::map<std::string, std::string>  servData;
     std::vector<std::string>            values;
     std::map<std::string, mapStrVect>   locations;
-    std::string                          trimLine;
+   
     
     while (std::getline(configFile, line))
     {
@@ -131,20 +147,18 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
 				throw ("Config file : duplicate directive " +  values[0] + " in server block ") : false;	
 				servData[values[0]] = values[1];
 			}
+            continue;
 		}
-		else 
-		{
-            // trimLine = StringOperations::trim(line);
-            // (trimLine.empty()) ? throw SyntaxError() : false;
-			configFile.seekg(-(line.length() + 1), std::ios_base::cur);
-            break;
-		}
+        trimLine = StringOperations::trim(line);
+        (trimLine.empty()) ? throw ("Config file: empty line in server block") : false;
+        configFile.seekg(-(line.length() + 1), std::ios_base::cur);
+        break;
         
     }
     server.setServerData(servData);
     server.serverObligatoryDirectives();
     (locations.find("/") == locations.end()) ? \
-    throw("Config file : invalid location block ,default location required") : false;
+    throw("Config file : default location required") : false;
     server.setLocations(locations);
 }
 
@@ -182,34 +196,4 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
             throw SyntaxError();
     }        
 }
-    // std::cout << "***** vectors of servers : ***** " << std::endl;
-    // for (size_t i = 0; i < servers.size(); i++)
-    // {
-    //     std::cout << "  ---> every server  data : " << std::endl;
-    //     for (std::map<std::string, std::string>::const_iterator  it = servers[i].getServerData().begin(); 
-    //     it != servers[i].getServerData().end(); it++)
-    //     {
-    //         std::cout << "  key : " << it->first << "|  value : " \
-    //         << it->second << std::endl;
-    //     }
-    //     std::cout << "	===> locations: " << std::endl;
-    //     for (std::map<std::string, mapStrVect>::const_iterator 
-    //     it = servers[i].getLocations().begin() ; 
-    //     it !=  servers[i].getLocations().end(); it++)
-    //     {
-    //         std::cout << "  -->location key's : " << it->first << std::endl;
-    //         for (mapStrVect::const_iterator i = it->second.begin(); i != it->second.end(); i++)
-    //         {
-    //            std::cout << "		==> key : " << i->first << " | values : ";
-	// 		   for (size_t k = 0; k < i->second.size(); k++)
-	// 		   {
-	// 				std::cout << i->second[k] << " "; 
-	// 		   }
-	// 		   std::cout << std::endl;
-    //         }
-            
-    //     }
-        
-    // }
-    
  

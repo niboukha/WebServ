@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/12 09:47:28 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 21:18:13 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,28 +24,8 @@ Request::Request()
 
 Request::~Request()
 {
-    // std::cout << "=========> here ======" << std::endl;
 }
 
-// const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!
-// {
-//     if (this != &copy)
-//     {
-//     	configFileData  = copy.configFileData;
-// 	    location        = copy.location;
-// 		server          = copy.server;
-// 		headers         = copy.headers;
-// 		errorPages      = copy.errorPages;
-// 		method          = copy.method;
-// 		requestedPath   = copy.requestedPath;
-// 		protocolVersion = copy.protocolVersion;
-// 		uri             = copy.uri;
-// 		autority        = copy.autority;
-// 		scheme          = copy.scheme;
-// 		queryParameters = copy.queryParameters;
-//     }
-//     return *this;
-// }
 const std::string  Request::getMethod( ) const
 {
     return ( method );
@@ -135,6 +115,7 @@ void    Request::validateRequestHeader()
         (contentTypeIt == headers.end()))
        throw std::make_pair("400", "400 Bad Request");
 } 
+
 void    Request::fillLocation()
 {
     std::vector<std::string> vect;
@@ -147,6 +128,7 @@ void    Request::fillLocation()
     location["cgi_pass"] = vect;
     location["return"] = vect;
 }
+
 void    Request::fillErrorPages()
 {
     errorPages["201"] = ERROR_201;
@@ -297,7 +279,7 @@ size_t  Request::longestMatchingLocation(const std::string& prefix)
     return 0;
 }
 
-void    Request::matchingLocation() // mofied
+void    Request::matchingLocation()
 {
     Server& matchingServ = matchingServer();
     size_t  longestOne, sizeMatching;
@@ -316,6 +298,7 @@ void    Request::matchingLocation() // mofied
             subUri = i->first;
             location = i->second;  
             longestOne = sizeMatching;
+            std::cout << "=====> here "  << sizeMatching << "|" << i->first << "|"<< std::endl;
         }
     }
     if (!location["return"].front().empty())//to check mn b3ed !!!
@@ -329,6 +312,9 @@ void    Request::matchingLocation() // mofied
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
+    if (location.find("cgi_pass") == location.end())
+        std::cout << "========> here " << std::endl;
+        // std::cout << "==========> here " << "|" <<location.find("cgi_pass")->second.front() << "|"<< std::endl;
     requestedPath = requestedPath.substr(0, subUri.find_last_not_of(requestedPath));
 }
 

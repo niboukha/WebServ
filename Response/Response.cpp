@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:54:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 21:03:05 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,7 +172,7 @@ std::string	Response::concatenateIndexDirectory( )
 	for (size_t  i = 0; i < loc["index"].size(); i++)
 	{
 		std::ifstream	myFile(loc["index"][i].c_str());
-
+		std::cout << loc["index"][i] << "\n";
 		if (myFile.is_open())
 		{
 			myFile.close();
@@ -180,7 +180,7 @@ std::string	Response::concatenateIndexDirectory( )
 		}
 		myFile.close();
 	}
-	throwNewPath("404 forbidden", "404");
+	throwNewPath("404 Not found", "404");
 	return (NULL);
 }
 

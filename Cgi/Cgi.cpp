@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 11:57:58 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 10:22:18 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 22:13:32 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,13 +60,13 @@ void	Cgi::linkReqEnv()
 	if (!response.getRequest().getQueryParameters().empty())
 		requestEnv["QUERY_STRING"]     = response.getRequest().getQueryParameters();
 	
-	requestEnv["PATH_INFO"]            = response.getPath();
-	requestEnv["SCRIPT_FILENAME"]      = response.getPath();
-	requestEnv["SCRIPT_NAME"]          = response.getPath();
+	requestEnv["PATH_INFO"]            = response.getPath(); //diriha
+	requestEnv["SCRIPT_FILENAME"]      = response.getPath(); //o diriha
+	requestEnv["SCRIPT_NAME"]          = response.getPath(); //diriha
 	requestEnv["SERVER_PROTOCOL"]      = "HTTP/1.1";
 	requestEnv["GATEWAY_INTERFACE"]    = "CGI/1.1";
 	
-	requestEnv["REDIRECT_STATUS"]	   = "200";//for now
+	requestEnv["REDIRECT_STATUS"]	   = "200";
 	requestEnv["REMOTE_ADDR"]		   = "10.14.9.1"; //for now
 	requestEnv["SERVER_PORT"]          = "8080"; //for now
 
@@ -158,6 +158,17 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 	reqBuff.clear();
 }
 
+void	Cgi::getStatusCgi()
+{
+	std::ifstream	outfile(pathOutput);
+	std::string		s;
+	
+	while (std::getline(outfile, s))
+	{
+		
+	}
+}
+
 void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 {
 	int			status;
@@ -168,14 +179,15 @@ void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 	if (waitpid(pid, &status, 0) != 0 && WIFEXITED(status))
 	{
 		exitStatus = WEXITSTATUS(status);
-		if (exitStatus == 500)
+		if (exitStatus != 0)
 		{
 			cgiStage = ERRORCGI;
 			stage    = RESHEADER;
-			response.throwNewPath("500 Internal Server Error", "500"); //checkkkkkkkk
+			response.throwNewPath("500 Internal Server Error", "500");
 		}
 		cgiStage = EXECUTECGI;
 		stage    = RESHEADER;
+		// getStatusCgi();
 		statusCode = "200 ok";
 		response.setStatusCodeMsg(statusCode);
 		throw (pathOutput);

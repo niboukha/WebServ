@@ -6,13 +6,15 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/12 09:38:23 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 21:16:55 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Client/Client.hpp"
 
-Client::Client(std::vector<Server>& servers, int &fdCopy) : req(servers), res(req), stage(REQLINE), fd(fdCopy)
+Client::Client(std::vector<Server>& servers, int &fdCopy) : req(servers), res(req), 
+															stage(REQLINE), fd(fdCopy)
+															, lastRead(time(0))
 {
 }
 
@@ -20,7 +22,9 @@ Client::~Client()
 {
 }
 
-Client::Client(const Client& copy) : req(copy.req), res(req), stage(copy.stage), fd(copy.fd)
+Client::Client(const Client& copy) : req(copy.req), res(req),
+									 stage(copy.stage), fd(copy.fd),
+									 lastRead(copy.lastRead)
 {
 }
 
@@ -49,6 +53,16 @@ const std::string&	Client::getSendBuff() const
 	return sendBuff;
 }
 
+const time_t&		Client::getLastRead() const
+{
+	return lastRead;
+}
+
+void			Client::setLastRead(time_t& time)
+{
+	lastRead = time;
+}
+
 void	Client::setReqBuff(const std::string& buff)
 {
 	reqBuff = buff;
@@ -64,6 +78,7 @@ void	Client::setSendBuff(const std::string& buff)
 }
 
 
+
 void	Client::recieveRequest()
 {
 	std::string	s;
@@ -75,16 +90,9 @@ void	Client::recieveRequest()
 	}
 	catch(std::pair<char const*, char const*>& bReq)
 	{
-		const mapStrVect	&loc = res.getRequest().getLocation();
-
 		req.setMethod("GET");
 		req.setProtocolVersion("HTTP/1.1");
 
-		if (!loc.find("return")->second.front().empty())
-		{
-			res.setLocationRes(loc.find("return")->second[1]);
-			res.setIsMoved( true );
-		}
 		s = bReq.second;
 		res.setStatusCodeMsg(s);
 		res.setPath(res.pathErrorPage(bReq.first));

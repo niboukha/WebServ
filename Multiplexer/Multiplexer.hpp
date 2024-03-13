@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:37:36 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/11 20:46:17 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 14:01:00 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class Client;
 class Multiplexer
 {
     private:
+            std::vector<int>    masterSockets;
             std::vector<Server>   servers;
 
             std::vector<Request>    req;

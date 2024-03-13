@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:33:39 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 21:07:36 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ void	Get::pathPermission( CgiStage &cgiStage )
 bool	Get::cgiPassCheckment( CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
-	
+
 	if(!loc.find("cgi_pass")->second.front().empty())
 	{
 		if ((loc.find("cgi_pass")->second.front() != ".py" 
@@ -141,6 +141,7 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		response.setPath(path);
 	}
 	std::ifstream file(response.getPath().c_str());
+
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pathPermission(cgiStage);
