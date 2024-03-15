@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 10:17:14 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/14 13:48:08 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,8 +155,10 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     }
     server.setServerData(servData);
     server.serverObligatoryDirectives();
+    
     (locations.find("/") == locations.end()) ? \
     throw("Config file : default location required") : false;
+    
     server.setLocations(locations);
 }
 
@@ -168,61 +170,28 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
     while (std::getline(configFile, line))
     {
         line = StringOperations::trim(line);
-        // std::cout << "---------> line " << "|"<< line  << "|"<< std::endl;
         if (!line.compare("server"))
         {
             fillServer(configFile, server);
             const std::map<std::string, std::string>& mapDataServ = server.getServerData();
-            std::string                                host, port, servName;
+            std::string                                host, port;
             
             host = mapDataServ.find("host")->second;
             port = mapDataServ.find("port")->second;
-            servName = mapDataServ.find("server_name")->second;
             for (size_t j = 0; j < servers.size(); j++)
             {
                 const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();
                 
                 if (!mapDataS.find("host")->second.compare(host) 
-                    and !mapDataS.find("port")->second.compare(port)
-                    and !mapDataS.find("server_name")->second.compare(servName))
+                    and !mapDataS.find("port")->second.compare(port))
                 throw ("Config file : duplicate server block");
             }
             servers.push_back(server);
         }
-        else if (line.empty())//to check 
-            continue ; 
+        else if (line.empty())
+            continue ;
         else
             throw SyntaxError();
-    }        
+    } 
 }
-    // std::cout << "***** vectors of servers : ***** " << std::endl;
-    // for (size_t i = 0; i < servers.size(); i++)
-    // {
-    //     std::cout << "  ---> every server  data : " << std::endl;
-    //     for (std::map<std::string, std::string>::const_iterator  it = servers[i].getServerData().begin(); 
-    //     it != servers[i].getServerData().end(); it++)
-    //     {
-    //         std::cout << "  key : " << it->first << "|  value : " \
-    //         << it->second << std::endl;
-    //     }
-    //     std::cout << "	===> locations: " << std::endl;
-    //     for (std::map<std::string, mapStrVect>::const_iterator 
-    //     it = servers[i].getLocations().begin() ; 
-    //     it !=  servers[i].getLocations().end(); it++)
-    //     {
-    //         std::cout << "  -->location key's : " << it->first << std::endl;
-    //         for (mapStrVect::const_iterator i = it->second.begin(); i != it->second.end(); i++)
-    //         {
-    //            std::cout << "		==> key : " << i->first << " | values : ";
-	// 		   for (size_t k = 0; k < i->second.size(); k++)
-	// 		   {
-	// 				std::cout << i->second[k] << " "; 
-	// 		   }
-	// 		   std::cout << std::endl;
-    //         }
-            
-    //     }
-        
-    // }
-    
  

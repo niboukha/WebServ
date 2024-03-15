@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:57:57 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/14 13:56:42 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,7 @@ void	Client::setSendBuff(const std::string& buff)
 {
 	sendBuff = buff;
 }
+
 
 
 void	Client::recieveRequest()

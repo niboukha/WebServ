@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/11 19:02:19 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 21:07:36 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,11 +15,9 @@
 
 Get::Get(Response &res)	:	response  (res),
 							cgi       (res),
-							sizeofRead(0),
-							isMoved   ( false )
+							sizeofRead(0)
 							
 {
-	// cgi.fillEnvirement();
 }
 
 Get::~Get()
@@ -67,10 +65,10 @@ void	Get::readListOfCurDirectory( CgiStage &cgiStage)
 	}
 	catch (const std::exception &e)
 	{
+		cgiStage = ERRORCGI;
 		status   = "403 ";
 		status  += e.what();
 		response.setStatusCodeMsg(status);
-		cgiStage = ERRORCGI;
 		throw(response.pathErrorPage("403"));
 	}
 }
@@ -82,8 +80,8 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file, CgiStage &c
 
 	if (path[path.length() - 1] != '/')
 	{
-		isMoved     = true;
-		locationRes = response.getRequest().getRequestedPath() + "/";
+		response.setIsMoved( true );
+		response.setLocationRes(response.getRequest().getRequestedPath() + "/");
 		cgiStage    = ERRORCGI;
 		file.close();
 		response.throwNewPath("301 Moved Permanently", "301");
@@ -117,8 +115,8 @@ void	Get::pathPermission( CgiStage &cgiStage )
 bool	Get::cgiPassCheckment( CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
-	
-	if(loc.find("cgi_pass") != loc.end() && !loc.find("cgi_pass")->second.front().empty())
+
+	if(!loc.find("cgi_pass")->second.front().empty())
 	{
 		if ((loc.find("cgi_pass")->second.front() != ".py" 
 			and loc.find("cgi_pass")->second.front() != ".php") and cgiStage != ERRORCGI)
@@ -143,6 +141,7 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		response.setPath(path);
 	}
 	std::ifstream file(response.getPath().c_str());
+
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pathPermission(cgiStage);
@@ -180,9 +179,9 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 		statusOfFile(stage, cgiStage);
 		if (cgiStage == EXECUTECGI)
 		{
-			headerRes  = response.getRequest().getProtocolVersion() + " "  +
-				response.getStatusCodeMsg()                         + CRLF;
-			stage = RESBODY;
+			stage	  = RESBODY;
+			headerRes = response.getRequest().getProtocolVersion() + " "  +
+				response.getStatusCodeMsg()                        + CRLF;
 			return ;
 		}
 		
@@ -193,8 +192,8 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 				response.getStatusCodeMsg()                         + CRLF +
 				"Content-Type: "   + response.getContentType(path)  + CRLF +
 				"Content-Length: " + response.getContentLength(path);
-			if (isMoved)
-				headerRes = headerRes + CRLF + "Location: " + locationRes;
+			if (response.getIsMoved())
+				headerRes = headerRes + CRLF + "Location: " + response.getLocationRes();
 			headerRes     = headerRes + CRLF + CRLF;
 			stage = RESBODY;
 		}
@@ -228,14 +227,14 @@ void	Get::responsBody(std::string &bodyRes)
 	{
 		if (directories.size() > 2048)
 		{
-			bodyRes = std::string (directories, 0, 2048);
+			bodyRes		= std::string (directories, 0, 2048);
 			directories = std::string (directories, 2048 + 1);
-			sizeofRead = 2048;
+			sizeofRead	= 2048;
 		}
 		else
 		{
-			bodyRes = directories;
-			sizeofRead = directories.size();
+			bodyRes		= directories;
+			sizeofRead	= directories.size();
 			directories.clear();
 		}
 	}

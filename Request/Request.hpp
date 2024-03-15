@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/09 21:24:15 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 16:14:02 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ class Request
 		void		parseHeader(std::string& buff, size_t& found);
      
 		void		matchingLocation();
+
+		void   		fillLocation();
 
 		
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 19:38:41 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/10 21:04:41 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 22:20:01 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 
 #include "../Utils/WebServ.hpp"
 #include "../Utils/Utils.hpp"
-// #include "../Post/Post.hpp"
 #include "../Response/Response.hpp"
 
 class	Response;
@@ -35,7 +34,6 @@ class	Cgi
 		char								*inter;
 		pid_t								pid;
 
-		
 		FILE* 								inputFile;
 		FILE* 								outputFile;
 
@@ -45,16 +43,17 @@ class	Cgi
 		Cgi (Response &res);
 		~Cgi();
 
+		int&		getPid();
+	
 		void		executeCgi(std::string &reqBuff, Stage &stage, CgiStage &cgiStage);
 		void		uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage);
 		void		linkReqEnv( );
 		void		fillEnvirement( );
-		long long	maxBodySize( );
-		void		cgiBinary(Stage &stage, CgiStage &cgiStage);
+		void		cgiBinary( );
 		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage);
+		// void		getStatusCgi();
 
-		int&		getPid();
-		void		setPid(const int p);
+		long long	maxBodySize( );
 
 };
 

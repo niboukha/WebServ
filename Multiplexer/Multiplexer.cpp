@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 12:50:17 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/14 14:54:49 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ Multiplexer::Multiplexer()
 Multiplexer::~Multiplexer()
 {
 }
-
 
 void    Multiplexer::setServers(const std::vector<Server>& servers)
 {
@@ -125,7 +124,6 @@ void    Multiplexer::multiplexing()
                     i->setStage(RESEND);
                 if (i->getStage() == RESEND)
                 {
-                    // std::cout << "-------> here " << std::endl;
                     clear(readFds, writeFds, *i);
                     i = clients.erase(i);
                     i--;

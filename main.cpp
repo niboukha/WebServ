@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:58:56 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 12:47:06 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/14 10:31:49 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 int main(int ac, char **av)
 {
     std::fstream           configFile;
-    ConfigFile             MyConfigFile;
+    ConfigFile             file;
     Multiplexer            multiplexer;
         
     try
@@ -29,21 +29,14 @@ int main(int ac, char **av)
         configFile.open(av[1]);
         if (!configFile.is_open())
             throw FailedToOpenFile();
-                
-        configFile.seekg(0, std::ios::end);  
-        if (configFile.tellg() == 0) 
-            throw ("Config file empty ");
-        configFile.seekg(0, std::ios::beg); 
-
-        MyConfigFile.parseConfigFile(configFile);
+        file.parseConfigFile(configFile);
         configFile.close();
-        multiplexer.setServers(MyConfigFile.getServers());
+        multiplexer.setServers(file.getServers());
         multiplexer.multiplexing();
         
     }
     catch(const std::exception& e)
     {
-        // std::cout << "iiii-> iii\n";
         std::cerr << e.what() << '\n';
         configFile.close();
     }

@@ -3,18 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/01 10:38:45 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/13 11:30:41 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Delete.hpp"
 
-Delete::Delete( Response &response ) :	res(response),
+Delete::Delete( Response &response ) :	res		  (response),
 										sizeofRead(0),
-										isReal(true)
+										isReal	  (true)
 {
 }
 
@@ -36,6 +36,7 @@ void	Delete::pathOfSentPage( std::string s, std::string code )
 void	Delete::directoryPath( DIR *pDir, struct stat st, std::string &pt )
 {
 	std::string	s;
+
 	if (pt[pt.length() - 1] != '/')
 	{
 		closedir(pDir);
@@ -178,7 +179,7 @@ void	Delete::responsHeader(std::string &headerRes)
 	
 	statusOfRequested();
 
-	pt = res.getPath();
+	pt         = res.getPath();
 	headerRes  = res.getRequest().getProtocolVersion()         + " "  +
 				 res.getStatusCodeMsg()                        + CRLF +
 		 		 "Content-Type: "   + res.getContentType(pt)   + CRLF +

@@ -6,7 +6,7 @@
 /*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:49:32 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/14 13:56:52 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,8 +32,9 @@ class	Client
 		std::string	sendBuff;
 
 		int			fd;
-		
+
 		time_t		lastRead;
+
 		void		recieveRequest();
 		void		sendResponse();
 

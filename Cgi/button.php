@@ -1,5 +1,3 @@
 <?php
-    while (1)
-    {
-    }
+    usleep(30);
 ?>

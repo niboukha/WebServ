@@ -3,19 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   StringOperations.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 09:39:21 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 09:54:32 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 09:11:52 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "StringOperations.hpp"
 
-bool    StringOperations::containsNonAlpha(std::string &str)
-{
-    return str.find_first_not_of("abcdefghijklmnopqrstuvwxyz") != std::string::npos;
-}
 
 std::string StringOperations::trim(const std::string& str, const std::string REMOVE)
 {
@@ -23,7 +19,7 @@ std::string StringOperations::trim(const std::string& str, const std::string REM
     size_t last = str.find_last_not_of(REMOVE);
     if (first == last and first != std::string::npos)
         return (str);
-    else if (first == std::string::npos)
+    else if (first == std::string::npos )
         return ("");
     return str.substr(first, (last - first + 1));
 }

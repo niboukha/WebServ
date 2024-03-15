@@ -3,30 +3,37 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 11:57:58 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/11 13:53:42 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/13 22:53:39 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../Response/Response.hpp"
 
-Cgi::Cgi(Response &res) :	response(res),
-							env(NULL),
-							uploadSize ( 0 ),
-							contentLengthLong (0),
-							inter (NULL),
-							pid (-1),
-							inputFile (NULL),
-							outputFile (NULL)
+Cgi::Cgi( Response &res ) :	response			( res  ),
+							env					( NULL ),
+							uploadSize 			(  0   ),
+							contentLengthLong	(  0   ),
+							inter				( NULL ),
+							pid					(  -1  ),
+							inputFile			( NULL ),
+							outputFile			( NULL )
 {
 
 }
 
-Cgi::~Cgi()
+Cgi::~Cgi( )
 {
-	delete [] env; //leaks
+	std::map<std::string, std::string> :: iterator	it;
+	int 											i;
+	
+	it = requestEnv.begin();
+	i  = 0;
+	for(; it != requestEnv.end(); it++, i++)
+		delete [] env[i];
+	delete [] env;
 	if (pid != -1)
 		kill(pid, SIGTERM);
 }
@@ -35,12 +42,6 @@ int&	Cgi::getPid()
 {
 	return (pid);
 }
-
-void		Cgi::setPid(const int p)
-{
-	pid = p;
-}
-
 
 void	Cgi::linkReqEnv()
 {
@@ -59,18 +60,15 @@ void	Cgi::linkReqEnv()
 	if (!response.getRequest().getQueryParameters().empty())
 		requestEnv["QUERY_STRING"]     = response.getRequest().getQueryParameters();
 	
+	requestEnv["PATH_INFO"]            = response.getPath(); //diriha
+	requestEnv["SCRIPT_FILENAME"]      = response.getPath(); //o diriha
+	requestEnv["SCRIPT_NAME"]          = response.getPath(); //diriha
 	requestEnv["SERVER_PROTOCOL"]      = "HTTP/1.1";
 	requestEnv["GATEWAY_INTERFACE"]    = "CGI/1.1";
-
 	
-	requestEnv["REDIRECT_STATUS"]	   = "200";//for now
+	requestEnv["REDIRECT_STATUS"]	   = "200";
 	requestEnv["REMOTE_ADDR"]		   = "10.14.9.1"; //for now
 	requestEnv["SERVER_PORT"]          = "8080"; //for now
-
-	
-	requestEnv["PATH_INFO"]            = response.getPath();
-	requestEnv["SCRIPT_FILENAME"]      = response.getPath();
-	requestEnv["SCRIPT_NAME"]          = response.getPath();
 
 }
 
@@ -81,18 +79,17 @@ void	Cgi::fillEnvirement()
 	int												i;
 	
 	linkReqEnv();
-	env = new char*[requestEnv.size() + 1];
 
-	i  = 0;
-	it = requestEnv.begin();
-	for(; it != requestEnv.end(); it++)
+	env = new char*[requestEnv.size() + 1];
+	i   = 0;
+	it  = requestEnv.begin();
+	for(; it != requestEnv.end(); it++, i++)
 	{
 		keyval = it->first + "=" + it->second;
 		env[i] = new char[keyval.length() + 1];
 		for (size_t j = 0; j < keyval.length(); j++)
 			env[i][j] = keyval[j];
 		env[i][keyval.length()] = '\0';
-		i++;
 	}
 	env[i] = NULL;
 }
@@ -108,29 +105,21 @@ long long	Cgi::maxBodySize( )
 	return ( n );
 }
 
-void	Cgi::cgiBinary(Stage &stage, CgiStage &cgiStage)
+void	Cgi::cgiBinary( )
 {
-	const std::string	&pt   = response.getPath();
-	size_t				found = pt.find_last_of(".");
-
-	if (found != std::string::npos)
+	const mapStrVect	&loc = response.getRequest().getLocation();
+	if(!loc.find("cgi_pass")->second.front().empty())
 	{
-		if (pt.substr(found) == ".py")
+		if ( loc.find("cgi_pass")->second.front() == ".py" )
 		{
 			cgiBin = "/usr/bin/python3";
 			inter  = (char*)"python3";
 		}
-		else if (pt.substr(found) == ".php")
+		else if (loc.find("cgi_pass")->second.front() == ".php")
 		{
 			cgiBin = "/usr/bin/php-cgi";
 			inter  = (char*)"php-cgi";
 		}
-	}
-	if (cgiBin.empty())
-	{
-		cgiStage = ERRORCGI;
-		stage    = RESHEADER;
-		response.throwNewPath("403 forbiden", "403");//chechik
 	}
 }
 
@@ -164,11 +153,21 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;
-		// pathInput.clear();
 		fclose(inputFile);
 	}
 	reqBuff.clear();
 }
+
+// void	Cgi::getStatusCgi()
+// {
+// 	std::ifstream	outfile(pathOutput);
+// 	std::string		s;
+	
+// 	while (std::getline(outfile, s))
+// 	{
+		
+// 	}
+// }
 
 void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 {
@@ -180,14 +179,15 @@ void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 	if (waitpid(pid, &status, 0) != 0 && WIFEXITED(status))
 	{
 		exitStatus = WEXITSTATUS(status);
-		if (exitStatus == 500)
+		if (exitStatus != 0)
 		{
 			cgiStage = ERRORCGI;
 			stage    = RESHEADER;
-			response.throwNewPath("500 Internal Server Error", "500"); //checkkkkkkkk
+			response.throwNewPath("500 Internal Server Error", "500");
 		}
 		cgiStage = EXECUTECGI;
 		stage    = RESHEADER;
+		// getStatusCgi();
 		statusCode = "200 ok";
 		response.setStatusCodeMsg(statusCode);
 		throw (pathOutput);
@@ -199,7 +199,7 @@ void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 	fillEnvirement ( );
 	if (stage < RESHEADER)
 		uploadBody(stage, reqBuff, cgiStage);
-	cgiBinary(stage, cgiStage);
+	cgiBinary( );
 
 	if (!outputFile)
 	{

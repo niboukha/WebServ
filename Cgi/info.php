@@ -45,11 +45,12 @@
 
 <?php
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // GET user input
-    $name = isset($_GET['name']) ? htmlspecialchars($_GET['name']) : '';
-    $email = isset($_GET['email']) ? htmlspecialchars($_GET['email']) : '';
-    $phone = isset($_GET['phone']) ? htmlspecialchars($_GET['phone']) : '';
+    header("Status: 404 ");
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // POST user input
+    $name = isset($_POST['name']) ? htmlspecialchars($_POST['name']) : '';
+    $email = isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '';
+    $phone = isset($_POST['phone']) ? htmlspecialchars($_POST['phone']) : '';
 
     // Display user info in a card
     echo '<div class="card">';
@@ -62,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 ?>
 
 <!-- HTML form for user input -->
-<form method="GET" action="">
+<form method="POST" action="">
     <label for="name">Name:</label>
     <input type="text" id="name" name="name" required>
 
