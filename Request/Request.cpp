@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:01:08 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 23:53:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 Request::Request(std::vector<Server>& servers) : servs(servers)
 {
     fillErrorPages();
+    fillLocation();
 }
 
 Request::Request()
@@ -23,28 +24,8 @@ Request::Request()
 
 Request::~Request()
 {
-    // std::cout << "=========> here ======" << std::endl;
 }
 
-// const Request&  Request::operator=(const Request& copy)// to check mn b3ed !!!
-// {
-//     if (this != &copy)
-//     {
-//     	configFileData  = copy.configFileData;
-// 	    location        = copy.location;
-// 		server          = copy.server;
-// 		headers         = copy.headers;
-// 		errorPages      = copy.errorPages;
-// 		method          = copy.method;
-// 		requestedPath   = copy.requestedPath;
-// 		protocolVersion = copy.protocolVersion;
-// 		uri             = copy.uri;
-// 		autority        = copy.autority;
-// 		scheme          = copy.scheme;
-// 		queryParameters = copy.queryParameters;
-//     }
-//     return *this;
-// }
 const std::string  Request::getMethod( ) const
 {
     return ( method );
@@ -135,6 +116,19 @@ void    Request::validateRequestHeader()
        throw std::make_pair("400", "400 Bad Request");
 } 
 
+void    Request::fillLocation()
+{
+    std::vector<std::string> vect;
+
+    vect.push_back("");
+    location["root"] = vect;
+    location["allow_methodes"] = vect;
+    location["autoindex"] = vect;
+    location["index"] = vect;
+    location["cgi_pass"] = vect;
+    location["return"] = vect;
+}
+
 void    Request::fillErrorPages()
 {
     errorPages["201"] = ERROR_201;
@@ -150,6 +144,8 @@ void    Request::fillErrorPages()
     errorPages["400"] = ERROR_400;
     errorPages["414"] = ERROR_414;
     errorPages["405"] = ERROR_405;
+    errorPages["408"] = ERROR_408;
+
 }
 
 void   Request::parseRequest(std::string &buff, Stage &stage)
@@ -168,7 +164,6 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         {
             validateRequestHeader();
             matchingLocation();
-            // std::cout << "THE END OR PARSING" << std::endl;
             buff = buff.substr(pos + 2);
             stage = REQBODY;
             return ;
@@ -290,9 +285,10 @@ void    Request::matchingLocation()
     Server& matchingServ = matchingServer();
     size_t  longestOne, sizeMatching;
     std::string subUri;
-    
+    std::vector<std::string>::iterator it;
     server = matchingServ.getServerData();
     longestOne = 0;
+
     for (std::map<std::string, mapStrVect>::const_iterator 
         i = matchingServ.getLocations().begin();
         i != matchingServ.getLocations().end(); i++)
@@ -307,9 +303,14 @@ void    Request::matchingLocation()
     }
     if (!location["return"].front().empty())//to check mn b3ed !!!
     {
-        std::cout <<"=====> " << location["return"][0] << std::endl;
         throw std::make_pair(((location["return"][0]).c_str()),
             ("301 Moved Permanently"));
+    }
+    if (!location["allow_methodes"].front().empty())
+    {
+        it = find(location["allow_methodes"].begin(), 
+        location["allow_methodes"].end(), method);
+        it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
     requestedPath = requestedPath.substr(0, subUri.find_last_not_of(requestedPath));
 }

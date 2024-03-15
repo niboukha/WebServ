@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:03:43 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 00:07:03 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,11 +120,23 @@ void    Multiplexer::multiplexing()
                     readReq(*i);
                 if (FD_ISSET(i->getFd(), &tmpWriteFds) and i->getStage() >= RESHEADER)
                     sendRes(*i);
-                if ((time(0) - i->getLastRead()) > 30)
-                    i->setStage(RESEND);
+                if ((time(0) - i->getLastRead()) > 10)
+                {
+                    std::string s;
+                    time_t  currTime;
+
+                    i->getRequest().setMethod("GET");
+                    i->getRequest().setProtocolVersion("HTTP/1.1");
+                    s = "408 Request Timeout";
+                    i->getResponse().setStatusCodeMsg(s);
+                    i->getResponse().setPath( i->getResponse().pathErrorPage("408"));
+                    currTime = time(0);
+                    i->setLastRead(currTime);
+                    i->setStage(RESHEADER);
+                }
                 if (i->getStage() == RESEND)
                 {
-                    // std::cout << "-------> here " << std::endl;
+                    std::cout << " CLIENT WAS DIE !!" << std::endl;
                     clear(readFds, writeFds, *i);
                     i = clients.erase(i);
                     i--;

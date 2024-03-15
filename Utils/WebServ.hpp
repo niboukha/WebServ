@@ -68,6 +68,7 @@
 #define	ERROR_400 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/400.html"
 #define	ERROR_414 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/414.html"
 #define	ERROR_405 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/405.html"
+#define	ERROR_408 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/408.html"
 
 typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;

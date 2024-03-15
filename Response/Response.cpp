@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:54:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 16:20:18 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,7 +172,6 @@ std::string	Response::concatenateIndexDirectory( )
 	for (size_t  i = 0; i < loc["index"].size(); i++)
 	{
 		std::ifstream	myFile(loc["index"][i].c_str());
-
 		if (myFile.is_open())
 		{
 			myFile.close();
@@ -180,7 +179,7 @@ std::string	Response::concatenateIndexDirectory( )
 		}
 		myFile.close();
 	}
-	throwNewPath("404 forbidden", "404");
+	throwNewPath("404 Not found", "404");
 	return (NULL);
 }
 
@@ -234,6 +233,32 @@ std::string	Response::pathErrorPage(std::string code)
 		and !(statPath.st_mode & S_IWUSR))) )
 			return (serError.find(code)->second);
 	return (confgError.find(code)->second);
+}
+
+bool	Response::extentionToCgi( std::string &path )
+{
+	std::string	s;
+	size_t		found;
+
+	found = path.find_last_of(".");
+	if (found != std::string::npos)
+	{
+		if (std::string (path, found) == ".py" || std::string (path, found) == ".php")
+			return true;
+	}
+	return ( false );
+}
+
+
+std::string	Response::contentTypePY()
+{
+	const mapStrVect	&loc = getRequest().getLocation();
+	std::string			s;
+	
+	if(!loc.find("cgi_pass")->second.front().empty())
+		if ( loc.find("cgi_pass")->second.front() == ".py" )
+			s = s + "Content-Type: text/html" + CRLF;
+	return (s);
 }
 
 void	Response::throwNewPath(std::string msg, std::string code)
@@ -303,7 +328,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == RESHEADER)
 			{
 				post->responsHeader(stage, reqBuff, headerRes, cgiStage);
-				return ( stage = RESBODY );
+				return ( stage );
 			}
 			if (stage == RESBODY)
 			{

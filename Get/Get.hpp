@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:38:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:34:03 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 09:38:41 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,8 @@ class	Get
 		void					stringOfDyrectories(std::vector<std::string> &vdir);		
 		void					pathPermission( CgiStage &cgiStage);
 		bool					cgiPassCheckment( CgiStage &cgiStage );
-		void					parseFileCgi(std::string	&headerRes);
+		bool					extentionToCgi(std::string &path, CgiStage &cgiStage );
+
 
 
 };

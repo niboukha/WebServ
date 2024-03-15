@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:03:07 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 15:06:16 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ const std::vector<Server>& ConfigFile::getServers() const
     return servers;
 }
 
-void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
+void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)
 {
     std::vector<std::string>    vect;
     
@@ -40,7 +40,7 @@ void    ConfigFile::addDirectivesMissingInLocation(mapStrVect &location)//update
         location["upload_pass"] = vect;
     if (location.find("cgi_pass") == location.end())
         location["cgi_pass"] = vect;
-    if (location.find("return") == location.end())//update!!!
+    if (location.find("return") == location.end())
         location["return"] = vect;
 }
 
@@ -71,7 +71,7 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 
     while (std::getline(configFile, line))
     {
-		if (line.find_first_not_of("\t") == 2 and std::isalnum(line[2]))//update
+		if (line.find_first_not_of("\t") == 2 and std::isalnum(line[2]))
 		{
             values = StringOperations::split(line ,"\t ");
             if (values.size() == 1)
@@ -99,14 +99,14 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
     root = location.find("root");
     
     (root == location.end() ) ? 
-    throw ("config file  : invalid location block root directive required") : false;//update
+    throw ("config file  : invalid location block root directive required") : false;
     
     (upload != location.end() \
     and cgi != location.end()) ?
-    throw("config file : just one of the directives required upload_pass/cgi_pass") : false;//update
+    throw("config file : just one of the directives required upload_pass/cgi_pass") : false;
     
-    addDirectivesMissingInLocation(location);//update
-    
+    addDirectivesMissingInLocation(location);
+
     return location;
 }
 
@@ -121,7 +121,7 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     
     while (std::getline(configFile, line))
     {
-		if (!line.find("\t") and std::isalnum(line[1]))//update
+		if (!line.find("\t") and std::isalnum(line[1]))
 		{
 			values = StringOperations::split(line, " \t");
 			if ((values[0].compare("error_page") and values.size() != 2) 

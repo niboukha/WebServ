@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 14:00:08 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 23:46:08 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,16 @@ Client::Client(const Client& copy) : req(copy.req), res(req),
 									 stage(copy.stage), fd(copy.fd),
 									 lastRead(copy.lastRead)
 {
+}
+
+Response&    Client::getResponse() 
+{
+	return res;
+}
+
+ Request&    Client::getRequest() 
+{
+	return req;
 }
 
 const int&	Client::getFd() const
@@ -78,6 +88,7 @@ void	Client::setSendBuff(const std::string& buff)
 }
 
 
+
 void	Client::recieveRequest()
 {
 	std::string	s;
@@ -89,9 +100,16 @@ void	Client::recieveRequest()
 	}
 	catch(std::pair<char const*, char const*>& bReq)
 	{
+		const mapStrVect	&loc = res.getRequest().getLocation();
+
 		req.setMethod("GET");
 		req.setProtocolVersion("HTTP/1.1");
 
+		if (!loc.find("return")->second.front().empty())
+		{
+			res.setLocationRes(loc.find("return")->second[1]);
+			res.setIsMoved( true );
+		}
 		s = bReq.second;
 		res.setStatusCodeMsg(s);
 		res.setPath(res.pathErrorPage(bReq.first));

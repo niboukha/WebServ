@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:48:10 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 23:27:43 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,16 +130,22 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 void	Post::cgiPassCheckment( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = res.getRequest().getLocation();
+	std::string			path = res.getPath();
 
-	if ((loc.find("cgi_pass")->second.front().empty()
+	if (((loc.find("cgi_pass")->second.front().empty()
 		or (loc.find("cgi_pass")->second.front() != ".py" 
-		and loc.find("cgi_pass")->second.front() != ".php")) and cgiStage != ERRORCGI)
+		and loc.find("cgi_pass")->second.front() != ".php")) and cgiStage != ERRORCGI))
 		{
 			cgiStage = ERRORCGI;
 			res.throwNewPath("403 forbidden", "403");
 		}
 	else if (cgiStage == INITCGI)
 	{
+		if (!res.extentionToCgi(path))
+		{
+			cgiStage = ERRORCGI;
+			res.throwNewPath("403 forbidden", "403");
+		}
 		cgiStage = WAITCGI;
 		cgi.executeCgi(reqBuff, stage, cgiStage );
 	}
@@ -231,30 +237,44 @@ void	Post::requestedStatus(Stage &stage, std::string &reqBuff, CgiStage &cgiStag
 void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes, CgiStage &cgiStage)
 {
 	if (cgiStage == WAITCGI)
+	{
 		cgi.waitCgi(stage, cgi.getPid(), cgiStage);
+	}
 	else
 	{
 		std::string	pt;
 
 		if (res.getStatusCodeMsg() == "-1")
 			requestedStatus(stage, reqBuff, cgiStage);
-
+		
 		if (cgiStage == EXECUTECGI)
 		{
 			headerRes  = res.getRequest().getProtocolVersion() + " "  +
 				res.getStatusCodeMsg()                         + CRLF;
+			if (!res.contentTypePY().empty())
+			{
+				headerRes += res.contentTypePY();
+				if (!cgi.getHasNewLine())
+				{
+					cgi.setHasNewLine(false);
+					headerRes = headerRes + CRLF;
+				}
+			}
 			stage = RESBODY;
 			return ;
 		}
+		else if (cgiStage != WAITCGI)
+		{
+			pt         = res.getPath();
+			headerRes  = res.getRequest().getProtocolVersion()          +  " " +
+						res.getStatusCodeMsg() + CRLF                   +
+						"Content-Type: "       + res.getContentType(pt) + CRLF +
+						"Content-Length: "     + res.getContentLength(pt);
 
-		pt         = res.getPath();
-		headerRes  = res.getRequest().getProtocolVersion()          +  " " +
-					res.getStatusCodeMsg() + CRLF                   +
-					"Content-Type: "       + res.getContentType(pt) + CRLF +
-					"Content-Length: "     + res.getContentLength(pt);
-
-		if (isMoved) headerRes = headerRes + CRLF + "Location: " + res.getPath();
-		headerRes = headerRes + CRLF + CRLF;		
+			if (isMoved) headerRes = headerRes + CRLF + "Location: " + res.getPath();
+			headerRes = headerRes + CRLF + CRLF;
+			stage = RESBODY;
+		}
 	}
 }
 

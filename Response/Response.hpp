@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:49:59 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 14:45:50 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,8 @@ class Response
 		std::string			concatenatePath( std::string p );
 		std::string			pathErrorPage(std::string code);
 		std::string			getExtensionFile();
+		std::string			contentTypePY();
+		bool				extentionToCgi( std::string &path );
 
 
 };

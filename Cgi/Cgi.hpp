@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 19:38:41 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 10:22:51 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 12:14:14 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ class	Cgi
 		std::string							cgiBin;
 		char								*inter;
 		pid_t								pid;
-
 		FILE* 								inputFile;
 		FILE* 								outputFile;
+		bool								hasNewLine;
 
 		
 	public:
@@ -43,7 +43,10 @@ class	Cgi
 		Cgi (Response &res);
 		~Cgi();
 
+		void	setHasNewLine(const bool& newline);
+
 		int&		getPid();
+		const bool&	getHasNewLine() const;
 	
 		void		executeCgi(std::string &reqBuff, Stage &stage, CgiStage &cgiStage);
 		void		uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage);
@@ -51,6 +54,8 @@ class	Cgi
 		void		fillEnvirement( );
 		void		cgiBinary( );
 		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage);
+		void		getStatusCgi();
+		void		checkValidStatus(std::string &status);
 
 		long long	maxBodySize( );
 

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:33:39 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 23:59:17 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ void	Get::pathPermission( CgiStage &cgiStage )
 bool	Get::cgiPassCheckment( CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
-	
+
 	if(!loc.find("cgi_pass")->second.front().empty())
 	{
 		if ((loc.find("cgi_pass")->second.front() != ".py" 
@@ -141,6 +141,7 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		response.setPath(path);
 	}
 	std::ifstream file(response.getPath().c_str());
+
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pathPermission(cgiStage);
@@ -154,7 +155,8 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		response.throwNewPath("404 not found", "404");
 	}
 	pathPermission(cgiStage);
-	if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI)
+	path = response.getPath();
+	if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI && response.extentionToCgi(path))
 	{
 		cgiStage = WAITCGI;
 		cgi.executeCgi(s, stage, cgiStage);
@@ -181,10 +183,19 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 			stage	  = RESBODY;
 			headerRes = response.getRequest().getProtocolVersion() + " "  +
 				response.getStatusCodeMsg()                        + CRLF;
+			if (!response.contentTypePY().empty())
+			{
+				headerRes += response.contentTypePY();
+				if (!cgi.getHasNewLine())
+				{
+					cgi.setHasNewLine(false);
+					headerRes = headerRes + CRLF;
+				}
+			}
 			return ;
 		}
 		
-		if (directories.empty())
+		if (directories.empty() and cgiStage != WAITCGI)
 		{
 			path       = response.getPath();
 			headerRes  = response.getRequest().getProtocolVersion() + " "  +
@@ -195,8 +206,9 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 				headerRes = headerRes + CRLF + "Location: " + response.getLocationRes();
 			headerRes     = headerRes + CRLF + CRLF;
 			stage = RESBODY;
+			std::cout << "header -> " << headerRes << "\n";
 		}
-		else
+		else if(cgiStage != WAITCGI)
 		{
 			headerRes  = response.getRequest().getProtocolVersion() + " "  +
 				response.getStatusCodeMsg()                         + CRLF +
