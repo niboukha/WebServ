@@ -1,3 +1,3 @@
 <?php
-    usleep(30);
+    while (1);
 ?>

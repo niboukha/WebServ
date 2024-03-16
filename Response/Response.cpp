@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 21:03:05 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 12:33:06 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,12 @@ void	Response::setIsMoved(const bool& move)
 	isMoved = move;
 }
 
+void	Response::setCgiStage(const CgiStage& st)
+{
+	cgiStage = st;
+}
+
+
 const Request&	Response::getRequest() const
 {
 	return ( req );
@@ -89,6 +95,11 @@ const std::string&	Response::getLocationRes() const
 const bool&		Response::getIsMoved() const
 {
 	return (isMoved);
+}
+
+const CgiStage&		Response::getCgiStage() const
+{
+	return (cgiStage);
 }
 
 void	Response::UpdateStatusCode(std::string &s)
@@ -144,7 +155,8 @@ std::string	Response::getExtensionFile( )
 {
 	const std::map<std::string, std::string>	&header = getRequest().getHeaders();
 
-	if (extentionFile.find(header.find( "content-type" )->second) != extentionFile.end())
+	if (header.find( "content-type" ) != header.end() 
+		and extentionFile.find(header.find( "content-type" )->second) != extentionFile.end())
 		return ( extentionFile.find(header.find( "content-type" )->second)->second );
 	return ("txt");
 }
@@ -172,7 +184,6 @@ std::string	Response::concatenateIndexDirectory( )
 	for (size_t  i = 0; i < loc["index"].size(); i++)
 	{
 		std::ifstream	myFile(loc["index"][i].c_str());
-		std::cout << loc["index"][i] << "\n";
 		if (myFile.is_open())
 		{
 			myFile.close();
@@ -234,6 +245,32 @@ std::string	Response::pathErrorPage(std::string code)
 		and !(statPath.st_mode & S_IWUSR))) )
 			return (serError.find(code)->second);
 	return (confgError.find(code)->second);
+}
+
+bool	Response::extentionToCgi( std::string &path )
+{
+	std::string	s;
+	size_t		found;
+
+	found = path.find_last_of(".");
+	if (found != std::string::npos)
+	{
+		if (std::string (path, found) == ".py" || std::string (path, found) == ".php")
+			return true;
+	}
+	return ( false );
+}
+
+
+std::string	Response::contentTypePY()
+{
+	const mapStrVect	&loc = getRequest().getLocation();
+	std::string			s;
+	
+	if(!loc.find("cgi_pass")->second.front().empty())
+		if ( loc.find("cgi_pass")->second.front() == ".py" )
+			s = s + "Content-Type: text/html" + CRLF;
+	return (s);
 }
 
 void	Response::throwNewPath(std::string msg, std::string code)
@@ -303,7 +340,7 @@ Stage	Response::sendResponse(Stage &stage, std::string &reqBuff)
 			if (stage == RESHEADER)
 			{
 				post->responsHeader(stage, reqBuff, headerRes, cgiStage);
-				return ( stage = RESBODY );
+				return ( stage );
 			}
 			if (stage == RESBODY)
 			{

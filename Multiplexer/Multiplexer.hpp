@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:37:36 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:01:00 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 11:05:19 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class Multiplexer
         void    sendRes(Client& cl);
         void    clear(fd_set& tmpR, fd_set& tmpW, Client& client);
         void    reqServers(Server& serv, std::vector<Server>& servs);
+        void    dropClient(Client& cl);
         
         
         

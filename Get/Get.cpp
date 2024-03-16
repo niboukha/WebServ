@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 21:07:36 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 21:20:41 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,8 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		response.throwNewPath("404 not found", "404");
 	}
 	pathPermission(cgiStage);
-	if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI)
+	path = response.getPath();
+	if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI && response.extentionToCgi(path))
 	{
 		cgiStage = WAITCGI;
 		cgi.executeCgi(s, stage, cgiStage);
@@ -182,10 +183,19 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 			stage	  = RESBODY;
 			headerRes = response.getRequest().getProtocolVersion() + " "  +
 				response.getStatusCodeMsg()                        + CRLF;
+			if (!response.contentTypePY().empty())
+			{
+				headerRes += response.contentTypePY();
+				if (!cgi.getHasNewLine())
+				{
+					cgi.setHasNewLine(false);
+					headerRes = headerRes + CRLF;
+				}
+			}
 			return ;
 		}
 		
-		if (directories.empty())
+		if (directories.empty() and cgiStage != WAITCGI)
 		{
 			path       = response.getPath();
 			headerRes  = response.getRequest().getProtocolVersion() + " "  +
@@ -195,9 +205,9 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 			if (response.getIsMoved())
 				headerRes = headerRes + CRLF + "Location: " + response.getLocationRes();
 			headerRes     = headerRes + CRLF + CRLF;
-			stage = RESBODY;
+			stage         = RESBODY;
 		}
-		else
+		else if(cgiStage != WAITCGI)
 		{
 			headerRes  = response.getRequest().getProtocolVersion() + " "  +
 				response.getStatusCodeMsg()                         + CRLF +

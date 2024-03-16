@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 15:52:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 12:59:16 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,13 +67,15 @@ std::string	Utils::generateRundFile()
 {
 	std::string			path;
 	std::ostringstream	s;
-
+	clock_t				now;
+	
+	now = clock();
+	srand(now);
 	path = "file";
-	s << time(0);
-
+	s << rand();
 	return (path + s.str());
 }
-
+php
 bool Utils::isFdOpen(int fd)
 {
     return fcntl(fd, F_GETFD) != -1 or errno != EBADF;

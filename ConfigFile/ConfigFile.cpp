@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 16:05:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 12:26:42 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,6 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
     
     addDirectivesMissingInLocation(location);//update
     
-    // if (location.find("cgi_pass") == location.end())
-    //     std::cout << "=============> here " << std::endl;
     return location;
 }
 
@@ -157,8 +155,10 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     }
     server.setServerData(servData);
     server.serverObligatoryDirectives();
+    
     (locations.find("/") == locations.end()) ? \
     throw("Config file : default location required") : false;
+    
     server.setLocations(locations);
 }
 
@@ -167,6 +167,11 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
     Server              server;
     std::string         line;
 
+    configFile.seekg(0, std::ios::end);  
+    if (configFile.tellg() == 0) 
+        throw ("Config file is empty !!!");
+    configFile.seekg(0, std::ios::beg); 
+    
     while (std::getline(configFile, line))
     {
         line = StringOperations::trim(line);
@@ -178,22 +183,26 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
             
             host = mapDataServ.find("host")->second;
             port = mapDataServ.find("port")->second;
-            servName = mapDataServ.find("server_name")->second;
+            (mapDataServ.find("server_name") != mapDataServ.end()) ? servName = mapDataServ.find("server_name")->second :
+             servName = std::string("");
             for (size_t j = 0; j < servers.size(); j++)
             {
                 const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();
                 
                 if (!mapDataS.find("host")->second.compare(host) 
                     and !mapDataS.find("port")->second.compare(port)
+                    and !servName.empty()  and mapDataS.find("server_name") != mapDataS.end()
                     and !mapDataS.find("server_name")->second.compare(servName))
-                throw ("Config file : duplicate server block");
+                    throw ("Config file : duplicate server block");
             }
             servers.push_back(server);
         }
-        else if (line.empty())//to check 
-            continue ; 
+        else if (line.empty())
+            continue ;
         else
             throw SyntaxError();
-    }        
+    } 
+    if (servers.empty())
+        throw ("Config file is empty !!!");
 }
  

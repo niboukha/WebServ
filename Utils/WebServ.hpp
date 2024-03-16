@@ -49,11 +49,11 @@
 #define RESET   "\033[0m"
 #define GREEN   "\033[32m"
 #define _XOPEN_SOURCE 700
-#define	PORT 8080
-#define	CRLF "\r\n" //carriage return and line feed
-#define	PATH_CGI "/nfs/homes/niboukha/Desktop/webserv/upload/"
-#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/extraFiles/mimetype.txt"
-#define	BUF 1024
+
+#define	CRLF	  "\r\n" //carriage return and line feed
+
+#define	PATH_CGI  "/nfs/homes/niboukha/Desktop/webserv/upload/"
+#define	PATH_MIME "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/mimetype.txt"
 
 #define	ERROR_201 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/201.html"
 #define	ERROR_204 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/204.html"
@@ -68,8 +68,12 @@
 #define	ERROR_400 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/400.html"
 #define	ERROR_414 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/414.html"
 #define	ERROR_405 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/405.html"
+#define	ERROR_408 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/408.html"
+#define	ERROR_505 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/505.html"
+#define	ERROR_411 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/411.html"
+#define	ERROR_504 "/nfs/homes/niboukha/Desktop/webserv/ErrorPages/504.html"
 
-typedef std::map<std::string, std::vector<std::string> > mapStrVect;//stringToVectMap
+typedef std::map<std::string, std::vector<std::string> > mapStrVect;
 typedef std::map<std::string, std::vector<std::string> >::value_type MapValueType;
 
 enum	Stage

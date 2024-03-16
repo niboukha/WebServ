@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:03:43 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 12:56:51 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,31 @@ void    Multiplexer::reqServers(Server& serv, std::vector<Server>& servs)
     } 
 }
 
+void    Multiplexer:: dropClient(Client& cl)
+{
+    std::string s;
+    time_t  currTime;
+
+    cl.getRequest().setMethod("GET");
+    cl.getRequest().setProtocolVersion("HTTP/1.1");
+    if (cl.getResponse().getCgiStage() == WAITCGI)
+    {
+        s = "504 Gateway Timeout";
+        cl.getResponse().setStatusCodeMsg(s);
+        cl.getResponse().setPath( cl.getResponse().pathErrorPage("504"));
+    }
+    else
+    {
+        s = "408 Request Timeout";
+        cl.getResponse().setStatusCodeMsg(s);
+        cl.getResponse().setPath( cl.getResponse().pathErrorPage("408"));
+    }
+    currTime = time(0);
+    cl.setLastRead(currTime);
+    cl.getResponse().setCgiStage(ERRORCGI);
+    cl.setStage(RESHEADER);
+}
+
 void    Multiplexer::multiplexing()
 {
     fd_set  readFds, writeFds, tmpReadFds, tmpWriteFds;
@@ -109,6 +134,7 @@ void    Multiplexer::multiplexing()
                 if (FD_ISSET(servers[i].getMasterSocket(), &tmpReadFds))
                 {
                     acceptedClient = servers[i].acceptNewConnection(readFds, writeFds);
+                    fcntl(acceptedClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);//update/////////////////////////////////////////////////
                     reqServers(servers[i], servs);
                     (acceptedClient > maxFds and acceptedClient <= 1024) ? maxFds = acceptedClient: false;
                     clients.push_back(Client(servs, acceptedClient));
@@ -120,11 +146,11 @@ void    Multiplexer::multiplexing()
                     readReq(*i);
                 if (FD_ISSET(i->getFd(), &tmpWriteFds) and i->getStage() >= RESHEADER)
                     sendRes(*i);
-                if ((time(0) - i->getLastRead()) > 30)
-                    i->setStage(RESEND);
+                if ((time(0) - i->getLastRead()) >= 10)
+                    dropClient(*i);
                 if (i->getStage() == RESEND)
                 {
-                    // std::cout << "-------> here " << std::endl;
+                    std::cout << " CLIENT WAS DIE !!" << std::endl;
                     clear(readFds, writeFds, *i);
                     i = clients.erase(i);
                     i--;

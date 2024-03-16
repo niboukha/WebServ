@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:30:41 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 10:27:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,16 @@ void	Delete::directoryPath( DIR *pDir, struct stat st, std::string &pt )
 	}
 }
 
-void	Delete::filePath( std::string &s )
+void	Delete::filePath( std::string &s, struct stat st, DIR *pDir )
 {
 	std::string	set;
 	
-	if (!std::remove(s.c_str()))
+	if (!(st.st_mode & S_IWUSR))
+	{
+		closedir(pDir);
+		pathOfSentPage("403 Forbidden", "403");
+	}
+	else if (!std::remove(s.c_str()))
 	{
 		set = "204 No Content";
 		res.setStatusCodeMsg(set);
@@ -96,7 +101,7 @@ std::string	Delete::nestedDirectories( std::string s, struct stat statPath )
 				directoryPath(pDir, statPath, s);
 			}
 			else if (S_ISREG(statPath.st_mode))
-				filePath(s);
+				filePath(s, statPath, pDir);
 		}
 		else
 		{
@@ -129,7 +134,9 @@ void	Delete::deleteBasePath( std::string s, struct stat statPath )
 		}
 		else if (S_ISREG(statPath.st_mode))
 		{
-			if (!std::remove(s.c_str()))
+			if (!(statPath.st_mode & S_IWUSR))
+				pathOfSentPage("403 Forbidden", "403");
+			else if (!std::remove(s.c_str()))
 				pathOfSentPage("204 No Content", "204");
 		}
 	}
@@ -156,6 +163,11 @@ void	Delete::statusOfRequested( )
 			{
 				if (base[base.length() - 1] != '/')
 					pathOfSentPage("409 conflict", "409");
+				if (!(statPath.st_mode & S_IWUSR))
+					pathOfSentPage("403 Forbidden", "403");
+			}
+			else if (S_ISREG(statPath.st_mode))
+			{
 				if (!(statPath.st_mode & S_IWUSR))
 					pathOfSentPage("403 Forbidden", "403");
 			}

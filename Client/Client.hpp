@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 15:13:12 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 14:00:15 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/14 23:45:55 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,10 @@ class	Client
 		const std::string&	getReqBuff() const;
 		const std::string&	getSendBuff() const;
 		const time_t&		getLastRead() const;
-
+		
+		Response&    getResponse() ;
+		Request&    getRequest() ;
+		
 		void				setReqBuff(const std::string& buff);
 		void				setSendBuff(const std::string& buff);
 		void				setStage(const Stage& st);

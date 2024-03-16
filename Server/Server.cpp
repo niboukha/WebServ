@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:13:36 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 23:22:25 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,11 +15,11 @@
 bool     (*Server::functionsLocation[])(std::vector<std::string> &) = {&Server::isValidRoot, &Server::isValidAutoIndex, 
                                                         &Server::isValidUploadPass, &Server::isValidCgiPass, &Server::isValidReturn};//update
 Server::Server()
-{  
+{
 }
 
 Server::~Server()
-{  
+{ 
 }
 
 void    Server::setServerData(std::map<std::string, std::string>& servData)
@@ -61,12 +61,14 @@ void    Server::createAndBindSocket(fd_set& readFds)
     hints.ai_canonname = NULL;
     hints.ai_next = NULL;
     hints.ai_addr = NULL;
-    if(getaddrinfo(getServerData().find("host")->second.c_str(), \
-    getServerData().find("port")->second.c_str(), &hints, &rslt) < 0)
-        throw strerror(errno);
+    int status = getaddrinfo(getServerData().find("host")->second.c_str(), \
+    getServerData().find("port")->second.c_str(), &hints, &rslt);
+    if( status < 0)
+        throw gai_strerror(status);
     for (struct addrinfo * rp = rslt; rp != NULL; rp = rp->ai_next)
     {
         masterSocket = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+       
         if (masterSocket < 0)
             continue;
         opt = 1;
@@ -94,15 +96,32 @@ int   Server::acceptNewConnection(fd_set& readFds, fd_set& writeFds)
     sockaddr_in clientAdd;
     socklen_t   clientAddLen;
     int         acceptedClient;
+    struct  in_addr  addr;
+    uint32_t ip_address ;
+    char    buffAdd[10];
 
     clientAddLen = sizeof(clientAdd);
     if((acceptedClient  = accept(masterSocket, (struct sockaddr*)&clientAdd, &clientAddLen)) < 0)
         throw strerror(errno);
+    
+    addr = clientAdd.sin_addr;
+    ip_address = addr.s_addr;
+   
+    sprintf(buffAdd, "%u.%u.%u.%u", (ip_address & 0xFF), 
+        ((ip_address >> 8) & 0xFF),((ip_address >> 16) & 0xFF),((ip_address >> 24) & 0xFF));
+        
+    clientIp = std::string(buffAdd);
+    
     FD_SET(acceptedClient, &readFds);
     FD_SET(acceptedClient, &writeFds);
     return acceptedClient;
 }
- 
+
+const std::string& Server::getClientIp() const
+{
+    return clientIp;
+}
+
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
 {
     std::string    directives[4] = {"host", "port", "error_page", "server_name"};
@@ -201,9 +220,8 @@ bool  Server::isValidReturn(std::vector<std::string> &returnValue)
 
 bool    Server::serverObligatoryDirectives()
 {
-    std::string serverDirectives[4] = {"host", "port", "server_name", "client_max_body_size"};
-    
-    for (size_t i = 0; i < 4; i++)
+    std::string serverDirectives[3] = {"host", "port", "client_max_body_size"};
+    for (size_t i = 0; i < 3; i++)
     {
         if (serverData.find(serverDirectives[i]) == serverData.end())
             throw ("config File : directive " + serverDirectives[i] +" required in server block");   

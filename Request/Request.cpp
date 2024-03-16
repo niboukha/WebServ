@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 21:18:13 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 12:47:12 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,45 +76,6 @@ void    Request::setProtocolVersion(std::string httpVersion)
     protocolVersion = httpVersion;
 }
 
-void    Request::validateRequestHeader()
-{
-    long long   contentLen;
-    char        *end;
-    
-    if (headers.find("host") ==  headers.end())
-        throw std::make_pair("400", "400 Bad Request");
-        
-    std::map<std::string, std::string>::iterator transferEncIt = headers.find("transfer-encoding"), 
-                                                contentLenIt = headers.find("content-length"),
-                                                contentTypeIt = headers.find("content-type");
-    int                                         isMethodPost;
-                                      
-    if (contentLenIt != headers.end())
-    {
-        (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        contentLen = strtoll(headers["content-length"].c_str(), &end, 10);
-        (contentLen < 0 or *end) ?  throw std::make_pair("400", "400 Bad Request") : false;
-    }
-    if (transferEncIt != headers.end())
-    {
-        (transferEncIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        (transferEncIt->second.compare("chunked")) ?  throw std::make_pair("501", "501 Not Implemented") : false;
-    }
-    if (contentTypeIt != headers.end() )
-    {
-        (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
-    }
-    isMethodPost = method.compare("POST");
-    if ((!isMethodPost and transferEncIt == headers.end() 
-        and contentLenIt == headers.end())
-        or (!isMethodPost and contentLenIt != headers.end() 
-        and transferEncIt != headers.end()))//bad req
-        throw std::make_pair("400", "400 Bad Request");
-    if (!isMethodPost and
-        (contentTypeIt == headers.end()))
-       throw std::make_pair("400", "400 Bad Request");
-} 
 
 void    Request::fillLocation()
 {
@@ -144,7 +105,122 @@ void    Request::fillErrorPages()
     errorPages["400"] = ERROR_400;
     errorPages["414"] = ERROR_414;
     errorPages["405"] = ERROR_405;
+    errorPages["408"] = ERROR_408;
+    errorPages["505"] = ERROR_505;
+    errorPages["411"] = ERROR_411;
+    errorPages["504"] = ERROR_504;
 }
+
+void    Request::parseRequestLine(std::string    &buff)
+{
+    std::vector<std::string>    splitReqLine;
+    std::string                 reqLine;
+    size_t                      found;
+    std::string                 methodes[9] = {"GET", "POST", "DELETE", 
+                                                "PUT", "CONNECT", "OPTIONS", "TRACE", 
+                                                "HEAD", "PATCH"}; //PATCH//HEAD FIHA BLAN
+    std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
+  
+    found = buff.find("\r\n");
+    reqLine = buff.substr(0 ,found);
+    if (std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
+        throw std::make_pair("400", "400 Bad Request");
+    buff = buff.substr(found + 2);
+    splitReqLine = StringOperations::split(reqLine, " ");
+    if ( splitReqLine.size() != 3 
+        or (std::find(methodes, methodes + 9, splitReqLine[0]) \
+        == (methodes +  9)))//Bad request can cz SGV !!!
+        throw std::make_pair("400", "400 Bad Request");
+    if (std::find(methodesImp, methodesImp + 3 , splitReqLine[0]) == (methodesImp +  3))//Not implemented
+        throw std::make_pair("501", "501 Not Implemented");
+    if (splitReqLine[1].find("/"))
+        throw std::make_pair("400", "400 Bad Request");
+    if (splitReqLine[2].compare(0, 5,"HTTP/"))
+        throw std::make_pair("400", "400 Bad Request");
+    if (!splitReqLine[2].compare(0, 5,"HTTP/")  and splitReqLine[2].compare(5, 3, "1.1"))
+        throw std::make_pair("505", "505 HTTP Version Not Supported");
+    uri = splitReqLine[1];
+    method = splitReqLine[0];
+    protocolVersion = splitReqLine[2];
+}
+
+void    Request::parseHeader(std::string &buff, size_t& found)
+{
+    std::string key, header, value;
+    size_t  pos;
+    
+   
+    header = buff.substr(0, found);
+    buff = buff.substr(found + 2);
+    pos = header.find_first_of(":");
+    if (pos != std::string::npos)
+   { 
+        key = header.substr(0, header.find_first_of(":"));
+        if (key.find_first_of(" \t") != std::string::npos )
+            throw std::make_pair("400", "400 Bad Request");
+        std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
+        value = StringOperations::trim(header.substr(key.length() + 1));//to check trim !!!!!
+        if (!key.compare("host") and value.empty())
+            throw std::make_pair("400", "400 Bad Request");
+        if ((!key.compare("host") or !key.compare("content-length") 
+            or !key.compare("transfer-encoding")) and headers.find(key) != headers.end())
+               throw std::make_pair("400", "400 Bad Request");
+        if (!key.compare("content-type") and headers.find(key) != headers.end())
+            headers[key] = headers[key] + ";" + value;
+        else
+            headers[key] = value;//check if key exist
+    }   
+}
+void    Request::validateRequestHeader()
+{
+    if (headers.find("host") ==  headers.end())
+        throw std::make_pair("400", "400 Bad Request");
+        
+    std::map<std::string, std::string>::iterator transferEncIt = headers.find("transfer-encoding"), 
+                                                contentLenIt = headers.find("content-length"),
+                                                contentTypeIt = headers.find("content-type");
+    int                                         isMethodPost;
+                                      
+    if (contentLenIt != headers.end())
+    {
+        (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        
+        std::istringstream  iss(headers["content-length"]);
+        long long           contentLen;
+        std::string            strLongLong;
+        char                remain;
+        std::ostringstream oss;
+    
+        if (!(iss >> contentLen) or (iss >> remain) or (contentLen < 0))
+           throw std::make_pair("400", "400 Bad Request");
+        oss << contentLen;
+        strLongLong = oss.str();
+        if (strLongLong.compare(headers["content-length"]))
+            throw std::make_pair("400", "400 Bad Request");
+    }
+    if (transferEncIt != headers.end())
+    {
+        (transferEncIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        (transferEncIt->second.compare("chunked")) ?  throw std::make_pair("501", "501 Not Implemented") : false;
+    }
+    if (contentTypeIt != headers.end() )
+    {
+        (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
+    }
+    isMethodPost = method.compare("POST");
+    
+    if (!isMethodPost and transferEncIt == headers.end()
+    and contentLenIt == headers.end())
+        throw std::make_pair("411", "411 Length Required");
+        
+    if (!isMethodPost and contentLenIt != headers.end()
+        and transferEncIt != headers.end())
+        throw std::make_pair("400", "400 Bad Request");
+
+    // if we found an error in content type
+    
+} 
 
 void   Request::parseRequest(std::string &buff, Stage &stage)
 {
@@ -194,7 +270,7 @@ void   Request::parseUri()//to check
 
     decodeUri();
     if (uri.length() > 2048)//bad req
-        throw std::make_pair("414", "414 Request-URI too long");//to large 
+        throw std::make_pair("414", "414 URI Too Long");//to large 
     if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl\
         mnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         throw std::make_pair("400", "400 Bad Request");
@@ -208,66 +284,6 @@ void   Request::parseUri()//to check
     requestedPath = uri.substr(uri.find("/"));
 }
 
-void    Request::parseRequestLine(std::string    &buff)
-{
-    std::vector<std::string>    splitReqLine;
-    std::string                 reqLine;
-    size_t                      found;
-    std::string                 methodes[9] = {"GET", "POST", "DELETE", 
-                                                "PUT", "CONNECT", "OPTIONS", "TRACE", 
-                                                "HEAD", "PATCH"}; //PATCH//HEAD FIHA BLAN
-    std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
-  
-    found = buff.find("\r\n");
-    reqLine = buff.substr(0 ,found);
-    if (std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
-        throw std::make_pair("400", "400 Bad Request");
-    buff = buff.substr(found + 2);
-    splitReqLine = StringOperations::split(reqLine, " ");
-    if ( splitReqLine.size() != 3 
-        or (std::find(methodes, methodes + 9, splitReqLine[0]) \
-        == (methodes +  9)))//Bad request can cz SGV !!!
-        throw std::make_pair("400", "400 Bad Request");
-    if (std::find(methodesImp, methodesImp + 3 , splitReqLine[0]) == (methodesImp +  3))//Not implemented
-        throw std::make_pair("501", "501 Not Implemented");
-    if (splitReqLine[1].find("/"))
-        throw std::make_pair("400", "400 Bad Request");
-    if (splitReqLine[2].compare(0, 5,"HTTP/"))
-        throw std::make_pair("400", "400 Bad Request");
-    if (!splitReqLine[2].compare(0, 5,"HTTP/")  and splitReqLine[2].compare(5, 3, "1.1"))
-        throw std::make_pair("505", "505 not supported");
-    uri = splitReqLine[1];
-    method = splitReqLine[0];
-    protocolVersion = splitReqLine[2];
-}
-
-void    Request::parseHeader(std::string &buff, size_t& found)
-{
-    std::string key, header, value;
-    size_t  pos;
-    
-   
-    header = buff.substr(0, found);
-    buff = buff.substr(found + 2);
-    pos = header.find_first_of(":");
-    if (pos != std::string::npos)
-   { 
-        key = header.substr(0, header.find_first_of(":"));
-        if (key.find_first_of(" \t") != std::string::npos )
-            throw std::make_pair("400", "400 Bad Request");
-        std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
-        value = StringOperations::trim(header.substr(key.length() + 1));//to check trim !!!!!
-        if (!key.compare("host") and value.empty())
-            throw std::make_pair("400", "400 Bad Request");
-        if ((!key.compare("host") or !key.compare("content-length") 
-            or !key.compare("transfer-encoding")) and headers.find(key) != headers.end())
-               throw std::make_pair("400", "400 Bad Request");
-        if (!key.compare("content-type") and headers.find(key) != headers.end())
-            headers[key] = headers[key] + ";" + value;
-        else
-            headers[key] = value;//check if key exist
-    }   
-}
 
 size_t  Request::longestMatchingLocation(const std::string& prefix)
 {
@@ -298,7 +314,6 @@ void    Request::matchingLocation()
             subUri = i->first;
             location = i->second;  
             longestOne = sizeMatching;
-            std::cout << "=====> here "  << sizeMatching << "|" << i->first << "|"<< std::endl;
         }
     }
     if (!location["return"].front().empty())//to check mn b3ed !!!
@@ -312,20 +327,22 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-    if (location.find("cgi_pass") == location.end())
-        std::cout << "========> here " << std::endl;
-        // std::cout << "==========> here " << "|" <<location.find("cgi_pass")->second.front() << "|"<< std::endl;
-    requestedPath = requestedPath.substr(0, subUri.find_last_not_of(requestedPath));
+    requestedPath = requestedPath.substr(0, subUri.find_first_not_of(requestedPath));
 }
 
 Server&  Request::matchingServer()
 {
+    std::string host;
     std::string serverName;
 
-    serverName = headers.find("host")->second;
+    host = headers.find("host")->second;
+    
     for (size_t i = 0; i < servs.size(); i++)
     {
-        if (!servs[i].getServerData().find("server_name")->second.compare("host"))
+        
+        servs[i].getServerData().find("server_name") != servs[i].getServerData().end() ? 
+        serverName = servs[i].getServerData().find("server_name")->second : serverName = "";
+        if (!serverName.compare(host))
             return servs[i];
     }
     return servs[0];

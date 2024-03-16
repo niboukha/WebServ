@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:49:59 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 12:32:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ class Response
 		void				setHeaderRes(const std::string& header);
 		void				setLocationRes(const std::string& header);
 		void				setIsMoved(const bool& move);
+		void				setCgiStage(const CgiStage& st);
 
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
@@ -65,6 +66,8 @@ class Response
 		const std::string&	getBodyRes() const;
 		const std::string&	getLocationRes() const;
 		const bool&			getIsMoved() const;
+		const CgiStage&		getCgiStage() const;
+
 
 		std::string			getContentType( std::string &path );
 		std::string			getContentLength( std::string &path );
@@ -78,6 +81,8 @@ class Response
 		std::string			concatenatePath( std::string p );
 		std::string			pathErrorPage(std::string code);
 		std::string			getExtensionFile();
+		std::string			contentTypePY();
+		bool				extentionToCgi( std::string &path );
 
 
 };

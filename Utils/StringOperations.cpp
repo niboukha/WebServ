@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/08 09:39:21 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/08 09:54:32 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 18:17:53 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,10 @@ std::string StringOperations::trim(const std::string& str, const std::string REM
 {
     size_t first = str.find_first_not_of(REMOVE);
     size_t last = str.find_last_not_of(REMOVE);
+    
+    
     if (first == last and first != std::string::npos)
-        return (str);
+        return (str.substr(first, (last - first + 1)));
     else if (first == std::string::npos)
         return ("");
     return str.substr(first, (last - first + 1));

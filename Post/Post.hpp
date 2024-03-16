@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/13 11:46:40 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 23:50:17 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ class	Post
 		Cgi 			cgi;
 
 		long long		size;
-		bool			isMoved;
 		int				sizeofRead;
 		bool			enter;
 		long long		uploadSize;
@@ -51,10 +50,13 @@ class	Post
 		void					unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiStage );
 
 		void					cgiPassCheckment( std::string &reqBuff, Stage &stage, CgiStage &cgiStage );
-		void					directoryInRequest(std::string &reqBuff, std::string &path, std::ifstream	&file, Stage &stage, CgiStage &cgiStage);
+		void					directoryInRequest(std::string &reqBuff, std::ifstream	&file, Stage &stage, CgiStage &cgiStage);
 		std::string				conctRootUpload( std::string s );
 		long long				maxBodySize();
 		bool					isUploadPass( );
+		void					pathPermission( CgiStage &cgiStage );
+		std::string				concatenateIndexDirectory( );
+
 
 		const std::streampos	getSizeofRead() const;
 };
