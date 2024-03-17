@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/16 12:56:51 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 03:14:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,17 @@ void    Multiplexer:: dropClient(Client& cl)
     cl.setStage(RESHEADER);
 }
 
+void    Multiplexer::removeCgiFiles( Client& cl )
+{
+    std::string pathI;
+    std::string pathO;
+    
+    pathO = cl.getResponse().getPathOutput();
+    pathI = cl.getResponse().getPathInput();
+    std::remove(pathI.c_str());
+	std::remove(pathO.c_str());
+}
+
 void    Multiplexer::multiplexing()
 {
     fd_set  readFds, writeFds, tmpReadFds, tmpWriteFds;
@@ -150,8 +161,9 @@ void    Multiplexer::multiplexing()
                     dropClient(*i);
                 if (i->getStage() == RESEND)
                 {
-                    std::cout << " CLIENT WAS DIE !!" << std::endl;
+                    // std::cout << " CLIENT WAS DIE !!" << std::endl;
                     clear(readFds, writeFds, *i);
+                    removeCgiFiles(*i);
                     i = clients.erase(i);
                     i--;
                 } 

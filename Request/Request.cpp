@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/16 12:47:12 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 03:18:05 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,7 @@ void    Request::fillErrorPages()
     errorPages["505"] = ERROR_505;
     errorPages["411"] = ERROR_411;
     errorPages["504"] = ERROR_504;
+    errorPages["502"] = ERROR_502;
 }
 
 void    Request::parseRequestLine(std::string    &buff)
@@ -328,6 +329,7 @@ void    Request::matchingLocation()
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
     requestedPath = requestedPath.substr(0, subUri.find_first_not_of(requestedPath));
+    // URI = URI.substr(URI.find_first_not_of(subUri));
 }
 
 Server&  Request::matchingServer()

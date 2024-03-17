@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 19:38:41 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/16 12:56:26 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 01:59:31 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,14 +28,16 @@ class	Cgi
 		char								**env;
 		long long							uploadSize;
 		long long							contentLengthLong;
-		std::string							pathInput;
-		std::string							pathOutput;
+		// std::string							pathInput;
+		// std::string							pathOutput;
 		std::string							cgiBin;
 		char								*inter;
 		pid_t								pid;
 		FILE* 								inputFile;
 		FILE* 								outputFile;
 		bool								hasNewLine;
+		std::string							currDir;
+
 
 		
 	public:
@@ -54,7 +56,7 @@ class	Cgi
 		void		fillEnvirement( );
 		void		cgiBinary( );
 		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage);
-		void		getStatusCgi();
+		void		getStatusCgi(Stage &stage, CgiStage &cgiStage);
 		void		checkValidStatus(std::string &status);
 
 		long long	maxBodySize( );

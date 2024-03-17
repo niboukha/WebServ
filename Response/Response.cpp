@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/16 12:33:06 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 01:27:42 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,15 @@ void	Response::setCgiStage(const CgiStage& st)
 	cgiStage = st;
 }
 
+void	Response::setPathInput(const std::string& path)
+{
+	pathInput = path;
+}
+
+void	Response::setPathOutput(const std::string& path)
+{
+	pathOutput = path;
+}
 
 const Request&	Response::getRequest() const
 {
@@ -100,6 +109,16 @@ const bool&		Response::getIsMoved() const
 const CgiStage&		Response::getCgiStage() const
 {
 	return (cgiStage);
+}
+
+const std::string& Response::getPathInput() const
+{
+	return (pathInput);
+}
+
+const std::string& Response::getPathOutput() const
+{
+	return (pathOutput);
 }
 
 void	Response::UpdateStatusCode(std::string &s)
@@ -173,15 +192,20 @@ std::string		Response::getContentType( std::string &path )
 		s      = path.substr(found + 1);
 		ret    = mimeType[s];
 	}
+	else
+		ret    = "application/octet-stream";
 	return ( ret );
 }
 
 std::string	Response::concatenateIndexDirectory( )
 {
 	mapStrVect  loc;
+	struct stat statPath;
+	size_t  	i;
 	
 	loc = getRequest().getLocation();
-	for (size_t  i = 0; i < loc["index"].size(); i++)
+	i = 0;
+	for (; i < loc["index"].size(); i++)
 	{
 		std::ifstream	myFile(loc["index"][i].c_str());
 		if (myFile.is_open())
@@ -191,7 +215,16 @@ std::string	Response::concatenateIndexDirectory( )
 		}
 		myFile.close();
 	}
-	throwNewPath("404 Not found", "404");
+	if (i >= 1 && !stat(loc["index"][i - 1].c_str(), &statPath))
+	{
+		if (!(statPath.st_mode & S_IWUSR))
+		{
+			cgiStage = ERRORCGI;
+			throwNewPath("403 Forbidden", "403");
+		}
+	}
+	else
+		throwNewPath("404 Not found", "404");
 	return (NULL);
 }
 
@@ -228,7 +261,7 @@ std::string	Response::concatenatePath( std::string p )
 	const mapStrVect	&loc = getRequest().getLocation();
 	std::string	path;
 
-	path = loc.find("root")->second.front() + p;
+	path = loc.find("root")->second.front() + p.substr(1);
 	isRealPath(path);
 	return (path);
 }

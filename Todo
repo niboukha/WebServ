@@ -1,4 +1,0 @@
-=> Timeout in read operation
-=> remove throw when binfing and create a sockets 
-=> return 301 302
-=> error 415

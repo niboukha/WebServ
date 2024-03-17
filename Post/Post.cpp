@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/16 11:02:39 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 04:01:21 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,6 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 			hexLen = Utils::getLength(std::string(reqBuff, 0, foundLen));
 			if (hexLen == 0)
 			{
-				// UploadFile << std::string(reqBuff, foundLen + 2, reqBuff.size() - 5);//to checkkkk
 				stage = RESHEADER;
 				UploadFile.close();
 				res.throwNewPath("201 Created", "201");
@@ -280,15 +279,6 @@ void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &header
 		{
 			headerRes  = res.getRequest().getProtocolVersion() + " "  +
 				res.getStatusCodeMsg()                         + CRLF;
-			if (!res.contentTypePY().empty())
-			{
-				headerRes += res.contentTypePY();
-				if (!cgi.getHasNewLine())
-				{
-					cgi.setHasNewLine(false);
-					headerRes = headerRes + CRLF;
-				}
-			}
 			stage = RESBODY;
 			return ;
 		}

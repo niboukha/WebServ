@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:58:56 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/16 12:23:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 23:32:04 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ int main(int ac, char **av)
     }
     catch(const std::exception& e)
     {
-        // std::cout << "iiii-> iii\n";
         std::cerr << e.what() << '\n';
         configFile.close();
     }

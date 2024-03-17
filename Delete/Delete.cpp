@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 15:35:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/16 10:27:33 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 23:31:47 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ std::string	Delete::nestedDirectories( std::string s, struct stat statPath )
 void	Delete::deleteBasePath( std::string s, struct stat statPath )
 {
 	std::string	set;
-	
+
 	if (!stat(s.c_str(), &statPath))
 	{
 		if (S_ISDIR(statPath.st_mode))
