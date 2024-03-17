@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:26 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/15 16:16:21 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 11:06:09 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,14 @@ class Server
         const   std::map<std::string, std::string>& getServerData() const;
         const   std::map<std::string,  mapStrVect>& getLocations() const;
 
-        void    createAndBindSocket(fd_set& readFds);
-        int    acceptNewConnection(fd_set& readFds, fd_set& writeFds);
+        void        createAndBindSocket(fd_set& readFds);
+        int         acceptNewConnection(fd_set& readFds, fd_set& writeFds);
         
-        bool    serverObligatoryDirectives();
+        bool          serverObligatoryDirectives();
         static  bool  serverValidDirective(std::string &directive, std::string& value);//update
         static  bool  isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue);
+        static  bool  isValidPort(std::string &portValue);
+
         
         static  bool  locationValidDirective(std::string &directive, std::vector<std::string> &values);
         static  bool  isValidRoot(std::vector<std::string> &rootValue);

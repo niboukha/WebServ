@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 03:18:05 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 12:36:24 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -328,8 +328,9 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-    requestedPath = requestedPath.substr(0, subUri.find_first_not_of(requestedPath));
-    // URI = URI.substr(URI.find_first_not_of(subUri));
+
+    requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
+    std::cout << "=====> requested path : " << requestedPath << std::endl;
 }
 
 Server&  Request::matchingServer()
