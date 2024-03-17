@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/14 23:59:17 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 03:23:26 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,17 +154,20 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 		cgiStage = ERRORCGI;
 		response.throwNewPath("404 not found", "404");
 	}
-	pathPermission(cgiStage);
-	path = response.getPath();
-	if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI && response.extentionToCgi(path))
-	{
-		cgiStage = WAITCGI;
-		cgi.executeCgi(s, stage, cgiStage);
-	}
 	else
-	{
-		status   = "200 ok";
-		response.UpdateStatusCode(status);
+	{	
+		pathPermission(cgiStage);
+		path = response.getPath();
+		if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI)
+		{
+			cgiStage = WAITCGI;
+			cgi.executeCgi(s, stage, cgiStage);
+		}
+		else
+		{
+			status   = "200 ok";
+			response.UpdateStatusCode(status);
+		}
 	}
 	file.close();
 }
@@ -183,15 +186,6 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 			stage	  = RESBODY;
 			headerRes = response.getRequest().getProtocolVersion() + " "  +
 				response.getStatusCodeMsg()                        + CRLF;
-			if (!response.contentTypePY().empty())
-			{
-				headerRes += response.contentTypePY();
-				if (!cgi.getHasNewLine())
-				{
-					cgi.setHasNewLine(false);
-					headerRes = headerRes + CRLF;
-				}
-			}
 			return ;
 		}
 		
@@ -205,8 +199,7 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 			if (response.getIsMoved())
 				headerRes = headerRes + CRLF + "Location: " + response.getLocationRes();
 			headerRes     = headerRes + CRLF + CRLF;
-			stage = RESBODY;
-			std::cout << "header -> " << headerRes << "\n";
+			stage         = RESBODY;
 		}
 		else if(cgiStage != WAITCGI)
 		{

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/04 17:58:56 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/12 08:44:37 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 23:32:04 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include "Client/Client.hpp"
 #include "Multiplexer/Multiplexer.hpp"
 
-int main(int ac, char **av, char** env)
+int main(int ac, char **av)
 {
     std::fstream           configFile;
     ConfigFile             MyConfigFile;
@@ -24,12 +24,18 @@ int main(int ac, char **av, char** env)
         
     try
     {
-        (void)env;
-        if (ac != 2)
-            throw InvalidArguments();
-        configFile.open(av[1]);
-        if (!configFile.is_open())
-            throw FailedToOpenFile();
+        if (ac == 2)
+        {
+            configFile.open(av[1]);
+            (!configFile.is_open()) ?
+                throw FailedToOpenFile() : false;
+        }
+        else
+        {
+            configFile.open("webserv.config");
+            (!configFile.is_open()) ?
+                throw FailedToOpenFile() : false;
+        }
         MyConfigFile.parseConfigFile(configFile);
         configFile.close();
         multiplexer.setServers(MyConfigFile.getServers());

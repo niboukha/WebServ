@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:26 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 14:01:38 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 16:16:21 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,20 @@
 class Server
 {
     private:
-        std::map<std::string, std::string> serverData;//to check
+        std::map<std::string, std::string> serverData;
         std::map<std::string,  mapStrVect> locations;
 
-        int     masterSocket;
-        // static bool     (*functionsServer[])(std::string &);
+        int                 masterSocket;
+        
+        std::string         clientIp;
+        
         static bool     (*functionsLocation[])(std::vector<std::string> &);
     public:
         Server();
         ~Server();
 
         const int&  getMasterSocket() const;
+        const std::string& getClientIp() const;
         void    setServerData(std::map<std::string, std::string>& servData);
         void    setLocations(std::map<std::string,  mapStrVect>& locs);
         const   std::map<std::string, std::string>& getServerData() const;

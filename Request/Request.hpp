@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/13 16:14:02 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 16:17:19 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ class Request
 		std::string							protocolVersion;
 		std::string							uri;
 		std::string							queryParameters;
+		std::string							clientIp;
 		
 		void		decodeUri();
 		void		validateRequestHeader();

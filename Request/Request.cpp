@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/14 23:53:01 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 03:18:05 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,45 +76,6 @@ void    Request::setProtocolVersion(std::string httpVersion)
     protocolVersion = httpVersion;
 }
 
-void    Request::validateRequestHeader()
-{
-    long long   contentLen;
-    char        *end;
-    
-    if (headers.find("host") ==  headers.end())
-        throw std::make_pair("400", "400 Bad Request");
-        
-    std::map<std::string, std::string>::iterator transferEncIt = headers.find("transfer-encoding"), 
-                                                contentLenIt = headers.find("content-length"),
-                                                contentTypeIt = headers.find("content-type");
-    int                                         isMethodPost;
-                                      
-    if (contentLenIt != headers.end())
-    {
-        (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        contentLen = strtoll(headers["content-length"].c_str(), &end, 10);
-        (contentLen < 0 or *end) ?  throw std::make_pair("400", "400 Bad Request") : false;
-    }
-    if (transferEncIt != headers.end())
-    {
-        (transferEncIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        (transferEncIt->second.compare("chunked")) ?  throw std::make_pair("501", "501 Not Implemented") : false;
-    }
-    if (contentTypeIt != headers.end() )
-    {
-        (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
-    }
-    isMethodPost = method.compare("POST");
-    if ((!isMethodPost and transferEncIt == headers.end() 
-        and contentLenIt == headers.end())
-        or (!isMethodPost and contentLenIt != headers.end() 
-        and transferEncIt != headers.end()))//bad req
-        throw std::make_pair("400", "400 Bad Request");
-    if (!isMethodPost and
-        (contentTypeIt == headers.end()))
-       throw std::make_pair("400", "400 Bad Request");
-} 
 
 void    Request::fillLocation()
 {
@@ -145,68 +106,10 @@ void    Request::fillErrorPages()
     errorPages["414"] = ERROR_414;
     errorPages["405"] = ERROR_405;
     errorPages["408"] = ERROR_408;
-
-}
-
-void   Request::parseRequest(std::string &buff, Stage &stage)
-{
-    if (stage == REQLINE)
-    {
-        parseRequestLine(buff);
-        parseUri();
-        stage = REQHEADER;
-    }
-    else if (stage == REQHEADER)
-    {
-        size_t  pos = buff.find("\r\n");
-        
-        if (!pos)
-        {
-            validateRequestHeader();
-            matchingLocation();
-            buff = buff.substr(pos + 2);
-            stage = REQBODY;
-            return ;
-        }
-        parseHeader(buff, pos);
-    }
-}
-
-void    Request::decodeUri()
-{
-    char    decodeChar;
-
-    for (size_t i = 0; i < uri.size(); i++)
-    {
-        if((uri[i] == '%' and i != uri.length() - 2) and 
-        ((isdigit(uri[i + 1]) and isupper(uri[i + 2]))
-        or (isdigit(uri[i + 1]) and isdigit(uri[i + 2]))))
-        {
-            decodeChar = static_cast<char>(strtol(uri.substr(i + 1, 2).c_str(), NULL, 16));
-            uri.replace(i, 3, 1, decodeChar);
-            i += 3;
-        }
-    }
-}
-
-void   Request::parseUri()//to check 
-{
-    size_t      queryDelim;
-
-    decodeUri();
-    if (uri.length() > 2048)//bad req
-        throw std::make_pair("414", "414 Request-URI too long");//to large 
-    if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl\
-        mnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
-        throw std::make_pair("400", "400 Bad Request");
-    queryDelim = uri.find("?");
-    if (queryDelim != std::string::npos)
-    {
-        queryParameters = uri.substr(queryDelim + 1);
-        requestedPath = uri.substr(uri.find("/"), queryDelim);
-        return ;
-    }
-    requestedPath = uri.substr(uri.find("/"));
+    errorPages["505"] = ERROR_505;
+    errorPages["411"] = ERROR_411;
+    errorPages["504"] = ERROR_504;
+    errorPages["502"] = ERROR_502;
 }
 
 void    Request::parseRequestLine(std::string    &buff)
@@ -236,7 +139,7 @@ void    Request::parseRequestLine(std::string    &buff)
     if (splitReqLine[2].compare(0, 5,"HTTP/"))
         throw std::make_pair("400", "400 Bad Request");
     if (!splitReqLine[2].compare(0, 5,"HTTP/")  and splitReqLine[2].compare(5, 3, "1.1"))
-        throw std::make_pair("505", "505 not supported");
+        throw std::make_pair("505", "505 HTTP Version Not Supported");
     uri = splitReqLine[1];
     method = splitReqLine[0];
     protocolVersion = splitReqLine[2];
@@ -269,6 +172,119 @@ void    Request::parseHeader(std::string &buff, size_t& found)
             headers[key] = value;//check if key exist
     }   
 }
+void    Request::validateRequestHeader()
+{
+    if (headers.find("host") ==  headers.end())
+        throw std::make_pair("400", "400 Bad Request");
+        
+    std::map<std::string, std::string>::iterator transferEncIt = headers.find("transfer-encoding"), 
+                                                contentLenIt = headers.find("content-length"),
+                                                contentTypeIt = headers.find("content-type");
+    int                                         isMethodPost;
+                                      
+    if (contentLenIt != headers.end())
+    {
+        (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        
+        std::istringstream  iss(headers["content-length"]);
+        long long           contentLen;
+        std::string            strLongLong;
+        char                remain;
+        std::ostringstream oss;
+    
+        if (!(iss >> contentLen) or (iss >> remain) or (contentLen < 0))
+           throw std::make_pair("400", "400 Bad Request");
+        oss << contentLen;
+        strLongLong = oss.str();
+        if (strLongLong.compare(headers["content-length"]))
+            throw std::make_pair("400", "400 Bad Request");
+    }
+    if (transferEncIt != headers.end())
+    {
+        (transferEncIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        (transferEncIt->second.compare("chunked")) ?  throw std::make_pair("501", "501 Not Implemented") : false;
+    }
+    if (contentTypeIt != headers.end() )
+    {
+        (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
+        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
+    }
+    isMethodPost = method.compare("POST");
+    
+    if (!isMethodPost and transferEncIt == headers.end()
+    and contentLenIt == headers.end())
+        throw std::make_pair("411", "411 Length Required");
+        
+    if (!isMethodPost and contentLenIt != headers.end()
+        and transferEncIt != headers.end())
+        throw std::make_pair("400", "400 Bad Request");
+
+    // if we found an error in content type
+    
+} 
+
+void   Request::parseRequest(std::string &buff, Stage &stage)
+{
+    if (stage == REQLINE)
+    {
+        parseRequestLine(buff);
+        parseUri();
+        stage = REQHEADER;
+    }
+    else if (stage == REQHEADER)
+    {
+        size_t  pos = buff.find("\r\n");
+        
+        if (!pos)
+        {
+            validateRequestHeader();
+            matchingLocation();
+            // std::cout << "THE END OR PARSING" << std::endl;
+            buff = buff.substr(pos + 2);
+            stage = REQBODY;
+            return ;
+        }
+        parseHeader(buff, pos);
+    }
+}
+
+void    Request::decodeUri()
+{
+    char    decodeChar;
+
+    for (size_t i = 0; i < uri.size(); i++)
+    {
+        if((uri[i] == '%' and i != uri.length() - 2) and 
+        ((isdigit(uri[i + 1]) and isupper(uri[i + 2]))
+        or (isdigit(uri[i + 1]) and isdigit(uri[i + 2]))))
+        {
+            decodeChar = static_cast<char>(strtol(uri.substr(i + 1, 2).c_str(), NULL, 16));
+            uri.replace(i, 3, 1, decodeChar);
+            i += 3;
+        }
+    }
+}
+
+void   Request::parseUri()//to check 
+{
+    size_t      queryDelim;
+
+    decodeUri();
+    if (uri.length() > 2048)//bad req
+        throw std::make_pair("414", "414 URI Too Long");//to large 
+    if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl\
+        mnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
+        throw std::make_pair("400", "400 Bad Request");
+    queryDelim = uri.find("?");
+    if (queryDelim != std::string::npos)
+    {
+        queryParameters = uri.substr(queryDelim + 1);
+        requestedPath = uri.substr(uri.find("/"), queryDelim);
+        return ;
+    }
+    requestedPath = uri.substr(uri.find("/"));
+}
+
 
 size_t  Request::longestMatchingLocation(const std::string& prefix)
 {
@@ -312,17 +328,23 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-    requestedPath = requestedPath.substr(0, subUri.find_last_not_of(requestedPath));
+    requestedPath = requestedPath.substr(0, subUri.find_first_not_of(requestedPath));
+    // URI = URI.substr(URI.find_first_not_of(subUri));
 }
 
 Server&  Request::matchingServer()
 {
+    std::string host;
     std::string serverName;
 
-    serverName = headers.find("host")->second;
+    host = headers.find("host")->second;
+    
     for (size_t i = 0; i < servs.size(); i++)
     {
-        if (!servs[i].getServerData().find("server_name")->second.compare("host"))
+        
+        servs[i].getServerData().find("server_name") != servs[i].getServerData().end() ? 
+        serverName = servs[i].getServerData().find("server_name")->second : serverName = "";
+        if (!serverName.compare(host))
             return servs[i];
     }
     return servs[0];

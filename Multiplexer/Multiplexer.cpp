@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/29 10:45:22 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/15 00:07:03 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 03:14:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,42 @@ void    Multiplexer::reqServers(Server& serv, std::vector<Server>& servs)
     } 
 }
 
+void    Multiplexer:: dropClient(Client& cl)
+{
+    std::string s;
+    time_t  currTime;
+
+    cl.getRequest().setMethod("GET");
+    cl.getRequest().setProtocolVersion("HTTP/1.1");
+    if (cl.getResponse().getCgiStage() == WAITCGI)
+    {
+        s = "504 Gateway Timeout";
+        cl.getResponse().setStatusCodeMsg(s);
+        cl.getResponse().setPath( cl.getResponse().pathErrorPage("504"));
+    }
+    else
+    {
+        s = "408 Request Timeout";
+        cl.getResponse().setStatusCodeMsg(s);
+        cl.getResponse().setPath( cl.getResponse().pathErrorPage("408"));
+    }
+    currTime = time(0);
+    cl.setLastRead(currTime);
+    cl.getResponse().setCgiStage(ERRORCGI);
+    cl.setStage(RESHEADER);
+}
+
+void    Multiplexer::removeCgiFiles( Client& cl )
+{
+    std::string pathI;
+    std::string pathO;
+    
+    pathO = cl.getResponse().getPathOutput();
+    pathI = cl.getResponse().getPathInput();
+    std::remove(pathI.c_str());
+	std::remove(pathO.c_str());
+}
+
 void    Multiplexer::multiplexing()
 {
     fd_set  readFds, writeFds, tmpReadFds, tmpWriteFds;
@@ -109,6 +145,7 @@ void    Multiplexer::multiplexing()
                 if (FD_ISSET(servers[i].getMasterSocket(), &tmpReadFds))
                 {
                     acceptedClient = servers[i].acceptNewConnection(readFds, writeFds);
+                    fcntl(acceptedClient, F_SETFL, O_NONBLOCK, FD_CLOEXEC);//update/////////////////////////////////////////////////
                     reqServers(servers[i], servs);
                     (acceptedClient > maxFds and acceptedClient <= 1024) ? maxFds = acceptedClient: false;
                     clients.push_back(Client(servs, acceptedClient));
@@ -120,24 +157,13 @@ void    Multiplexer::multiplexing()
                     readReq(*i);
                 if (FD_ISSET(i->getFd(), &tmpWriteFds) and i->getStage() >= RESHEADER)
                     sendRes(*i);
-                if ((time(0) - i->getLastRead()) > 10)
-                {
-                    std::string s;
-                    time_t  currTime;
-
-                    i->getRequest().setMethod("GET");
-                    i->getRequest().setProtocolVersion("HTTP/1.1");
-                    s = "408 Request Timeout";
-                    i->getResponse().setStatusCodeMsg(s);
-                    i->getResponse().setPath( i->getResponse().pathErrorPage("408"));
-                    currTime = time(0);
-                    i->setLastRead(currTime);
-                    i->setStage(RESHEADER);
-                }
+                if ((time(0) - i->getLastRead()) >= 10)
+                    dropClient(*i);
                 if (i->getStage() == RESEND)
                 {
-                    std::cout << " CLIENT WAS DIE !!" << std::endl;
+                    // std::cout << " CLIENT WAS DIE !!" << std::endl;
                     clear(readFds, writeFds, *i);
+                    removeCgiFiles(*i);
                     i = clients.erase(i);
                     i--;
                 } 

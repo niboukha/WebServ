@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 11:57:58 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/14 23:27:30 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 04:01:10 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ Cgi::Cgi( Response &res ) :	response			( res  ),
 							outputFile			( NULL ),
 							hasNewLine			( false)
 {
-
 }
 
 Cgi::~Cgi( )
@@ -36,7 +35,10 @@ Cgi::~Cgi( )
 		delete [] env[i];
 	delete [] env;
 	if (pid != -1)
+	{
 		kill(pid, SIGTERM);
+		waitpid(pid, 0, 0);
+	}
 }
 
 void	Cgi::setHasNewLine(const bool& newline)
@@ -141,11 +143,12 @@ void	Cgi::cgiBinary( )
 void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 {
 	const std::map<std::string, std::string>	&head = response.getRequest().getHeaders();
+	std::string									s;
 
 	if (!inputFile)
 	{
-		pathInput = pathInput + PATH_CGI + "input" + Utils::generateRundFile();
-		inputFile = fopen(pathInput.c_str(), "wrb");
+		response.setPathInput(s + PATH_CGI + "input" + Utils::generateRundFile());
+		inputFile = fopen(response.getPathInput().c_str(), "wrb");
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
 		if (maxBodySize() < contentLengthLong)
 		{
@@ -173,22 +176,29 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 	reqBuff.clear();
 }
 
-void	Cgi::getStatusCgi()
+void	Cgi::getStatusCgi(Stage &stage, CgiStage &cgiStage)
 {
-	std::ifstream	outfile(pathOutput.c_str());
+	std::ifstream	outfile(response.getPathOutput().c_str());
 	std::string		s;
 	std::string		status;
 	size_t			found;
+	size_t			foundContentType;
 	std::string 	statusCode;
-
+	
+	foundContentType = std::string::npos;
 	while (std::getline(outfile, s))
 	{
+		Utils::toLower(s);
 		if (s.empty() || s == "\r")
 		{
 			hasNewLine = true;
-			return;
+			break;
 		}
-		found = s.find("Status:");
+		if (s[s.length() - 1] != '\r')
+			break;
+		if (foundContentType == std::string::npos)
+			foundContentType = s.find("content-type:");
+		found = s.find("status:");
 		if (found != std::string::npos and found == 0)
 		{
 			status = std::string (s, s.find_first_of(":") + 1);
@@ -202,6 +212,12 @@ void	Cgi::getStatusCgi()
 		}
 		s.clear();
 	}
+	if (hasNewLine == false or foundContentType == std::string::npos)
+	{
+		cgiStage = ERRORCGI;
+		stage    = RESHEADER;
+		response.throwNewPath("502 Bad Gateway", "502");
+	}
 }
 
 void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
@@ -214,7 +230,7 @@ void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 	if (waitpid(pid, &status, WNOHANG) != 0 && WIFEXITED(status))
 	{
 		exitStatus = WEXITSTATUS(status);
-		if (exitStatus == 150)
+		if (exitStatus != 0)
 		{
 			cgiStage = ERRORCGI;
 			stage    = RESHEADER;
@@ -224,43 +240,58 @@ void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 		stage    = RESHEADER;
 		statusCode = "200 ok";
 		response.setStatusCodeMsg(statusCode);
-		getStatusCgi();
-		throw (pathOutput);
+		getStatusCgi(stage, cgiStage);
+		throw (response.getPathOutput());
 	}
 }
 
 void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 {
-	std::string	path;
-	size_t		found;
+	const mapStrVect	&loc = response.getRequest().getLocation();
+	std::string			path;
+	std::string			pathExt;
+	size_t				found;
+	size_t				foundPoint;
 
 	fillEnvirement ( );
 	if (stage < RESHEADER)
 		uploadBody(stage, reqBuff, cgiStage);
-	cgiBinary( );
+	else
+	{
+		pathExt    = response.getPath();
+		foundPoint = pathExt.find_last_of(".");
+		
+		if ((foundPoint != std::string::npos 
+			and std::string (pathExt, foundPoint) != loc.find("cgi_pass")->second.front()) 
+			or foundPoint == std::string::npos)
+			{
+				std::cout << "hna\n";
+				cgiStage = ERRORCGI;
+				stage    = RESHEADER;
+				response.throwNewPath("403 forbidden", "403");
+			}
+			
+		cgiBinary( );
 
-	if (!outputFile)
-	{
-		pathOutput = pathOutput + PATH_CGI + "output" + Utils::generateRundFile();
-		outputFile = fopen(pathOutput.c_str(), "wb");
-	}
-	char *arr[] = {inter, (char *)response.getPath().c_str(), NULL};
-	pid = fork();
-	if (pid == 0)
-	{
-		path = response.getPath();
-		found = path.find_last_of("/");
-		if (chdir(path.substr(0, found).c_str()) == -1)
+		response.setPathOutput(path + PATH_CGI + "output" + Utils::generateRundFile());
+		char *arr[] = {inter, (char *)response.getPath().c_str(), NULL};
+		pid = fork();
+		if (pid == 0)
 		{
-			cgiStage = ERRORCGI;
-			stage    = RESHEADER;
-			response.throwNewPath("500 Internal Server Error", "500");
+			inputFile  = freopen(response.getPathInput().c_str(), "rb" , stdin);
+			outputFile = freopen(response.getPathOutput().c_str(), "wb", stdout);
+			path = response.getPath();
+			found = path.find_last_of("/");
+			if (chdir(path.substr(0, found).c_str()) == -1)
+			{
+				cgiStage = ERRORCGI;
+				stage    = RESHEADER;
+				response.throwNewPath("500 Internal Server Error", "500");
+			}
+			
+			execve(cgiBin.c_str(), arr, env);
+			exit(EXIT_FAILURE);
 		}
-		inputFile = freopen(pathInput.c_str(), "rb" , stdin);
-		outputFile = freopen(pathOutput.c_str(), "wb", stdout);
-		execve(cgiBin.c_str(), arr, env);
-		std::cerr << "------------>\n";
-		exit(150);
+		waitCgi(stage, pid, cgiStage);
 	}
-	waitCgi(stage, pid, cgiStage);
 }

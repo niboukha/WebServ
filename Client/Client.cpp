@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/13 11:28:49 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/14 23:46:08 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/15 14:58:01 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,13 +18,13 @@ Client::Client(std::vector<Server>& servers, int &fdCopy) : req(servers), res(re
 {
 }
 
-Client::~Client()
-{
-}
-
 Client::Client(const Client& copy) : req(copy.req), res(req),
 									 stage(copy.stage), fd(copy.fd),
 									 lastRead(copy.lastRead)
+{
+}
+
+Client::~Client()
 {
 }
 
@@ -86,8 +86,6 @@ void	Client::setSendBuff(const std::string& buff)
 {
 	sendBuff = buff;
 }
-
-
 
 void	Client::recieveRequest()
 {

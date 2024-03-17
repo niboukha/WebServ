@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 08:48:42 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/14 14:45:50 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/16 22:22:34 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,19 +28,21 @@ class Response
 {
 	private:
 
-		Request	&req;
+		Request								&req;
 
-		Get		*get;
-		Post	*post;
-		Delete	*delt;
+		Get									*get;
+		Post								*post;
+		Delete								*delt;
 
-		std::string	statusCodeMsg;
-		std::string	path;
-		std::string	headerRes;
-		std::string	bodyRes;
-		CgiStage	cgiStage;
-		std::string	locationRes;
-		bool		isMoved;
+		std::string							statusCodeMsg;
+		std::string							path;
+		std::string							headerRes;
+		std::string							bodyRes;
+		CgiStage							cgiStage;
+		std::string							locationRes;
+		bool								isMoved;
+		std::string							pathInput;
+		std::string							pathOutput;
 
 		std::map<std::string, std::string>	mimeType;
 		std::map<std::string, std::string>	extentionFile;
@@ -57,6 +59,9 @@ class Response
 		void				setHeaderRes(const std::string& header);
 		void				setLocationRes(const std::string& header);
 		void				setIsMoved(const bool& move);
+		void				setCgiStage(const CgiStage& st);
+		void				setPathInput(const std::string& path);
+		void				setPathOutput(const std::string& path);
 
 		const Request&		getRequest() const;
 		const std::string&	getStatusCodeMsg() const;
@@ -65,6 +70,11 @@ class Response
 		const std::string&	getBodyRes() const;
 		const std::string&	getLocationRes() const;
 		const bool&			getIsMoved() const;
+		const CgiStage&		getCgiStage() const;
+		const std::string&	getPathInput() const;
+		const std::string&	getPathOutput() const;
+
+
 
 		std::string			getContentType( std::string &path );
 		std::string			getContentLength( std::string &path );

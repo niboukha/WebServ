@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/12 16:44:08 by niboukha          #+#    #+#             */
-/*   Updated: 2024/02/27 15:52:24 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 02:55:25 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,14 +63,25 @@ std::vector<std::string>	Utils::moreThanKey( std::string s )
 	return (vect);
 }
 
+std::string	Utils::getcwd_string()
+{
+   char buff[PATH_MAX];
+
+   getcwd( buff, PATH_MAX );
+   std::string cwd( buff );
+   return cwd;
+}
+
 std::string	Utils::generateRundFile()
 {
 	std::string			path;
 	std::ostringstream	s;
-
+	clock_t				now;
+	
+	now = clock();
+	srand(now);
 	path = "file";
-	s << time(0);
-
+	s << rand();
 	return (path + s.str());
 }
 
@@ -109,3 +120,8 @@ std::string	Utils::longToString(long long len)
 	return (s);
 }
 
+void	Utils::toLower(std::string &s)
+{
+	for (size_t i = 0; i < s.length(); i++)
+		s[i] = tolower(s[i]);
+}

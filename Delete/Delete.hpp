@@ -39,10 +39,11 @@ class	Delete
 		const std::streampos&	getSizeofRead() const;
 
 		void		directoryPath(DIR *pDir, struct stat st, std::string &pt);
-		void		filePath(std::string &s);
+		void		filePath(std::string &s, struct stat st, DIR *pDir);
 		void		statusOfRequested();
 		void		pathOfSentPage(std::string s, std::string code);
 		std::string	nestedDirectories(std::string s, struct stat statPath);
+
 
 		void		deleteBasePath(std::string s, struct stat statPath);
 
