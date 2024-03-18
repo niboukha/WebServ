@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:26 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 11:06:09 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/17 12:49:25 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class Server
         ~Server();
 
         const int&  getMasterSocket() const;
-        const std::string& getClientIp() const;
+        const   std::string& getClientIp() const;
         void    setServerData(std::map<std::string, std::string>& servData);
         void    setLocations(std::map<std::string,  mapStrVect>& locs);
         const   std::map<std::string, std::string>& getServerData() const;

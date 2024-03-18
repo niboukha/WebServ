@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 11:21:09 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/17 15:43:26 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,9 +101,13 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
     (root == location.end() ) ? 
     throw ("config file  : invalid location block root directive required") : false;//update
     
-    (upload != location.end() \
-    and cgi != location.end()) ?
-    upload->second = vect : upload->second;//update
+    // (upload != location.end() \
+    // and cgi != location.end()) ?
+    // upload->second = vect : upload->second;//update
+
+    // if ( (upload != location.end() \
+    // and cgi != location.end()))
+    // std::cout << "====> upload : " << upload->second.front() << ""
     
     addDirectivesMissingInLocation(location);//update
     

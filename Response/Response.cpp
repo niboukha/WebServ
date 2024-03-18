@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/10 09:39:23 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/17 01:27:42 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 15:19:50 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ std::string	Response::getContentLength( std::string &path )
 	std::ifstream 		file(path.c_str(), std::ios::binary);
 
     file.seekg(0, std::ios::end);
-    length = file.tellg();
+    length     = file.tellg();
     if (length == -1)
 		return ("0");
     ss << length;
@@ -191,6 +191,8 @@ std::string		Response::getContentType( std::string &path )
 	{
 		s      = path.substr(found + 1);
 		ret    = mimeType[s];
+		if (ret.empty())
+			ret = "text/plain";
 	}
 	else
 		ret    = "application/octet-stream";
@@ -215,7 +217,7 @@ std::string	Response::concatenateIndexDirectory( )
 		}
 		myFile.close();
 	}
-	if (i >= 1 && !stat(loc["index"][i - 1].c_str(), &statPath))
+	if (i >= 1 and !stat(loc["index"][i - 1].c_str(), &statPath))
 	{
 		if (!(statPath.st_mode & S_IWUSR))
 		{
@@ -288,7 +290,7 @@ bool	Response::extentionToCgi( std::string &path )
 	found = path.find_last_of(".");
 	if (found != std::string::npos)
 	{
-		if (std::string (path, found) == ".py" || std::string (path, found) == ".php")
+		if (std::string (path, found) == ".py" or std::string (path, found) == ".php")
 			return true;
 	}
 	return ( false );

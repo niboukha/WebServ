@@ -54,10 +54,6 @@ class	Get
 		void					stringOfDyrectories(std::vector<std::string> &vdir);		
 		void					pathPermission( CgiStage &cgiStage);
 		bool					cgiPassCheckment( CgiStage &cgiStage );
-		bool					extentionToCgi(std::string &path, CgiStage &cgiStage );
-
-
-
 };
 
 #endif

@@ -17,21 +17,20 @@
 
 namespace Utils
 {
-	int		isDir( const char* file );
-	int		isFile( const char* file );
-	void	trimString( std::string &s );
-
 	std::vector<std::string>	moreThanKey( std::string s );
+
+	int							isDir	  ( const char* file );
+	int							isFile	  ( const char* file );
+
+	void						trimString( std::string &s );
+	void						toLower	  (std::string &s);
+
 	std::string					generateRundFile();
-	bool						isFdOpen(int fd);
-	long long					getLength(std::string s);
+	std::string					longToString    (long long len);
+	std::string					getcwd_string   ();
+
+	long long					getLength   (std::string s);
 	long long					stringToLong(std::string s);
-	std::string					longToString(long long len);
-	std::string					getcwd_string();
-	bool						fileExists(const std::string& file);
-	void						toLower(std::string &s);
-
-
 };
 
 #endif

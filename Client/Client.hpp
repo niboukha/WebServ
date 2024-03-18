@@ -44,19 +44,18 @@ class	Client
 	
 		~Client();
 
-		// const Client& operator=(const Client& copy);
-		void	serve();
+		void				serve();
 	
-		const int&	getFd() const;
-		void  setFd(int& fd);
+		const int&			getFd() const;
+		void				setFd(int& fd);
 		
 		const Stage&		getStage() const;
 		const std::string&	getReqBuff() const;
 		const std::string&	getSendBuff() const;
 		const time_t&		getLastRead() const;
 		
-		Response&    getResponse() ;
-		Request&    getRequest() ;
+		Response&    		getResponse() ;
+		Request&    		getRequest() ;
 		
 		void				setReqBuff(const std::string& buff);
 		void				setSendBuff(const std::string& buff);

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/09 11:11:11 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/16 22:22:13 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 18:02:49 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class	Post
 {
 	private :
 
-		Response		&res;
+		Response		&response;
 		Cgi 			cgi;
 
 		long long		size;
@@ -37,7 +37,7 @@ class	Post
 
 	public :
 
-		Post( Response &response );
+		Post ( Response &res );
 		~Post( );
 
 		void					responsHeader(Stage &stage, std::string &reqBuff, std::string &headerRes, CgiStage &cgiStage);

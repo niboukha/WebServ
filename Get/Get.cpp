@@ -6,11 +6,10 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/17 03:23:26 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 15:19:40 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// #include "Get.hpp"
 #include "../Response/Response.hpp"
 
 Get::Get(Response &res)	:	response  (res),
@@ -80,9 +79,9 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file, CgiStage &c
 
 	if (path[path.length() - 1] != '/')
 	{
+		cgiStage = ERRORCGI;
 		response.setIsMoved( true );
 		response.setLocationRes(response.getRequest().getRequestedPath() + "/");
-		cgiStage    = ERRORCGI;
 		file.close();
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
@@ -118,11 +117,12 @@ bool	Get::cgiPassCheckment( CgiStage &cgiStage )
 
 	if(!loc.find("cgi_pass")->second.front().empty())
 	{
-		if ((loc.find("cgi_pass")->second.front() != ".py" 
-			and loc.find("cgi_pass")->second.front() != ".php") and cgiStage != ERRORCGI)
+		if ((loc.find("cgi_pass")->second.front() 	 != ".py" 
+			and loc.find("cgi_pass")->second.front() != ".php")
+			and cgiStage 							 != ERRORCGI)
 		{
 			cgiStage = ERRORCGI;
-			response.throwNewPath("403 forbidden", "403"); //check
+			response.throwNewPath("403 forbidden", "403"); ///////////////////check
 		}
 		return (true);
 	}
@@ -131,15 +131,18 @@ bool	Get::cgiPassCheckment( CgiStage &cgiStage )
 
 void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 {
+	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string			path;
 	std::string			status;
 	std::string			s;
+	size_t				found;
 
 	if (response.getStatusCodeMsg() == "-1")
 	{
 		path = response.concatenatePath( response.getRequest().getRequestedPath() );
 		response.setPath(path);
 	}
+
 	std::ifstream file(response.getPath().c_str());
 
 	if (Utils::isDir(response.getPath().c_str()))
@@ -158,8 +161,15 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 	{	
 		pathPermission(cgiStage);
 		path = response.getPath();
-		if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI)
+		if (cgiPassCheckment(cgiStage) and cgiStage == INITCGI and response.extentionToCgi(path))
 		{
+			found = path.find_last_of(".");
+			if (std::string (path, found) != loc.find("cgi_pass")->second.front())
+			{
+				cgiStage = ERRORCGI;
+				file.close();
+				throw (path);
+			}
 			cgiStage = WAITCGI;
 			cgi.executeCgi(s, stage, cgiStage);
 		}
@@ -178,7 +188,7 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 		cgi.waitCgi(stage, cgi.getPid(), cgiStage);
 	else
 	{
-		std::string			path;
+		std::string	path;
 
 		statusOfFile(stage, cgiStage);
 		if (cgiStage == EXECUTECGI)

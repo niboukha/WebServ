@@ -52,7 +52,7 @@
 
 #define	CRLF	  "\r\n" //carriage return and line feed
 
-#define	PATH_CGI  "./"
+#define	PATH_CGI  "./upload/"
 #define	PATH_MIME "./ErrorPages/mimetype.txt"
 
 #define	ERROR_201 "./ErrorPages/201.html"

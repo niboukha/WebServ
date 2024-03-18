@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 12:36:24 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/17 14:41:41 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,11 @@ const std::string   Request::getProtocolVersion( ) const
 const std::string   Request::getQueryParameters( ) const
 {
     return (queryParameters);
+}
+
+const std::string   Request::getClientIp( ) const
+{
+    return (clientIp);
 }
 
 const	std::map<std::string, std::string>	Request::getServer( ) const
@@ -302,7 +307,9 @@ void    Request::matchingLocation()
     size_t  longestOne, sizeMatching;
     std::string subUri;
     std::vector<std::string>::iterator it;
-    server = matchingServ.getServerData();
+
+    clientIp = matchingServ.getClientIp();
+    server   = matchingServ.getServerData();
     longestOne = 0;
 
     for (std::map<std::string, mapStrVect>::const_iterator 
@@ -317,6 +324,9 @@ void    Request::matchingLocation()
             longestOne = sizeMatching;
         }
     }
+
+    requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
+    
     if (!location["return"].front().empty())//to check mn b3ed !!!
     {
         throw std::make_pair(((location["return"][0]).c_str()),
@@ -328,9 +338,8 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-
-    requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
-    std::cout << "=====> requested path : " << requestedPath << std::endl;
+    // std::cout << "------> matching loc : " << subUri << std::endl;
+    // std::cout << "=====> requested path : " << requestedPath << std::endl;
 }
 
 Server&  Request::matchingServer()
