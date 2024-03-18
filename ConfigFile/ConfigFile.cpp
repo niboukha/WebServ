@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 15:43:26 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/18 00:51:23 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,12 +101,12 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
     (root == location.end() ) ? 
     throw ("config file  : invalid location block root directive required") : false;//update
     
-    // (upload != location.end() \
-    // and cgi != location.end()) ?
-    // upload->second = vect : upload->second;//update
-
+    if(upload != location.end() \
+    and cgi != location.end()) 
+        upload->second = vect ;
+    
     // if ( (upload != location.end() \
-    // and cgi != location.end()))
+    // and cgi != location.end())): upload->second;//update
     // std::cout << "====> upload : " << upload->second.front() << ""
     
     addDirectivesMissingInLocation(location);//update
@@ -160,8 +160,8 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     server.setServerData(servData);
     server.serverObligatoryDirectives();
     
-    (locations.find("/") == locations.end()) ? \
-    throw("Config file : default location required") : false;
+    // (locations.find("/") == locations.end()) ? \
+    // throw("Config file : default location required") : false;
     
     server.setLocations(locations);
 }
@@ -188,15 +188,15 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
             host = mapDataServ.find("host")->second;
             port = mapDataServ.find("port")->second;
             (mapDataServ.find("server_name") != mapDataServ.end()) ? servName = mapDataServ.find("server_name")->second :
-             servName = std::string("");
+            servName = std::string("");
             for (size_t j = 0; j < servers.size(); j++)
             {
                 const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();
                 
                 if (!mapDataS.find("host")->second.compare(host) 
                     and !mapDataS.find("port")->second.compare(port)
-                    and !servName.empty()  and mapDataS.find("server_name") != mapDataS.end()
-                    and !mapDataS.find("server_name")->second.compare(servName))
+                    and ((!servName.empty()  and mapDataS.find("server_name") != mapDataS.end()
+                    and !mapDataS.find("server_name")->second.compare(servName))))
                     throw ("Config file : duplicate server block");
             }
             servers.push_back(server);

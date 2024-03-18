@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/17 18:03:33 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/18 00:47:13 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ std::string	Post::conctRootUpload(std::string s)
 	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string			pt;
 
-	pt = loc.find("root")->second.front() + s + "/";
+	pt = loc.find("root")->second.front() + s.substr(1) + "/";
 	return (pt);
 }
 
@@ -240,7 +240,9 @@ bool	Post::isUploadPass( )
 
 	enter = true;
 	if (!Utils::isDir(conctRootUpload(loc.find("upload_pass")->second.front()).c_str()))
+	{
 		response.throwNewPath("500 Internal Server Error", "500");
+	}
 	if (!stat(conctRootUpload(loc.find("upload_pass")->second.front()).c_str(), &statPath)
 		and !(statPath.st_mode & S_IWUSR))
 		response.throwNewPath("403 Forbidden", "403");

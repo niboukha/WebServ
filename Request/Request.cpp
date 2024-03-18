@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 14:41:41 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/18 00:34:27 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -296,7 +296,7 @@ size_t  Request::longestMatchingLocation(const std::string& prefix)
     size_t i = 0;
     for (; i < uri.size() and uri[i] == prefix[i]; i++)
     {}
-    if (uri[i - 1] == '/') //should check after
+    if (uri[i - 1] == '/') 
         return i;
     return 0;
 }
@@ -325,8 +325,13 @@ void    Request::matchingLocation()
         }
     }
 
-    requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
     
+    if (subUri.empty())
+        throw std::make_pair("404", "404 Not found");
+    
+    if (requestedPath.find("/", subUri.length() - 1) != std::string::npos)
+        requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
+        
     if (!location["return"].front().empty())//to check mn b3ed !!!
     {
         throw std::make_pair(((location["return"][0]).c_str()),
@@ -338,8 +343,8 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-    // std::cout << "------> matching loc : " << subUri << std::endl;
-    // std::cout << "=====> requested path : " << requestedPath << std::endl;
+    std::cout << "------> matching loc : " << subUri << std::endl;
+    std::cout << "=====> requested path : " << requestedPath << std::endl;
 }
 
 Server&  Request::matchingServer()

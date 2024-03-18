@@ -1,0 +1,41 @@
+import cgi
+import cgitb
+import http.cookies
+
+# enable error reporting
+cgitb.enable()
+
+# get the form data submitted by the user
+form = cgi.FieldStorage()
+
+# get the value of the "name" parameter
+name = form.getvalue("name")
+
+# create a new cookie
+cookie = http.cookies.SimpleCookie()
+cookie["name"] = name
+
+# set the Content-Type header to indicate that the response will be in HTML format
+print("Content-Type: text/html\r")
+print("\r")
+
+# output the HTML code to create the web page
+print("<html><head><title>Greetings</title></head><body>")
+if name:
+    print("<h1>Hello, {}!</h1>".format(name))
+else:
+    print("<h1>Please enter your name.</h1>")
+print('<form method="POST" action="index.py">')
+print('Name: <input type="text" name="name">')
+print('<input type="submit" value="Submit">')
+print('</form>')
+print("</body></html>")
+
+# set the cookie in the response
+print(cookie.output())
+
+# while True:
+#     print("This loop will run indefinitely. Press Ctrl+C to exit.")
+    # You can add your code here that you want to execute repeatedly
+    # For example:
+    # time.sleep(1)  # Uncomment this line if you want to introduce a delay
