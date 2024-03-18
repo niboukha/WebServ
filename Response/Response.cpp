@@ -204,20 +204,23 @@ std::string	Response::concatenateIndexDirectory( )
 	mapStrVect  loc;
 	struct stat statPath;
 	size_t  	i;
+	std::string	status;
 	
 	loc = getRequest().getLocation();
 	i = 0;
 	for (; i < loc["index"].size(); i++)
 	{
-		std::ifstream	myFile(loc["index"][i].c_str());
+		std::ifstream	myFile((loc["root"].front() + loc["index"][i]).c_str());
 		if (myFile.is_open())
 		{
 			myFile.close();
-			return (loc["root"].front() + "/" + loc["index"][i]);
+			status   = "200 ok";
+			UpdateStatusCode(status);
+			return (loc["root"].front() + loc["index"][i]);
 		}
 		myFile.close();
 	}
-	if (i >= 1 and !stat(loc["index"][i - 1].c_str(), &statPath))
+	if (i >= 1 and !stat((loc["root"].front() + loc["index"][i - 1]).c_str(), &statPath))
 	{
 		if (!(statPath.st_mode & S_IWUSR))
 		{
@@ -261,7 +264,7 @@ void	Response::isRealPath(std::string &path)
 std::string	Response::concatenatePath( std::string p )
 {
 	const mapStrVect	&loc = getRequest().getLocation();
-	std::string	path;
+	std::string			path;
 
 	path = loc.find("root")->second.front() + p.substr(1);
 	isRealPath(path);

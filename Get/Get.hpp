@@ -53,7 +53,7 @@ class	Get
 		void					readListOfCurDirectory( CgiStage &cgiStage );
 		void					stringOfDyrectories(std::vector<std::string> &vdir);		
 		void					pathPermission( CgiStage &cgiStage);
-		bool					cgiPassCheckment( CgiStage &cgiStage );
+		bool					cgiPassCheckment();
 };
 
 #endif

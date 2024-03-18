@@ -216,8 +216,8 @@ bool        Server::isValidUploadPass(std::vector<std::string> &uploadValue)
 {
      if (uploadValue.size() != 1 )
         throw InvalidDirectiveArgument();
-      else if(uploadValue[0].find_first_of("/"))
-        throw ("config file : invalid upload_pass directive");
+    else if(uploadValue[0].find_first_of("/"))
+        throw ("Config file : invalid upload_pass directive");
     return true ;
 }
 
@@ -225,6 +225,9 @@ bool    Server::isValidCgiPass(std::vector<std::string> &cgiValue)
 {
     if (cgiValue.size() != 1 )
        throw InvalidNumberOfArguments();
+    if (cgiValue[0].compare(".py") 
+        and cgiValue[0].compare(".php"))
+        throw ("Config file : Invalid CGI Extension");
     return true;
 }
 

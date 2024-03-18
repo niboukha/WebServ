@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
+/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/18 18:32:06 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/18 00:47:13 by shicham          ###   ########.fr       */
+/*   Updated: 2024/03/17 18:03:33 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ std::string	Post::conctRootUpload(std::string s)
 	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string			pt;
 
-	pt = loc.find("root")->second.front() + s.substr(1) + "/";
+	pt = loc.find("root")->second.front() + s + "/";
 	return (pt);
 }
 
@@ -132,14 +132,11 @@ void	Post::cgiPassCheckment( std::string &reqBuff, Stage &stage, CgiStage &cgiSt
 	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string			path = response.getPath();
 	 
-	if (((loc.find("cgi_pass")->second.front().empty()
-		or (loc.find("cgi_pass")->second.front() != ".py" 
-		and loc.find("cgi_pass")->second.front() != ".php"))
-		and cgiStage 							 != ERRORCGI))
-		{
-			cgiStage = ERRORCGI;
-			response.throwNewPath("403 forbidden", "403");
-		}
+	if (loc.find("cgi_pass")->second.front().empty() and cgiStage != ERRORCGI)
+	{
+		cgiStage = ERRORCGI;
+		response.throwNewPath("403 forbidden", "403");
+	}
 	else if (cgiStage == INITCGI)
 	{
 		if (!response.extentionToCgi(path))
@@ -219,7 +216,10 @@ void	Post::unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiS
 		response.throwNewPath("404 not found", "404");
 	}
 	else
+	{
+		pathPermission(cgiStage);
 		cgiPassCheckment(reqBuff, stage, cgiStage );
+	}
 	file.close();
 }
 
@@ -240,9 +240,7 @@ bool	Post::isUploadPass( )
 
 	enter = true;
 	if (!Utils::isDir(conctRootUpload(loc.find("upload_pass")->second.front()).c_str()))
-	{
 		response.throwNewPath("500 Internal Server Error", "500");
-	}
 	if (!stat(conctRootUpload(loc.find("upload_pass")->second.front()).c_str(), &statPath)
 		and !(statPath.st_mode & S_IWUSR))
 		response.throwNewPath("403 Forbidden", "403");

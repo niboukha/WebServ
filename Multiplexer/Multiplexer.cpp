@@ -31,9 +31,13 @@ void     Multiplexer::readReq(Client& cl)
     int r;
     time_t  currTime;
 
+    // std::cout << ">>>>>> fd : " << cl.getFd() << std::endl;
     r = read(cl.getFd(), buff, 2048);
+
     if (r <= 0)
     {
+        // if (errno == EINTR)
+        std::cout << "=====> yeeees " << r << " " << errno << std::endl;
         perror("holla : ");
         exit(1);
     }

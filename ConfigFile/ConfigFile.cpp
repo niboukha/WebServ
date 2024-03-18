@@ -193,10 +193,11 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
             {
                 const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();
                 
-                if (!mapDataS.find("host")->second.compare(host) 
+               if (!mapDataS.find("host")->second.compare(host) 
                     and !mapDataS.find("port")->second.compare(port)
                     and ((!servName.empty()  and mapDataS.find("server_name") != mapDataS.end()
-                    and !mapDataS.find("server_name")->second.compare(servName))))
+                    and !mapDataS.find("server_name")->second.compare(servName)) 
+                    or( servName.empty()  and mapDataS.find("server_name") == mapDataS.end())))
                     throw ("Config file : duplicate server block");
             }
             servers.push_back(server);

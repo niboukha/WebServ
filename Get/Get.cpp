@@ -111,21 +111,12 @@ void	Get::pathPermission( CgiStage &cgiStage )
 		}
 }
 
-bool	Get::cgiPassCheckment( CgiStage &cgiStage )
+bool	Get::cgiPassCheckment( ) // change
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
 
 	if(!loc.find("cgi_pass")->second.front().empty())
-	{
-		if ((loc.find("cgi_pass")->second.front() 	 != ".py" 
-			and loc.find("cgi_pass")->second.front() != ".php")
-			and cgiStage 							 != ERRORCGI)
-		{
-			cgiStage = ERRORCGI;
-			response.throwNewPath("403 forbidden", "403"); ///////////////////check
-		}
 		return (true);
-	}
 	return (false);
 }
 
@@ -144,7 +135,6 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 	}
 
 	std::ifstream file(response.getPath().c_str());
-
 	if (Utils::isDir(response.getPath().c_str()))
 	{
 		pathPermission(cgiStage);
@@ -161,7 +151,7 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 	{	
 		pathPermission(cgiStage);
 		path = response.getPath();
-		if (cgiPassCheckment(cgiStage) and cgiStage == INITCGI and response.extentionToCgi(path))
+		if (cgiPassCheckment( ) and cgiStage == INITCGI and response.extentionToCgi(path))
 		{
 			found = path.find_last_of(".");
 			if (std::string (path, found) != loc.find("cgi_pass")->second.front())
@@ -179,6 +169,8 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 			response.UpdateStatusCode(status);
 		}
 	}
+	// status   = "200 ok";
+	// response.UpdateStatusCode(status);
 	file.close();
 }
 
