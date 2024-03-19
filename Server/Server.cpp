@@ -96,30 +96,14 @@ int   Server::acceptNewConnection(fd_set& readFds, fd_set& writeFds)
     sockaddr_in clientAdd;
     socklen_t   clientAddLen;
     int         acceptedClient;
-    struct  in_addr  addr;
-    uint32_t ip_address ;
-    char    buffAdd[10];
 
     clientAddLen = sizeof(clientAdd);
     if((acceptedClient  = accept(masterSocket, (struct sockaddr*)&clientAdd, &clientAddLen)) < 0)
         throw strerror(errno);
     
-    addr = clientAdd.sin_addr;
-    ip_address = addr.s_addr;
-   
-    sprintf(buffAdd, "%u.%u.%u.%u", (ip_address & 0xFF), 
-        ((ip_address >> 8) & 0xFF),((ip_address >> 16) & 0xFF),((ip_address >> 24) & 0xFF));
-        
-    clientIp = std::string(buffAdd);
-    
     FD_SET(acceptedClient, &readFds);
     FD_SET(acceptedClient, &writeFds);
     return acceptedClient;
-}
-
-const std::string& Server::getClientIp() const
-{
-    return clientIp;
 }
 
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
@@ -140,35 +124,29 @@ bool Server::serverValidDirective(std::string &directive, std::string& value)//u
 
 bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//update
 {
-    std::istringstream  iss(ClientMaxBodySizeValue);
-    long long           ClientMaxBodySize;
-    std::string            strLongLong;
-    char                remain;
-    std::ostringstream oss;
- 
-    if (!(iss >> ClientMaxBodySize) or (iss >> remain) or (ClientMaxBodySize < 0))
+    char *endptr;
+    errno = 0;
+    long long result = std::strtoll(ClientMaxBodySizeValue.c_str(), &endptr, 10);
+
+    if (((result == LLONG_MAX || result == LLONG_MIN) && errno == ERANGE)) 
+        throw ("Config file: max body size out of range ");
+    if (*endptr or result < 0)
         throw InvalidDirectiveArgument();
-    oss << ClientMaxBodySize;
-    strLongLong = oss.str();
-    if (strLongLong.compare(ClientMaxBodySizeValue))
+    if (result == -0)
         throw InvalidDirectiveArgument();
     return true;
 }
 
 bool  Server::isValidPort(std::string &portValue)
 {
-    std::istringstream  iss(portValue);
-    long long           port;
-    std::string            strLongLong;
-    char                remain;
-    std::ostringstream oss;
- 
-    if (!(iss >> port) or (iss >> remain) or (port < 0))
-        throw InvalidDirectiveArgument();
-    oss << port;
-    strLongLong = oss.str();
-    if (strLongLong.compare(portValue) or port > 65535)
+    char *endptr;
+    errno = 0;
+    long long result = std::strtoll(portValue.c_str(), &endptr, 10);
+
+    if (((result == LLONG_MAX || result == LLONG_MIN) && errno == ERANGE)
+        or result < 0 or result > 65535) 
         throw ("Config file: port out of range ");
+
     return true;
 }
 

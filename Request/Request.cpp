@@ -51,11 +51,6 @@ const std::string   Request::getQueryParameters( ) const
     return (queryParameters);
 }
 
-const std::string   Request::getClientIp( ) const
-{
-    return (clientIp);
-}
-
 const	std::map<std::string, std::string>	Request::getServer( ) const
 {
 	return (server);
@@ -192,18 +187,27 @@ void    Request::validateRequestHeader()
     {
         (contentLenIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
         
-        std::istringstream  iss(headers["content-length"]);
-        long long           contentLen;
-        std::string            strLongLong;
-        char                remain;
-        std::ostringstream oss;
+        char *endptr;
+        errno = 0;
+        long long result = std::strtoll(headers["content-length"].c_str(), &endptr, 10);
+
+        if (((result == LLONG_MAX || result == LLONG_MIN) && errno == ERANGE) 
+            or result < 0) 
+              throw std::make_pair("400", "400 Bad Request");
+        if (*endptr or (result == -0))
+              throw std::make_pair("400", "400 Bad Request");
+        // std::istringstream  iss(headers["content-length"]);
+        // long long           contentLen;
+        // std::string            strLongLong;
+        // char                remain;
+        // std::ostringstream oss;
     
-        if (!(iss >> contentLen) or (iss >> remain) or (contentLen < 0))
-           throw std::make_pair("400", "400 Bad Request");
-        oss << contentLen;
-        strLongLong = oss.str();
-        if (strLongLong.compare(headers["content-length"]))
-            throw std::make_pair("400", "400 Bad Request");
+        // if (!(iss >> contentLen) or (iss >> remain) or (contentLen < 0))
+        //    throw std::make_pair("400", "400 Bad Request");
+        // oss << contentLen;
+        // strLongLong = oss.str();
+        // if (strLongLong.compare(headers["content-length"]))
+        //     throw std::make_pair("400", "400 Bad Request");
     }
     if (transferEncIt != headers.end())
     {
@@ -305,7 +309,6 @@ void    Request::matchingLocation()
     std::string subUri;
     std::vector<std::string>::iterator it;
 
-    clientIp = matchingServ.getClientIp();
     server   = matchingServ.getServerData();
     longestOne = 0;
 

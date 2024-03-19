@@ -32,7 +32,7 @@ int main(int ac, char **av)
         }
         else
         {
-            configFile.open("webserv.config");
+            configFile.open("configurationFiles/webserv.config");
             (!configFile.is_open()) ?
                 throw FailedToOpenFile() : false;
         }

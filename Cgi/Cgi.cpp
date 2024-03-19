@@ -351,7 +351,7 @@ void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 			path	  	 = response.getPath();
 			found	  	 = path.find_last_of("/");
 			if (chdir(path.substr(0, found).c_str()) == -1)
-				exit(EXIT_FAILURE);
+				kill(getpid(), SIGINT);
 			execve(cgiBin.c_str(), arr, env);
 			kill(getpid(), SIGINT);
 		}

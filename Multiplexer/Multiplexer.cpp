@@ -151,8 +151,9 @@ void Multiplexer::multiplexing()
                     readReq(*i);
                 if (FD_ISSET(i->getFd(), &tmpWriteFds) and i->getStage() >= RESHEADER)
                     sendRes(*i);
-                if ((time(0) - i->getLastRead()) >= 10)
-                    dropClient(*i);
+                std::cout << "khera\n";
+                // if ((time(0) - i->getLastRead()) >= 10)
+                //     dropClient(*i);
                 if (i->getStage() == RESEND)
                 {
                     clear(readFds, writeFds, *i);

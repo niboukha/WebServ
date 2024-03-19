@@ -31,7 +31,6 @@ class Server
         ~Server();
 
         const int&  getMasterSocket() const;
-        const   std::string& getClientIp() const;
         void    setServerData(std::map<std::string, std::string>& servData);
         void    setLocations(std::map<std::string,  mapStrVect>& locs);
         std::map<std::string, std::string>& getServerData();

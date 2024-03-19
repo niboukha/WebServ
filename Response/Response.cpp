@@ -211,7 +211,6 @@ std::string	Response::concatenateIndexDirectory( ) //updated
 	for (; i < loc["index"].size(); i++)
 	{
 		std::ifstream	myFile((getPath() + loc["index"][i]).c_str());
-	
 		if (myFile.is_open())
 		{
 			status = "200 ok";
@@ -247,10 +246,8 @@ void	Response::isRealPath(std::string &path)
 	currentPath = realpath(".", bufCur);
 	if (resource)
 	{
-		res			= bufRec;
-		curr		= bufCur;
-		std::cout << "curr -> " << curr << "\n";
-		std::cout << "res -> " << res << "\n";
+		res	 = bufRec;
+		curr = bufCur;
 		if (res.find(curr) == std::string::npos
 			or (!res.compare(curr)
 			and !getRequest().getMethod().compare("DELETE")))
@@ -261,6 +258,8 @@ void	Response::isRealPath(std::string &path)
 		}
 		if (path[path.length() - 1] == '/')
 			path = res + "/";
+		else
+			path = res;
 	}
 }
 

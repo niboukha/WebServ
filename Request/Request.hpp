@@ -31,8 +31,7 @@ class Request
 		std::string							protocolVersion;
 		std::string							uri;
 		std::string							queryParameters;
-		std::string							clientIp;
-		
+				
 		void		decodeUri();
 		void		validateRequestHeader();
 		void		fillErrorPages();
