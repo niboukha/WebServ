@@ -48,16 +48,13 @@ class	Get
 		void					responsBody(std::string &bodyRes);
 
 		const std::streampos&	getSizeofRead() const;
+		const std::ifstream&	getIn() const;
 		
 		void					directoryInRequest(std::string &path, std::ifstream &file, CgiStage &cgiStage);
 		void					readListOfCurDirectory( CgiStage &cgiStage );
 		void					stringOfDyrectories(std::vector<std::string> &vdir);		
 		void					pathPermission( CgiStage &cgiStage);
-		bool					cgiPassCheckment( CgiStage &cgiStage );
-		bool					extentionToCgi(std::string &path, CgiStage &cgiStage );
-
-
-
+		bool					cgiPassCheckment();
 };
 
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:16:09 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 03:18:05 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/18 00:34:27 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,11 @@ const std::string   Request::getProtocolVersion( ) const
 const std::string   Request::getQueryParameters( ) const
 {
     return (queryParameters);
+}
+
+const std::string   Request::getClientIp( ) const
+{
+    return (clientIp);
 }
 
 const	std::map<std::string, std::string>	Request::getServer( ) const
@@ -207,7 +212,7 @@ void    Request::validateRequestHeader()
     if (contentTypeIt != headers.end() )
     {
         (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
+        // (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
     }
     isMethodPost = method.compare("POST");
     
@@ -291,7 +296,7 @@ size_t  Request::longestMatchingLocation(const std::string& prefix)
     size_t i = 0;
     for (; i < uri.size() and uri[i] == prefix[i]; i++)
     {}
-    if (uri[i - 1] == '/') //should check after
+    if (uri[i - 1] == '/') 
         return i;
     return 0;
 }
@@ -302,7 +307,9 @@ void    Request::matchingLocation()
     size_t  longestOne, sizeMatching;
     std::string subUri;
     std::vector<std::string>::iterator it;
-    server = matchingServ.getServerData();
+
+    clientIp = matchingServ.getClientIp();
+    server   = matchingServ.getServerData();
     longestOne = 0;
 
     for (std::map<std::string, mapStrVect>::const_iterator 
@@ -317,7 +324,15 @@ void    Request::matchingLocation()
             longestOne = sizeMatching;
         }
     }
-    if (!location["return"].front().empty())//to check mn b3ed !!!
+
+    
+    if (subUri.empty())
+        throw std::make_pair("404", "404 Not found");
+    
+    if (requestedPath.find("/", subUri.length() - 1) != std::string::npos)
+        requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
+        
+    if (!location["return"].front().empty())
     {
         throw std::make_pair(((location["return"][0]).c_str()),
             ("301 Moved Permanently"));
@@ -328,8 +343,6 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-    requestedPath = requestedPath.substr(0, subUri.find_first_not_of(requestedPath));
-    // URI = URI.substr(URI.find_first_not_of(subUri));
 }
 
 Server&  Request::matchingServer()

@@ -6,11 +6,10 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 09:39:21 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/17 03:23:26 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 15:19:40 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-// #include "Get.hpp"
 #include "../Response/Response.hpp"
 
 Get::Get(Response &res)	:	response  (res),
@@ -22,6 +21,8 @@ Get::Get(Response &res)	:	response  (res),
 
 Get::~Get()
 {
+	if (in.is_open())
+		in.close();
 }
 
 const char*	Get::DirectoryFailed::what( ) const throw( )
@@ -33,7 +34,6 @@ const std::streampos&	Get::getSizeofRead() const
 {
 	return (sizeofRead);
 }
-
 void	Get::stringOfDyrectories(std::vector<std::string> &vdir)
 {
 	directories      =  "<!DOCTYPE html>\n<html>\n<body>\n\n<h1>Index of /</h1>\n<hr />\n";
@@ -80,9 +80,9 @@ void	Get::directoryInRequest(std::string &path, std::ifstream &file, CgiStage &c
 
 	if (path[path.length() - 1] != '/')
 	{
+		cgiStage = ERRORCGI;
 		response.setIsMoved( true );
 		response.setLocationRes(response.getRequest().getRequestedPath() + "/");
-		cgiStage    = ERRORCGI;
 		file.close();
 		response.throwNewPath("301 Moved Permanently", "301");
 	}
@@ -112,54 +112,48 @@ void	Get::pathPermission( CgiStage &cgiStage )
 		}
 }
 
-bool	Get::cgiPassCheckment( CgiStage &cgiStage )
+bool	Get::cgiPassCheckment( ) // change
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
 
 	if(!loc.find("cgi_pass")->second.front().empty())
-	{
-		if ((loc.find("cgi_pass")->second.front() != ".py" 
-			and loc.find("cgi_pass")->second.front() != ".php") and cgiStage != ERRORCGI)
-		{
-			cgiStage = ERRORCGI;
-			response.throwNewPath("403 forbidden", "403"); //check
-		}
 		return (true);
-	}
 	return (false);
 }
 
 void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 {
+	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string			path;
 	std::string			status;
 	std::string			s;
+	size_t				found;
 
 	if (response.getStatusCodeMsg() == "-1")
 	{
 		path = response.concatenatePath( response.getRequest().getRequestedPath() );
 		response.setPath(path);
 	}
-	std::ifstream file(response.getPath().c_str());
 
-	if (Utils::isDir(response.getPath().c_str()))
+	std::ifstream file(response.getPath().c_str());
+	pathPermission(cgiStage);
+	if (file.is_open() and Utils::isDir(response.getPath().c_str()))
 	{
-		pathPermission(cgiStage);
 		path = response.getPath();
 		directoryInRequest(path, file, cgiStage);
 	}
-	else if (!Utils::isFile(response.getPath().c_str()))
+	else if (file.is_open() && Utils::isFile(response.getPath().c_str()))
 	{
-		file.close();
-		cgiStage = ERRORCGI;
-		response.throwNewPath("404 not found", "404");
-	}
-	else
-	{	
-		pathPermission(cgiStage);
 		path = response.getPath();
-		if (cgiPassCheckment(cgiStage) && cgiStage == INITCGI)
+		if (cgiPassCheckment( ) and cgiStage == INITCGI and response.extentionToCgi(path))
 		{
+			found = path.find_last_of(".");
+			if (found != std::string::npos and std::string (path, found) != loc.find("cgi_pass")->second.front())
+			{
+				cgiStage = ERRORCGI;
+				file.close();
+				throw (path);
+			}
 			cgiStage = WAITCGI;
 			cgi.executeCgi(s, stage, cgiStage);
 		}
@@ -168,6 +162,11 @@ void	Get::statusOfFile(Stage& stage, CgiStage &cgiStage)
 			status   = "200 ok";
 			response.UpdateStatusCode(status);
 		}
+	}
+	else
+	{
+		cgiStage = ERRORCGI;
+		response.throwNewPath("404 not found", "404");
 	}
 	file.close();
 }
@@ -178,7 +177,7 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 		cgi.waitCgi(stage, cgi.getPid(), cgiStage);
 	else
 	{
-		std::string			path;
+		std::string	path;
 
 		statusOfFile(stage, cgiStage);
 		if (cgiStage == EXECUTECGI)
@@ -208,7 +207,7 @@ void	Get::responsHeader(std::string	&headerRes, Stage& stage, CgiStage	&cgiStage
 				"Content-Type: "   + "text/html" 					+ CRLF +
 				"Content-Length: " + Utils::longToString(directories.size());
 			headerRes = headerRes  + CRLF + CRLF;
-			stage = RESBODY;
+			stage     = RESBODY;
 		}
 	}
 }
@@ -222,7 +221,7 @@ void	Get::responsBody(std::string &bodyRes)
 			in.open(response.getPath().c_str(), std::ios_base::binary);
 
 		in.read(buff, sizeof(buff));
-		sizeofRead  = in.gcount();
+		sizeofRead     = in.gcount();
 		if (sizeofRead == 0)
 			in.close();
 		bodyRes = std::string(buff, sizeofRead);

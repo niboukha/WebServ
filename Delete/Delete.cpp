@@ -12,9 +12,9 @@
 
 #include "Delete.hpp"
 
-Delete::Delete( Response &response ) :	res		  (response),
-										sizeofRead(0),
-										isReal	  (true)
+Delete::Delete( Response &res ) :	response  (res),
+									sizeofRead(0),
+									isReal	  (true)
 {
 }
 
@@ -29,7 +29,7 @@ const std::streampos&	Delete::getSizeofRead( ) const
 
 void	Delete::pathOfSentPage( std::string s, std::string code )
 {
-	res.setStatusCodeMsg(s);
+	response.setStatusCodeMsg(s);
 	throw ( code );
 }
 
@@ -68,8 +68,8 @@ void	Delete::filePath( std::string &s, struct stat st, DIR *pDir )
 	else if (!std::remove(s.c_str()))
 	{
 		set = "204 No Content";
-		res.setStatusCodeMsg(set);
-		res.setPath(res.pathErrorPage("204"));
+		response.setStatusCodeMsg(set);
+		response.setPath(response.pathErrorPage("204"));
 	}
 }
 
@@ -151,12 +151,12 @@ void	Delete::statusOfRequested( )
 	
 	try
 	{
-		if (res.getStatusCodeMsg() == "-1")
+		if (response.getStatusCodeMsg() == "-1")
 		{
-			res.setPath (res.concatenatePath( res.getRequest().getRequestedPath() ));
+			response.setPath (response.concatenatePath( response.getRequest().getRequestedPath() ));
 			isReal = false;
 		}
-		base = res.getPath();
+		base = response.getPath();
 		if (!stat(base.c_str(), &statPath))
 		{
 			if (S_ISDIR(statPath.st_mode))
@@ -172,16 +172,16 @@ void	Delete::statusOfRequested( )
 					pathOfSentPage("403 Forbidden", "403");
 			}
 		}
-		nestedDirectories (res.getPath(), statPath);
-		res.setPath		  (base);
-		deleteBasePath    (res.getPath(), statPath);
+		nestedDirectories (response.getPath(), statPath);
+		response.setPath		  (base);
+		deleteBasePath    (response.getPath(), statPath);
 	}
-	catch(std::string code)
+	catch( std::string code )
 	{
-		if (isReal)
-			res.setPath (code);
+		if ( isReal )
+			response.setPath ( code );
 		else
-			res.setPath(res.pathErrorPage(code));
+			response.setPath( response.pathErrorPage( code ) );
 	}
 }
 
@@ -189,13 +189,13 @@ void	Delete::responsHeader(std::string &headerRes)
 {
 	std::string	pt;
 	
-	statusOfRequested();
+	statusOfRequested( );
 
-	pt         = res.getPath();
-	headerRes  = res.getRequest().getProtocolVersion()         + " "  +
-				 res.getStatusCodeMsg()                        + CRLF +
-		 		 "Content-Type: "   + res.getContentType(pt)   + CRLF +
-				 "Content-Length: " + res.getContentLength(pt) + CRLF +
+	pt         = response.getPath( );
+	headerRes  = response.getRequest( ).getProtocolVersion( )         + " "  +
+				 response.getStatusCodeMsg( )                         + CRLF +
+		 		 "Content-Type: "   + response.getContentType( pt )   + CRLF +
+				 "Content-Length: " + response.getContentLength( pt ) + CRLF +
 				 CRLF;
 }
 
@@ -204,7 +204,7 @@ void	Delete::responsBody(std::string &bodyRes)
 	char	buff[2048];
 
 	if (!in.is_open())
-		in.open(res.getPath().c_str(), std::ios_base::binary);
+		in.open(response.getPath().c_str(), std::ios_base::binary);
 
 	in.read(buff, sizeof(buff));
 	sizeofRead  = in.gcount();

@@ -22,7 +22,7 @@ class	Delete
 {
 	private :
 
-		Response		&res;
+		Response		&response;
 		
 		std::streampos	sizeofRead;
 		std::ifstream	in;
@@ -30,22 +30,21 @@ class	Delete
 
 	public :
 
-		Delete(Response &response);
+		Delete (Response &res);
 		~Delete();
 
-		void	responsHeader(std::string &headerRes);
-		void	responsBody(std::string &bodyRes);
+		void					responsHeader(std::string &headerRes);
+		void					responsBody(std::string &bodyRes);
 
 		const std::streampos&	getSizeofRead() const;
 
-		void		directoryPath(DIR *pDir, struct stat st, std::string &pt);
-		void		filePath(std::string &s, struct stat st, DIR *pDir);
-		void		statusOfRequested();
-		void		pathOfSentPage(std::string s, std::string code);
-		std::string	nestedDirectories(std::string s, struct stat statPath);
-
-
-		void		deleteBasePath(std::string s, struct stat statPath);
+		std::string				nestedDirectories(std::string s, struct stat statPath);
+		void					deleteBasePath(std::string s, struct stat statPath);
+	
+		void					directoryPath(DIR *pDir, struct stat st, std::string &pt);
+		void					filePath(std::string &s, struct stat st, DIR *pDir);
+		void					statusOfRequested();
+		void					pathOfSentPage(std::string s, std::string code);
 
 };
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigFile.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: shicham <shicham@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 10:30:06 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/17 03:13:19 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/18 00:51:23 by shicham          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,10 +64,11 @@ void    ConfigFile::decodeLocationPrefix(std::string& location)
 
 mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
 {
-    mapStrVect                                   location;
+    mapStrVect                                  location;
     std::string                                 key, line, trimLine;
     std::vector<std::string>                    values;
-    mapStrVect ::iterator                       cgi, upload, root;   
+    std::vector<std::string>                    vect;
+    mapStrVect::iterator                        cgi, upload, root;   
 
     while (std::getline(configFile, line))
     {
@@ -78,12 +79,10 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
                 throw ("Config file : " +  values[0] + " empty directire");
             key = values[0];
 			values.erase(values.begin());
+            (location.find(key) != location.end()) ?
+            throw DirectiveAlreadyExist() : false ;
 			if (Server::locationValidDirective(key, values))
-            {
-                (location.find(key) != location.end()) ? 
-				throw DirectiveAlreadyExist() : false;
                 location[key] = values;
-            }
             continue;
 		}
         trimLine = StringOperations::trim(line);
@@ -92,19 +91,19 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
         break;
     }
     
-   (location.empty()) ?  throw("config file : location block empty") : false;
-        
     cgi = location.find("cgi_pass");
     upload = location.find("upload_pass");
     root = location.find("root");
+    vect.push_back("");
     
+    (location.empty()) ?  throw("config file : location block empty") : false;
+
     (root == location.end() ) ? 
     throw ("config file  : invalid location block root directive required") : false;//update
     
-    (upload != location.end() \
-    and cgi != location.end()) ?
-    throw("config file : just one of the directives required upload_pass/cgi_pass") : false;//update
-    
+    if(upload != location.end() \
+    and cgi != location.end()) 
+        upload->second = vect ;
     addDirectivesMissingInLocation(location);//update
     
     return location;
@@ -156,8 +155,8 @@ void  ConfigFile::fillServer(std::fstream& configFile, Server& server)
     server.setServerData(servData);
     server.serverObligatoryDirectives();
     
-    (locations.find("/") == locations.end()) ? \
-    throw("Config file : default location required") : false;
+    // (locations.find("/") == locations.end()) ? \
+    // throw("Config file : default location required") : false;
     
     server.setLocations(locations);
 }
@@ -184,15 +183,16 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
             host = mapDataServ.find("host")->second;
             port = mapDataServ.find("port")->second;
             (mapDataServ.find("server_name") != mapDataServ.end()) ? servName = mapDataServ.find("server_name")->second :
-             servName = std::string("");
+            servName = std::string("");
             for (size_t j = 0; j < servers.size(); j++)
             {
                 const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();
                 
-                if (!mapDataS.find("host")->second.compare(host) 
+               if (!mapDataS.find("host")->second.compare(host) 
                     and !mapDataS.find("port")->second.compare(port)
-                    and !servName.empty()  and mapDataS.find("server_name") != mapDataS.end()
-                    and !mapDataS.find("server_name")->second.compare(servName))
+                    and ((!servName.empty()  and mapDataS.find("server_name") != mapDataS.end()
+                    and !mapDataS.find("server_name")->second.compare(servName)) 
+                    or( servName.empty()  and mapDataS.find("server_name") == mapDataS.end())))
                     throw ("Config file : duplicate server block");
             }
             servers.push_back(server);

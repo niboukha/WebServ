@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/17 11:15:01 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/15 16:17:19 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 12:48:54 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,17 +40,19 @@ class Request
 		size_t		longestMatchingLocation(const std::string& prefix);
 		
     public:
-        Request();
-		Request(std::vector<Server>& servers);
+        Request ();
         ~Request();
 		
-        void   parseRequest(std::string &buff, Stage &stage);
+		Request (std::vector<Server>& servers);
+		
+        void   		parseRequest(std::string &buff, Stage &stage);
 		
 		const		std::string getMethod( ) const;
 		const		mapStrVect  getLocation() const;
 		const		std::string getRequestedPath( ) const;
 		const		std::string getProtocolVersion( ) const;
 		const		std::string getQueryParameters( ) const;
+		const		std::string getClientIp( ) const;
 		const		std::map<std::string, std::string>	getServer( ) const;
 		const		std::map<std::string, std::string>	getHeaders() const;
 		const		std::map<std::string, std::string>	getErrorPages() const;

@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/07 11:57:58 by niboukha          #+#    #+#             */
-/*   Updated: 2024/03/17 12:42:31 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 18:09:16 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,9 @@ Cgi::Cgi( Response &res ) :	response			( res  ),
 							pid					(  -1  ),
 							inputFile			( NULL ),
 							outputFile			( NULL ),
-							hasNewLine			( false)
+							hasNewLine			( false),
+							size				(  0   ),
+							maxBody				(  0   )
 {
 }
 
@@ -63,30 +65,33 @@ void	Cgi::linkReqEnv()
 	const std::map<std::string, std::string>	&server = response.getRequest().getServer();
 	size_t										found;
 	std::string									path;
+	std::string									inputPath;
 
-	path = response.getPath();
-	found = path.find_last_of("/");
+	path      = response.getPath();
+	inputPath = response.getPathInput();
+	found     = path.find_last_of("/");
 	if (header.find("content-type")   != header.end())
 		requestEnv["CONTENT_TYPE"]     = header.find("content-type")->second;
-	if (header.find("content-length") != header.end())
-		requestEnv["CONTENT_LENGTH"]   = header.find("content-length")->second;
+	if (header.find("content-length") != header.end() or header.find("transfer-encoding") != header.end())
+		requestEnv["CONTENT_LENGTH"]   = response.getContentLength( inputPath );
 	if (header.find("cookie")         != header.end())
 		requestEnv["HTTP_COOKIE"]      = header.find("cookie")->second;
+	std::cout << requestEnv["HTTP_COOKIE"] << "\n";
 	if (header.find("user-agent")     != header.end())
 		requestEnv["HTTP_USER_AGENT"]  = header.find("user-agent")->second;
 	if (!response.getRequest().getMethod().empty())
 		requestEnv["REQUEST_METHOD"]   = response.getRequest().getMethod();
 	if (!response.getRequest().getQueryParameters().empty())
 		requestEnv["QUERY_STRING"]     = response.getRequest().getQueryParameters();
-	requestEnv["SERVER_PORT"]          = server.find("port")->second;
+
 	requestEnv["PATH_INFO"]            = response.getPath();
 	requestEnv["SCRIPT_FILENAME"]      = response.getPath();
+	requestEnv["SERVER_PORT"]          = server.find("port")->second;
 	requestEnv["SCRIPT_NAME"]          = path.substr(found + 1);
 	requestEnv["SERVER_PROTOCOL"]      = "HTTP/1.1";
 	requestEnv["GATEWAY_INTERFACE"]    = "CGI/1.1";
 	requestEnv["REDIRECT_STATUS"]	   = "200";
-
-	requestEnv["REMOTE_ADDR"]		   = "10.14.9.1"; //for now
+	requestEnv["EXTENSION_"]	       = "." + response.getExtensionFile( );
 }
 
 void	Cgi::fillEnvirement()
@@ -102,8 +107,8 @@ void	Cgi::fillEnvirement()
 	it  = requestEnv.begin();
 	for(; it != requestEnv.end(); it++, i++)
 	{
-		keyval = it->first + "=" + it->second;
-		env[i] = new char[keyval.length() + 1];
+		keyval 		  = it->first + "=" + it->second;
+		env[i]        = new char[keyval.length() + 1];
 		for (size_t j = 0; j < keyval.length(); j++)
 			env[i][j] = keyval[j];
 		env[i][keyval.length()] = '\0';
@@ -125,6 +130,7 @@ long long	Cgi::maxBodySize( )
 void	Cgi::cgiBinary( )
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
+
 	if(!loc.find("cgi_pass")->second.front().empty())
 	{
 		if ( loc.find("cgi_pass")->second.front() == ".py" )
@@ -140,7 +146,52 @@ void	Cgi::cgiBinary( )
 	}
 }
 
-void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
+void 	Cgi::uploadByChunks(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
+{
+	std::string		s;
+	size_t			foundLen;
+	size_t			foundBuff;
+	long long		hexLen;
+
+	if (!inputFile)
+	{
+		response.setPathInput(s + PATH_CGI + "input" + Utils::generateRundFile());
+		inputFile = fopen(response.getPathInput().c_str(), "wrb");
+		maxBody	  = maxBodySize();
+	}
+	while (reqBuff.size())
+	{
+		foundLen 	  = reqBuff.find("\r\n");
+		if (foundLen != std::string::npos)
+		{
+			hexLen = Utils::getLength(std::string(reqBuff, 0, foundLen));
+			if (hexLen == 0)
+			{
+				stage = RESHEADER;
+				fclose(inputFile);
+			}
+		}
+		else
+			break;
+		foundBuff 	   = reqBuff.find("\r\n", hexLen + foundLen + 2);
+		if (foundBuff != std::string::npos)
+		{
+			size += hexLen;
+			if (maxBody < size)
+			{
+				cgiStage = ERRORCGI;
+				stage    = RESHEADER;
+				response.throwNewPath("413 Request Entity Too Large", "413");
+			}
+			fwrite ( std::string(reqBuff, foundLen + 2, hexLen).c_str(), sizeof(char), std::string(reqBuff, foundLen + 2, hexLen).size(), inputFile);
+			reqBuff = std::string(reqBuff, foundBuff + 2);	
+		}
+		else
+			break;
+	}
+}
+
+void 	Cgi::uploadByContentLength(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 {
 	const std::map<std::string, std::string>	&head = response.getRequest().getHeaders();
 	std::string									s;
@@ -148,7 +199,7 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 	if (!inputFile)
 	{
 		response.setPathInput(s + PATH_CGI + "input" + Utils::generateRundFile());
-		inputFile = fopen(response.getPathInput().c_str(), "wrb");
+		inputFile		  = fopen(response.getPathInput().c_str(), "wrb");
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
 		if (maxBodySize() < contentLengthLong)
 		{
@@ -167,13 +218,23 @@ void 	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
 		return ;
 	}
 	fwrite ( reqBuff.c_str(), sizeof(char), reqBuff.size(), inputFile);
-	uploadSize += reqBuff.size();
+	uploadSize     += reqBuff.size();
 	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;
 		fclose(inputFile);
 	}
 	reqBuff.clear();
+}
+
+void	Cgi::uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage)
+{
+	const std::map<std::string, std::string>	&header = response.getRequest().getHeaders();
+
+	if (header.find("content-length") != header.end())
+		uploadByContentLength(stage, reqBuff, cgiStage);
+	else
+		uploadByChunks(stage, reqBuff, cgiStage);
 }
 
 void	Cgi::getStatusCgi(Stage &stage, CgiStage &cgiStage)
@@ -189,7 +250,7 @@ void	Cgi::getStatusCgi(Stage &stage, CgiStage &cgiStage)
 	while (std::getline(outfile, s))
 	{
 		Utils::toLower(s);
-		if (s.empty() || s == "\r")
+		if (s.empty() or s == "\r")
 		{
 			hasNewLine = true;
 			break;
@@ -198,7 +259,8 @@ void	Cgi::getStatusCgi(Stage &stage, CgiStage &cgiStage)
 			break;
 		if (foundContentType == std::string::npos)
 			foundContentType = s.find("content-type:");
-		found = s.find("status:");
+
+		found      = s.find("status:");
 		if (found != std::string::npos and found == 0)
 		{
 			status = std::string (s, s.find_first_of(":") + 1);
@@ -208,6 +270,7 @@ void	Cgi::getStatusCgi(Stage &stage, CgiStage &cgiStage)
 				statusCode = "200 ok";
 				response.setStatusCodeMsg(statusCode);
 			}
+			status = status.substr(0, status.length() - 1);
 			response.setStatusCodeMsg(status);
 		}
 		s.clear();
@@ -223,73 +286,74 @@ void	Cgi::getStatusCgi(Stage &stage, CgiStage &cgiStage)
 void	Cgi::waitCgi(Stage &stage, int &pid, CgiStage &cgiStage)
 {
 	int			status;
-	int			exitStatus;
 	std::string statusCode;
 	
 	cgiStage = WAITCGI;
-	if (waitpid(pid, &status, WNOHANG) != 0 && WIFEXITED(status))
+	if (waitpid(pid, &status, WNOHANG) != 0)
 	{
-		exitStatus = WEXITSTATUS(status);
-		if (exitStatus != 0)
+		if (WIFSIGNALED(status))
 		{
 			cgiStage = ERRORCGI;
 			stage    = RESHEADER;
 			response.throwNewPath("500 Internal Server Error", "500");
 		}
-		cgiStage = EXECUTECGI;
-		stage    = RESHEADER;
-		statusCode = "200 ok";
-		response.setStatusCodeMsg(statusCode);
-		getStatusCgi(stage, cgiStage);
-		throw (response.getPathOutput());
+		if (WIFEXITED(status))
+		{
+			cgiStage	 = EXECUTECGI;
+			stage    	 = RESHEADER;
+			statusCode	 = "200 ok";
+			response.setStatusCodeMsg(statusCode);
+			getStatusCgi(stage, cgiStage);
+			throw (response.getPathOutput());
+		}
 	}
+}
+
+void	Cgi::unmatchedUrlScript( const mapStrVect	&loc, Stage &stage, CgiStage &cgiStage )
+{
+	std::string	pathExt;
+	size_t		foundPoint;
+
+	pathExt    		 = response.getPath();
+	foundPoint 		 = pathExt.find_last_of(".");
+	if ((foundPoint != std::string::npos
+		and std::string(pathExt, foundPoint) != loc.find("cgi_pass")->second.front())
+		or foundPoint == std::string::npos)
+		{
+			cgiStage = ERRORCGI;
+			stage    = RESHEADER;
+			response.throwNewPath("403 forbidden", "403");
+		}
 }
 
 void	Cgi::executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage )
 {
 	const mapStrVect	&loc = response.getRequest().getLocation();
 	std::string			path;
-	std::string			pathExt;
 	size_t				found;
-	size_t				foundPoint;
 
-	fillEnvirement ( );
 	if (stage < RESHEADER)
 		uploadBody(stage, reqBuff, cgiStage);
 	else
 	{
-		pathExt    = response.getPath();
-		foundPoint = pathExt.find_last_of(".");
-		
-		if ((foundPoint != std::string::npos 
-			and std::string (pathExt, foundPoint) != loc.find("cgi_pass")->second.front()) 
-			or foundPoint == std::string::npos)
-			{
-				cgiStage = ERRORCGI;
-				stage    = RESHEADER;
-				response.throwNewPath("403 forbidden", "403");
-			}
-			
+		fillEnvirement ( );
+		unmatchedUrlScript (loc, stage, cgiStage);
 		cgiBinary( );
-
+	
 		response.setPathOutput(path + PATH_CGI + "output" + Utils::generateRundFile());
-		char *arr[] = {inter, (char *)response.getPath().c_str(), NULL};
-		pid = fork();
+		
+		char *arr[] 	 = {inter, (char *)response.getPath().c_str(), NULL};
+		pid 			 = fork();
 		if (pid == 0)
 		{
-			inputFile  = freopen(response.getPathInput().c_str(), "rb" , stdin);
-			outputFile = freopen(response.getPathOutput().c_str(), "wb", stdout);
-			path	   = response.getPath();
-			found	   = path.find_last_of("/");
+			inputFile	 = freopen(response.getPathInput().c_str(), "rb" , stdin);
+			outputFile	 = freopen(response.getPathOutput().c_str(), "wb", stdout);
+			path	  	 = response.getPath();
+			found	  	 = path.find_last_of("/");
 			if (chdir(path.substr(0, found).c_str()) == -1)
-			{
-				cgiStage = ERRORCGI;
-				stage    = RESHEADER;
-				response.throwNewPath("500 Internal Server Error", "500");
-			}
-			
+				exit(EXIT_FAILURE);
 			execve(cgiBin.c_str(), arr, env);
-			exit(EXIT_FAILURE);
+			kill(getpid(), SIGINT);
 		}
 		waitCgi(stage, pid, cgiStage);
 	}

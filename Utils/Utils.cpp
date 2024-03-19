@@ -85,11 +85,6 @@ std::string	Utils::generateRundFile()
 	return (path + s.str());
 }
 
-bool Utils::isFdOpen(int fd)
-{
-    return fcntl(fd, F_GETFD) != -1 or errno != EBADF;
-}
-
 long long	Utils::getLength(std::string s)
 {
 	std::stringstream	st;

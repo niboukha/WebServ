@@ -6,7 +6,7 @@
 /*   By: niboukha <niboukha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/07 08:35:20 by shicham           #+#    #+#             */
-/*   Updated: 2024/03/15 23:22:25 by niboukha         ###   ########.fr       */
+/*   Updated: 2024/03/17 12:49:14 by niboukha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,11 +124,13 @@ const std::string& Server::getClientIp() const
 
 bool Server::serverValidDirective(std::string &directive, std::string& value)//update
 {
-    std::string    directives[4] = {"host", "port", "error_page", "server_name"};
+    std::string    directives[3] = {"host", "error_page", "server_name"};
 
     if (!directive.compare("client_max_body_size"))
         return (isValidClientMaxBodySize(value));
-    for(size_t i = 0; i < 4; i++)
+    if (!directive.compare("port"))
+        return (isValidPort(value));
+    for(size_t i = 0; i < 3; i++)
     {
         if (!directives[i].compare(directive))
             return true;
@@ -153,6 +155,22 @@ bool    Server::isValidClientMaxBodySize(std::string &ClientMaxBodySizeValue)//u
     return true;
 }
 
+bool  Server::isValidPort(std::string &portValue)
+{
+    std::istringstream  iss(portValue);
+    long long           port;
+    std::string            strLongLong;
+    char                remain;
+    std::ostringstream oss;
+ 
+    if (!(iss >> port) or (iss >> remain) or (port < 0))
+        throw InvalidDirectiveArgument();
+    oss << port;
+    strLongLong = oss.str();
+    if (strLongLong.compare(portValue) or port > 65535)
+        throw ("Config file: port out of range ");
+    return true;
+}
 
 
 bool    Server::locationValidDirective(std::string &directive, std::vector<std::string> &values)//update
@@ -178,8 +196,7 @@ bool    Server::isValidRoot(std::vector<std::string> &rootValue)
 {
     if (rootValue.size() != 1) 
         throw InvalidNumberOfArguments();
-    else if (rootValue[0].find("/") 
-        or (rootValue[0].find_last_of("/") != rootValue[0].length() - 1))
+    else if ((rootValue[0].find_last_of("/") != rootValue[0].length() - 1))
         throw("config file : invalid root directive");
     return true;
 }
@@ -199,8 +216,8 @@ bool        Server::isValidUploadPass(std::vector<std::string> &uploadValue)
 {
      if (uploadValue.size() != 1 )
         throw InvalidDirectiveArgument();
-      else if(uploadValue[0].find_first_of("/"))
-        throw ("config file : invalid upload_pass directive");
+    else if(uploadValue[0].find_first_of("/"))
+        throw ("Config file : invalid upload_pass directive");
     return true ;
 }
 
@@ -208,6 +225,9 @@ bool    Server::isValidCgiPass(std::vector<std::string> &cgiValue)
 {
     if (cgiValue.size() != 1 )
        throw InvalidNumberOfArguments();
+    if (cgiValue[0].compare(".py") 
+        and cgiValue[0].compare(".php"))
+        throw ("Config file : Invalid CGI Extension");
     return true;
 }
 
@@ -228,4 +248,3 @@ bool    Server::serverObligatoryDirectives()
     }
     return true;
 }
-

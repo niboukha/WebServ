@@ -28,8 +28,6 @@ class	Cgi
 		char								**env;
 		long long							uploadSize;
 		long long							contentLengthLong;
-		// std::string							pathInput;
-		// std::string							pathOutput;
 		std::string							cgiBin;
 		char								*inter;
 		pid_t								pid;
@@ -37,30 +35,32 @@ class	Cgi
 		FILE* 								outputFile;
 		bool								hasNewLine;
 		std::string							currDir;
-
-
+		long long							size;			
+		long long							maxBody;
 		
 	public:
 
 		Cgi (Response &res);
-		~Cgi();
+		~Cgi( );
 
-		void	setHasNewLine(const bool& newline);
+		void		executeCgi( std::string &reqBuff, Stage &stage, CgiStage &cgiStage );
+		void		uploadBody( Stage &stage, std::string &reqBuff, CgiStage &cgiStage );
+		void 		uploadByChunks( Stage &stage, std::string &reqBuff, CgiStage &cgiStage );
+		void 		uploadByContentLength( Stage &stage, std::string &reqBuff, CgiStage &cgiStage );
 
-		int&		getPid();
+		void		setHasNewLine( const bool& newline );
+
+		int&		getPid( );
 		const bool&	getHasNewLine() const;
-	
-		void		executeCgi(std::string &reqBuff, Stage &stage, CgiStage &cgiStage);
-		void		uploadBody(Stage &stage, std::string &reqBuff, CgiStage &cgiStage);
+
 		void		linkReqEnv( );
 		void		fillEnvirement( );
 		void		cgiBinary( );
-		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage);
-		void		getStatusCgi(Stage &stage, CgiStage &cgiStage);
-		void		checkValidStatus(std::string &status);
+		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage );
+		void		getStatusCgi(Stage &stage, CgiStage &cgiStage );
+		void		unmatchedUrlScript( const mapStrVect &loc, Stage &stage, CgiStage &cgiStage );
 
 		long long	maxBodySize( );
-
 };
 
 #endif

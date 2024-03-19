@@ -119,7 +119,7 @@ void	Client::sendResponse()
 {
 	try
 	{
-		stage = res.sendResponse(stage, reqBuff);
+		stage	  = res.sendResponse(stage, reqBuff);
 		if (stage == RESBODY)
 		{
 			if (!res.getHeaderRes().empty())
