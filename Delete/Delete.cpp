@@ -157,6 +157,8 @@ void	Delete::statusOfRequested( )
 			isReal = false;
 		}
 		base = response.getPath();
+		std::cout << base << "\n";
+		// exit(1);////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		if (!stat(base.c_str(), &statPath))
 		{
 			if (S_ISDIR(statPath.st_mode))

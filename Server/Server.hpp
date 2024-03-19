@@ -34,7 +34,7 @@ class Server
         const   std::string& getClientIp() const;
         void    setServerData(std::map<std::string, std::string>& servData);
         void    setLocations(std::map<std::string,  mapStrVect>& locs);
-        const   std::map<std::string, std::string>& getServerData() const;
+        std::map<std::string, std::string>& getServerData();
         const   std::map<std::string,  mapStrVect>& getLocations() const;
 
         void        createAndBindSocket(fd_set& readFds);

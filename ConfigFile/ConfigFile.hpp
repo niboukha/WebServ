@@ -26,6 +26,7 @@ class ConfigFile
 
         ConfigFile();
         ~ConfigFile();
+        
         const std::vector<Server>& getServers() const;
         void   parseConfigFile(std::fstream &configFile);
 

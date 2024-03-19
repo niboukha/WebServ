@@ -104,11 +104,6 @@ mapStrVect  ConfigFile::fillLocation(std::fstream& configFile)
     if(upload != location.end() \
     and cgi != location.end()) 
         upload->second = vect ;
-    
-    // if ( (upload != location.end() \
-    // and cgi != location.end())): upload->second;//update
-    // std::cout << "====> upload : " << upload->second.front() << ""
-    
     addDirectivesMissingInLocation(location);//update
     
     return location;
@@ -182,13 +177,16 @@ void    ConfigFile::parseConfigFile(std::fstream &configFile)
         if (!line.compare("server"))
         {
             fillServer(configFile, server);
-            const std::map<std::string, std::string>& mapDataServ = server.getServerData();
+            std::map<std::string, std::string>& mapDataServ = server.getServerData();
             std::string                                host, port, servName;
             
             host = mapDataServ.find("host")->second;
+             if (!host.compare("localhost"))
+                mapDataServ["host"] = "127.0.0.1";
             port = mapDataServ.find("port")->second;
             (mapDataServ.find("server_name") != mapDataServ.end()) ? servName = mapDataServ.find("server_name")->second :
             servName = std::string("");
+            
             for (size_t j = 0; j < servers.size(); j++)
             {
                 const std::map<std::string, std::string>& mapDataS = servers[j].getServerData();

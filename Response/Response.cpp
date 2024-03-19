@@ -199,7 +199,7 @@ std::string		Response::getContentType( std::string &path )
 	return ( ret );
 }
 
-std::string	Response::concatenateIndexDirectory( )
+std::string	Response::concatenateIndexDirectory( ) //updated
 {
 	mapStrVect  loc;
 	struct stat statPath;
@@ -210,17 +210,18 @@ std::string	Response::concatenateIndexDirectory( )
 	i = 0;
 	for (; i < loc["index"].size(); i++)
 	{
-		std::ifstream	myFile((loc["root"].front() + loc["index"][i]).c_str());
+		std::ifstream	myFile((getPath() + loc["index"][i]).c_str());
+	
 		if (myFile.is_open())
 		{
+			status = "200 ok";
 			myFile.close();
-			status   = "200 ok";
 			UpdateStatusCode(status);
-			return (loc["root"].front() + loc["index"][i]);
+			return (getPath() + loc["index"][i]);
 		}
 		myFile.close();
 	}
-	if (i >= 1 and !stat((loc["root"].front() + loc["index"][i - 1]).c_str(), &statPath))
+	if (i >= 1 and !stat((getPath() + loc["index"][i - 1]).c_str(), &statPath))
 	{
 		if (!(statPath.st_mode & S_IWUSR))
 		{
@@ -244,13 +245,15 @@ void	Response::isRealPath(std::string &path)
 
 	resource    = realpath(path.c_str(), bufRec);
 	currentPath = realpath(".", bufCur);
-
 	if (resource)
 	{
 		res			= bufRec;
 		curr		= bufCur;
-
-		if (res.find(curr) == std::string::npos)
+		std::cout << "curr -> " << curr << "\n";
+		std::cout << "res -> " << res << "\n";
+		if (res.find(curr) == std::string::npos
+			or (!res.compare(curr)
+			and !getRequest().getMethod().compare("DELETE")))
 		{
 			res = "403 forbidden";
 			setStatusCodeMsg(res);

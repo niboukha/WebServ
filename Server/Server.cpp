@@ -32,7 +32,7 @@ void    Server::setLocations(std::map<std::string,  mapStrVect>& locs)
     locations = locs;
 }
 
-const   std::map<std::string, std::string>& Server::getServerData() const
+std::map<std::string, std::string>& Server::getServerData()
 {
     return serverData;
 }

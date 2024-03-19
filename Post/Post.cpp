@@ -25,6 +25,10 @@ Post::Post( Response &res ) :	response       	  ( res ),
 
 Post::~Post( )
 {
+	if (uploadFile.is_open())
+		uploadFile.close();
+	if (in.is_open())
+		in.close();
 }
 
 const std::streampos	Post::getSizeofRead() const
@@ -34,11 +38,7 @@ const std::streampos	Post::getSizeofRead() const
 
 std::string	Post::conctRootUpload(std::string s)
 {
-	const mapStrVect	&loc = response.getRequest().getLocation();
-	std::string			pt;
-
-	pt = loc.find("root")->second.front() + s + "/";
-	return (pt);
+	return (s + "/");
 }
 
 long long	Post::maxBodySize( )
@@ -56,32 +56,32 @@ void	Post::nonChunkedTransfer( Stage &stage, std::string &reqBuff )
 {
 	const std::map<std::string, std::string>	&head = response.getRequest().getHeaders();
 
-	if (!UploadFile.is_open())
+	if (!uploadFile.is_open())
 	{
-		UploadFile.open(response.getPath().c_str(), std::ios_base::app);
-		
 		contentLengthLong = Utils::stringToLong(head.find("content-length")->second);
 		if (maxBodySize() < contentLengthLong)
 		{
 			stage = RESHEADER;
 			response.throwNewPath("413 Request Entity Too Large", "413");
 		}
+		
+		uploadFile.open(response.getPath().c_str(), std::ios_base::app);
 	}
 	if (static_cast<long long>(uploadSize + reqBuff.size()) > contentLengthLong)
 	{
-		UploadFile << std::string (reqBuff, 0, contentLengthLong - uploadSize);
+		uploadFile << std::string (reqBuff, 0, contentLengthLong - uploadSize);
 		stage = RESHEADER;
-		UploadFile.close();
+		uploadFile.close();
 		response.throwNewPath("201 Created", "201");
 	}
 
-	UploadFile << reqBuff;
+	uploadFile << reqBuff;
 
 	uploadSize	   += reqBuff.size();
 	if (uploadSize == contentLengthLong)
 	{
 		stage = RESHEADER;
-		UploadFile.close();
+		uploadFile.close();
 		response.throwNewPath("201 Created", "201");
 	}
 	reqBuff.clear();
@@ -93,9 +93,9 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 	size_t			foundBuff;
 	long long		hexLen;
 
-	if (!UploadFile.is_open())
+	if (!uploadFile.is_open())
 	{
-		UploadFile.open(response.getPath().c_str(), std::ios_base::app);
+		uploadFile.open(response.getPath().c_str(), std::ios_base::app);
 		maxBody = maxBodySize();
 	}
 	while (reqBuff.size())
@@ -107,7 +107,7 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 			if (hexLen == 0)
 			{
 				stage	= RESHEADER;
-				UploadFile.close();
+				uploadFile.close();
 				response.throwNewPath("201 Created", "201");
 			}
 		}
@@ -118,8 +118,12 @@ void	Post::chunkedTransfer(std::string &reqBuff, Stage &stage)
 		{
 			size += hexLen;
 			if (maxBody < size)
+			{
+				uploadFile.close();
+				std::remove(response.getPath().c_str());
 				response.throwNewPath("413 Request Entity Too Large", "413");
-			UploadFile << std::string(reqBuff, foundLen + 2, hexLen);
+			}
+			uploadFile << std::string(reqBuff, foundLen + 2, hexLen);
 			reqBuff = std::string(reqBuff, foundBuff + 2);	
 		}
 		else
@@ -225,7 +229,8 @@ void	Post::unsupportedUpload( std::string &reqBuff, Stage &stage, CgiStage &cgiS
 
 bool	Post::isUploadPass( )
 {
-	const mapStrVect	&loc = response.getRequest().getLocation();
+	const std::map<std::string, std::string>	&header = response.getRequest().getHeaders();
+	const mapStrVect							&loc    = response.getRequest().getLocation();
 	struct stat			statPath;
 	std::string			path;
 
@@ -237,16 +242,17 @@ bool	Post::isUploadPass( )
 	}
 
 	if (enter) return (enter);
-
-	enter = true;
-	if (!Utils::isDir(conctRootUpload(loc.find("upload_pass")->second.front()).c_str()))
-		response.throwNewPath("500 Internal Server Error", "500");
-	if (!stat(conctRootUpload(loc.find("upload_pass")->second.front()).c_str(), &statPath)
-		and !(statPath.st_mode & S_IWUSR))
-		response.throwNewPath("403 Forbidden", "403");
 	
+	enter = true;
+	if (header.find("content-type") != header.end()
+		and header.find("content-type")->second.find("boundary=") != std::string::npos)
+			response.throwNewPath("501 Not Implemented", "501");
+	if (!Utils::isDir(conctRootUpload(loc.find("upload_pass")->second.front()).c_str()) 
+		or (!stat(conctRootUpload(loc.find("upload_pass")->second.front()).c_str(), &statPath)
+		and !(statPath.st_mode & S_IWUSR)))
+		response.throwNewPath("500 Internal Server Error", "500");
 	path = conctRootUpload(loc.find("upload_pass")->second.front())
-		   + Utils::generateRundFile() + "." + response.getExtensionFile();
+		 + Utils::generateRundFile() + "." + response.getExtensionFile();
 	response.setPath( path );
 	return ( true );
 }
@@ -300,7 +306,6 @@ void	Post::responsHeader(Stage &stage, std::string &reqBuff, std::string &header
 void	Post::responsBody(std::string &bodyRes)
 {
 	char	buff[2048];
-
 	if (!in.is_open())
 		in.open(response.getPath().c_str(), std::ios_base::binary);
 

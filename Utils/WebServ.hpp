@@ -46,6 +46,7 @@
 #include <list>
 #include <netdb.h>
 #include <sys/wait.h>
+#include <signal.h>
 #define RESET   "\033[0m"
 #define GREEN   "\033[32m"
 #define _XOPEN_SOURCE 700

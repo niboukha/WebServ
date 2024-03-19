@@ -31,7 +31,7 @@ class	Post
 		bool			enter;
 		long long		uploadSize;
 		long long		contentLengthLong;
-		std::ofstream	UploadFile;
+		std::ofstream	uploadFile;
 		std::ifstream	in;
 		long long		maxBody;
 

@@ -124,20 +124,20 @@ void    Request::parseRequestLine(std::string    &buff)
     size_t                      found;
     std::string                 methodes[9] = {"GET", "POST", "DELETE", 
                                                 "PUT", "CONNECT", "OPTIONS", "TRACE", 
-                                                "HEAD", "PATCH"}; //PATCH//HEAD FIHA BLAN
+                                                "HEAD", "PATCH"}; 
     std::string                 methodesImp[3] = {"GET", "POST", "DELETE"};
   
     found = buff.find("\r\n");
     reqLine = buff.substr(0 ,found);
-    if (std::count(reqLine.begin(), reqLine.end(), ' ') != 2)//Bad req to check \r\n
+    if (std::count(reqLine.begin(), reqLine.end(), ' ') != 2)
         throw std::make_pair("400", "400 Bad Request");
     buff = buff.substr(found + 2);
     splitReqLine = StringOperations::split(reqLine, " ");
     if ( splitReqLine.size() != 3 
         or (std::find(methodes, methodes + 9, splitReqLine[0]) \
-        == (methodes +  9)))//Bad request can cz SGV !!!
+        == (methodes +  9)))
         throw std::make_pair("400", "400 Bad Request");
-    if (std::find(methodesImp, methodesImp + 3 , splitReqLine[0]) == (methodesImp +  3))//Not implemented
+    if (std::find(methodesImp, methodesImp + 3 , splitReqLine[0]) == (methodesImp +  3))
         throw std::make_pair("501", "501 Not Implemented");
     if (splitReqLine[1].find("/"))
         throw std::make_pair("400", "400 Bad Request");
@@ -164,8 +164,8 @@ void    Request::parseHeader(std::string &buff, size_t& found)
         key = header.substr(0, header.find_first_of(":"));
         if (key.find_first_of(" \t") != std::string::npos )
             throw std::make_pair("400", "400 Bad Request");
-        std::transform(key.begin(), key.end(), key.begin(), tolower);//to check if it exist in cpp98
-        value = StringOperations::trim(header.substr(key.length() + 1));//to check trim !!!!!
+        std::transform(key.begin(), key.end(), key.begin(), tolower);
+        value = StringOperations::trim(header.substr(key.length() + 1));
         if (!key.compare("host") and value.empty())
             throw std::make_pair("400", "400 Bad Request");
         if ((!key.compare("host") or !key.compare("content-length") 
@@ -174,9 +174,10 @@ void    Request::parseHeader(std::string &buff, size_t& found)
         if (!key.compare("content-type") and headers.find(key) != headers.end())
             headers[key] = headers[key] + ";" + value;
         else
-            headers[key] = value;//check if key exist
+            headers[key] = value;
     }   
 }
+
 void    Request::validateRequestHeader()
 {
     if (headers.find("host") ==  headers.end())
@@ -210,10 +211,7 @@ void    Request::validateRequestHeader()
         (transferEncIt->second.compare("chunked")) ?  throw std::make_pair("501", "501 Not Implemented") : false;
     }
     if (contentTypeIt != headers.end() )
-    {
         (contentTypeIt->second.empty()) ? throw std::make_pair("400", "400 Bad Request") : false;
-        (contentTypeIt->second.find("boundary=") != std::string::npos) ? throw std::make_pair("501", "501 Not Implemented") : false;
-    }
     isMethodPost = method.compare("POST");
     
     if (!isMethodPost and transferEncIt == headers.end()
@@ -244,7 +242,6 @@ void   Request::parseRequest(std::string &buff, Stage &stage)
         {
             validateRequestHeader();
             matchingLocation();
-            // std::cout << "THE END OR PARSING" << std::endl;
             buff = buff.substr(pos + 2);
             stage = REQBODY;
             return ;
@@ -257,28 +254,27 @@ void    Request::decodeUri()
 {
     char    decodeChar;
 
-    for (size_t i = 0; i < uri.size(); i++)
+    for (size_t i = 0; i < requestedPath.size(); i++)
     {
-        if((uri[i] == '%' and i != uri.length() - 2) and 
-        ((isdigit(uri[i + 1]) and isupper(uri[i + 2]))
-        or (isdigit(uri[i + 1]) and isdigit(uri[i + 2]))))
+        if((requestedPath[i] == '%' and i != requestedPath.length() - 2) and 
+        ((isdigit(requestedPath[i + 1]) and isupper(requestedPath[i + 2]))
+        or (isdigit(requestedPath[i + 1]) and isdigit(requestedPath[i + 2]))))
         {
-            decodeChar = static_cast<char>(strtol(uri.substr(i + 1, 2).c_str(), NULL, 16));
-            uri.replace(i, 3, 1, decodeChar);
+            decodeChar = static_cast<char>(strtol(requestedPath.substr(i + 1, 2).c_str(), NULL, 16));
+            requestedPath.replace(i, 3, 1, decodeChar);
             i += 3;
         }
     }
 }
 
-void   Request::parseUri()//to check 
+void   Request::parseUri()
 {
     size_t      queryDelim;
 
-    decodeUri();
-    if (uri.length() > 2048)//bad req
-        throw std::make_pair("414", "414 URI Too Long");//to large 
+    if (uri.length() > 2048)
+        throw std::make_pair("414", "414 URI Too Long");
     if (uri.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkl\
-        mnopqrstuvwxyz0123456789 ._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
+        mnopqrstuvwxyz0123456789-._~:/?#[]@!$&'()*+,;=%") != std::string::npos)
         throw std::make_pair("400", "400 Bad Request");
     queryDelim = uri.find("?");
     if (queryDelim != std::string::npos)
@@ -288,6 +284,7 @@ void   Request::parseUri()//to check
         return ;
     }
     requestedPath = uri.substr(uri.find("/"));
+    decodeUri();
 }
 
 
@@ -332,7 +329,7 @@ void    Request::matchingLocation()
     if (requestedPath.find("/", subUri.length() - 1) != std::string::npos)
         requestedPath = requestedPath.substr(requestedPath.find("/", subUri.length() - 1));
         
-    if (!location["return"].front().empty())//to check mn b3ed !!!
+    if (!location["return"].front().empty())
     {
         throw std::make_pair(((location["return"][0]).c_str()),
             ("301 Moved Permanently"));
@@ -343,23 +340,30 @@ void    Request::matchingLocation()
         location["allow_methodes"].end(), method);
         it == location["allow_methodes"].end() ? throw std::make_pair("405", "405 Method Not Allowed") : false;
     }
-    std::cout << "------> matching loc : " << subUri << std::endl;
-    std::cout << "=====> requested path : " << requestedPath << std::endl;
 }
 
 Server&  Request::matchingServer()
 {
-    std::string host;
+    std::string host, port;
     std::string serverName;
+    size_t      found;
 
-    host = headers.find("host")->second;
+    found = headers.find("host")->second.find(":");
+    if (found != std::string::npos)
+    {
+        host = headers.find("host")->second.substr(0, found);
+        port =  headers.find("host")->second.substr(found + 1);
+    }
+    else 
+        host = headers.find("host")->second;
     
     for (size_t i = 0; i < servs.size(); i++)
     {
         
         servs[i].getServerData().find("server_name") != servs[i].getServerData().end() ? 
         serverName = servs[i].getServerData().find("server_name")->second : serverName = "";
-        if (!serverName.compare(host))
+        if (!serverName.compare(host) and !port.empty() and  
+        !servs[i].getServerData().find("port")->second.compare(port))
             return servs[i];
     }
     return servs[0];

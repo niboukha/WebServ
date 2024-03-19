@@ -58,6 +58,7 @@ class	Cgi
 		void		cgiBinary( );
 		void		waitCgi(Stage &stage, int &pid, CgiStage &cgiStage );
 		void		getStatusCgi(Stage &stage, CgiStage &cgiStage );
+		void		unmatchedUrlScript( const mapStrVect &loc, Stage &stage, CgiStage &cgiStage );
 
 		long long	maxBodySize( );
 };
